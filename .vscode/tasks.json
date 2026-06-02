@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "csharp-dev-tools.task",
+			"project": "${command:csharp-dev-tools.activeProjectPath}",
+			"problemMatcher": [],
+			"label": "csharp-dev-tools: Build"
+		}
+	]
+}

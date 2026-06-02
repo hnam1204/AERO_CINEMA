@@ -1,0 +1,175 @@
+@{
+    ViewBag.Title = "Đăng Nhập - AERO Cinema";
+}
+
+<link href="@Url.Content("~/Content/auth.css?v=2")" rel="stylesheet" />
+
+<main class="auth-page">
+    <div class="auth-bg"></div>
+    <div class="auth-overlay"></div>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo">AERO<span>Cinema</span></div>
+                <h1 class="auth-title">ĐĂNG NHẬP</h1>
+                <div class="auth-subtitle">Tiếp tục đặt vé và quản lý tài khoản.</div>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <div class="form-input-wrap">
+                        <input type="email" id="email" class="form-input" placeholder="name@domain.com" required autocomplete="email" />
+                    </div>
+                    <span class="field-error" id="emailError">Email không hợp lệ</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mật khẩu</label>
+                    <div class="form-input-wrap">
+                        <input type="password" id="password" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+                    </div>
+                    <span class="field-error" id="passwordError">Vui lòng nhập mật khẩu</span>
+                </div>
+
+                <div class="form-helper">
+                    <label>
+                        <input type="checkbox" id="remember" /> Ghi nhớ đăng nhập
+                    </label>
+                    <a href="@Url.Action("ForgotPassword", "Account")">Quên mật khẩu?</a>
+                </div>
+
+                <button type="submit" class="btn-auth-submit" id="loginSubmitBtn">
+                    <span id="loginSubmitText">Đăng nhập</span>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Chưa có tài khoản? <a href="@Url.Action("Register", "Account")">Đăng ký</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="module">
+        import {
+            signInWithEmailAndPassword,
+            setPersistence,
+            browserLocalPersistence,
+            browserSessionPersistence
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        const auth = window.auth;
+        const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+        const loginSubmitBtn = document.getElementById("loginSubmitBtn");
+        const loginSubmitText = document.getElementById("loginSubmitText");
+
+        function setError(id, show) {
+            document.getElementById(id).classList.toggle("show", show);
+        }
+
+        function showError(title, message) {
+            Swal.fire({
+                icon: "error",
+                title,
+                text: message,
+                background: "#ffffff",
+                color: "#333333",
+                confirmButtonColor: "#f58220"
+            });
+        }
+
+        async function postForm(url, payload) {
+            const body = new URLSearchParams(payload);
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+                },
+                body
+            });
+
+            return response.ok ? response.json() : { success: false };
+        }
+
+        function getReturnUrl() {
+            const returnUrl = new URLSearchParams(window.location.search).get("returnUrl");
+            return returnUrl || "/";
+        }
+
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            const remember = document.getElementById("remember").checked;
+            const emailInvalid = !emailRegex.test(email);
+            const passwordInvalid = !password;
+
+            setError("emailError", emailInvalid);
+            setError("passwordError", passwordInvalid);
+
+            if (emailInvalid || passwordInvalid) {
+                return;
+            }
+
+            loginSubmitBtn.disabled = true;
+            loginSubmitText.textContent = "Đang đăng nhập...";
+
+            Swal.fire({
+                title: "Đang đăng nhập...",
+                text: "Vui lòng chờ trong giây lát",
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading(),
+                background: "#ffffff",
+                color: "#333333"
+            });
+
+            try {
+                await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+                await signInWithEmailAndPassword(auth, email, password);
+
+                postForm("/Otp/SendLoginAlert", { email }).catch((error) => {
+                    console.warn("Login alert email skipped:", error);
+                });
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Đăng nhập thành công",
+                    text: "Đang chuyển hướng...",
+                    background: "#ffffff",
+                    color: "#333333",
+                    confirmButtonColor: "#f58220",
+                    timer: 1200,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = getReturnUrl();
+                });
+            } catch (error) {
+                console.error("Error signing in:", error);
+
+                let message = "Email hoặc mật khẩu không chính xác.";
+                if (error.code === "auth/invalid-email") {
+                    message = "Email không hợp lệ.";
+                } else if (error.code === "auth/user-disabled") {
+                    message = "Tài khoản này đã bị khóa.";
+                } else if (error.code === "auth/user-not-found") {
+                    message = "Tài khoản không tồn tại.";
+                } else if (error.code === "auth/wrong-password") {
+                    message = "Mật khẩu không chính xác.";
+                } else if (error.code === "auth/invalid-credential") {
+                    message = "Email hoặc mật khẩu không chính xác.";
+                }
+
+                showError("Đăng nhập thất bại", message);
+            } finally {
+                loginSubmitBtn.disabled = false;
+                loginSubmitText.textContent = "Đăng nhập";
+            }
+        });
+    </script>
+}

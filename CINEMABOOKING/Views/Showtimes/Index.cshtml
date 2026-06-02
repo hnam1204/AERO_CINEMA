@@ -1,0 +1,676 @@
+@{
+    ViewBag.Title = "Lịch Chiếu Phim - AERO Cinema";
+}
+
+<style>
+    /* Showtimes Page Styling */
+    .showtimes-header {
+        margin: 40px 0 30px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-left: 5px solid var(--primary-color, #005baa);
+        padding-left: 15px;
+    }
+
+    .showtimes-header h1 {
+        font-family: 'Raleway', sans-serif;
+        font-size: 32px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 0;
+        color: var(--text-main, #333333);
+    }
+
+    /* PREMIUM FILTER BAR */
+    .filter-bar {
+        background-color: var(--bg-card, #ffffff);
+        padding: 25px;
+        border-radius: 12px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+        margin-bottom: 40px;
+        border: 1px solid var(--border-color, #e0e0e0);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filter-group label {
+        font-family: 'Raleway', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-sub, #777777);
+        letter-spacing: 0.5px;
+    }
+
+    .select-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .filter-group select {
+        width: 100%;
+        background-color: #ffffff;
+        border: 1px solid var(--border-color, #e0e0e0);
+        color: var(--text-main, #333333);
+        padding: 14px 20px;
+        font-family: 'Raleway', sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 8px;
+        outline: none;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-group select:focus {
+        border-color: var(--primary-color, #005baa);
+        box-shadow: 0 0 0 3px rgba(0, 91, 170, 0.1);
+    }
+
+    .select-wrapper::after {
+        content: '\f107';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-sub, #777777);
+        pointer-events: none;
+        transition: color 0.3s;
+    }
+
+    .select-wrapper:hover::after {
+        color: var(--text-main, #333333);
+    }
+
+    /* SHOWTIMES LISTING */
+    .showtimes-container {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+        margin-bottom: 60px;
+    }
+
+    .movie-showtime-card {
+        background-color: var(--bg-card, #ffffff);
+        border-radius: 12px;
+        border: 1px solid var(--border-color, #e0e0e0);
+        padding: 30px;
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 35px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .movie-showtime-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(0, 91, 170, 0.2);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
+    }
+
+    .movie-poster-box {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2/3;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .movie-poster-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .movie-showtime-card:hover .movie-poster-box img {
+        transform: scale(1.05);
+    }
+
+    .movie-rating-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        color: #fff;
+        font-weight: 800;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        z-index: 10;
+    }
+
+    .movie-rating-badge.badge-t18 { background-color: #e74c3c; }
+    .movie-rating-badge.badge-t16 { background-color: #e67e22; }
+    .movie-rating-badge.badge-t13 { background-color: #3498db; }
+    .movie-rating-badge.badge-p { background-color: #2ecc71; }
+
+    .movie-info-details {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .movie-title-row h3 {
+        font-family: 'Raleway', sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin: 0 0 8px 0;
+        color: var(--text-main, #333333);
+        letter-spacing: 0.5px;
+    }
+
+    .movie-meta-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        font-size: 13px;
+        color: var(--text-sub, #777777);
+    }
+
+    .movie-meta-tag {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .movie-meta-tag i {
+        color: var(--primary-color, #005baa);
+    }
+
+    .showtimes-divider {
+        height: 1px;
+        background: var(--border-color, #e0e0e0);
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    .format-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .format-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--text-sub, #777777);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .hours-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .hour-btn {
+        background-color: var(--bg-body, #f6f6f6);
+        border: 1px solid var(--border-color, #e0e0e0);
+        color: var(--text-main, #333333);
+        padding: 12px 22px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        text-align: center;
+    }
+
+    .hour-btn:hover {
+        background-color: var(--primary-color, #005baa);
+        border-color: var(--primary-color, #005baa);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(0, 91, 170, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 250px;
+        font-size: 16px;
+        color: var(--text-sub, #777777);
+        width: 100%;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Skeleton Loader & Shimmer Animation */
+    .skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 8px;
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    /* RESPONSIVE */
+    @@media (max-width: 992px) {
+        .filter-bar {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .movie-showtime-card {
+            grid-template-columns: 160px 1fr;
+            gap: 25px;
+            padding: 20px;
+        }
+
+        .movie-title-row h3 {
+            font-size: 20px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .movie-showtime-card {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .movie-poster-box {
+            max-width: 180px;
+            margin: 0 auto;
+        }
+
+        .movie-title-row {
+            text-align: center;
+        }
+
+        .movie-meta-tags {
+            justify-content: center;
+        }
+
+        .format-title {
+            text-align: center;
+        }
+
+        .hours-grid {
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="container">
+    
+    <!-- HEADER -->
+    <div class="showtimes-header">
+        <h1>Lịch Chiếu Phim</h1>
+    </div>
+    
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label for="filterCinema">Chọn Rạp</label>
+            <div class="select-wrapper">
+                <select id="filterCinema" onchange="applyFilters()">
+                    <!-- Populated dynamically -->
+                </select>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <label for="filterDate">Chọn Ngày</label>
+            <div class="select-wrapper">
+                <select id="filterDate" onchange="applyFilters()">
+                    <!-- Populated dynamically -->
+                </select>
+            </div>
+        </div>
+        
+        <div class="filter-group">
+            <label for="filterMovie">Chọn Phim</label>
+            <div class="select-wrapper">
+                <select id="filterMovie" onchange="applyFilters()">
+                    <!-- Populated dynamically -->
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHOWTIMES LIST GROUPED BY MOVIE -->
+    <div id="showtimesContainer" class="showtimes-container">
+        <div class="movie-showtime-card">
+            <div class="movie-poster-box skeleton" style="border-radius: 8px; background-color: #ddd;"></div>
+            <div class="movie-info-details" style="width: 100%;">
+                <div class="movie-title-row">
+                    <div class="skeleton" style="width: 50%; height: 24px; margin-bottom: 8px;"></div>
+                    <div class="movie-meta-tags">
+                        <div class="skeleton" style="width: 100px; height: 18px;"></div>
+                        <div class="skeleton" style="width: 80px; height: 18px;"></div>
+                    </div>
+                </div>
+                <div class="showtimes-divider"></div>
+                <div class="format-group">
+                    <div class="skeleton" style="width: 120px; height: 14px; margin-bottom: 8px;"></div>
+                    <div class="hours-grid">
+                        <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
+                        <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
+                        <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="movie-showtime-card">
+            <div class="movie-poster-box skeleton" style="border-radius: 8px; background-color: #ddd;"></div>
+            <div class="movie-info-details" style="width: 100%;">
+                <div class="movie-title-row">
+                    <div class="skeleton" style="width: 40%; height: 24px; margin-bottom: 8px;"></div>
+                    <div class="movie-meta-tags">
+                        <div class="skeleton" style="width: 90px; height: 18px;"></div>
+                        <div class="skeleton" style="width: 70px; height: 18px;"></div>
+                    </div>
+                </div>
+                <div class="showtimes-divider"></div>
+                <div class="format-group">
+                    <div class="skeleton" style="width: 100px; height: 14px; margin-bottom: 8px;"></div>
+                    <div class="hours-grid">
+                        <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
+                        <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section scripts {
+    <script type="module">
+        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.db;
+        const AERO_CACHE = window.AERO_CACHE;
+
+        let allMoviesMap = {};
+        let selectedCinemaId = "";
+        let selectedDate = "";
+        let selectedMovieId = "all";
+
+        const getCachedDocs = async (cacheKey, collectionName) => {
+            const cached = AERO_CACHE && AERO_CACHE.get ? AERO_CACHE.get(cacheKey) : null;
+            if (cached) return cached;
+
+            const querySnapshot = await getDocs(collection(db, collectionName));
+            const data = querySnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+            if (AERO_CACHE && AERO_CACHE.set) AERO_CACHE.set(cacheKey, data);
+            return data;
+        };
+
+        // Generate 7-day selector
+        function initDateFilter() {
+            const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+            const today = new Date();
+            const filterDate = document.getElementById("filterDate");
+            filterDate.innerHTML = "";
+
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(today.getDate() + i);
+                const dateStr = d.toISOString().split('T')[0]; // YYYY-MM-DD
+                const dayLabel = i === 0 ? "Hôm nay" : daysOfWeek[d.getDay()];
+                const dayNum = d.getDate();
+                const monthNum = d.getMonth() + 1;
+                const displayLabel = `${dayLabel} (${dayNum < 10 ? '0' + dayNum : dayNum}/${monthNum < 10 ? '0' + monthNum : monthNum})`;
+                
+                const option = document.createElement("option");
+                option.value = dateStr;
+                option.innerText = displayLabel;
+                filterDate.appendChild(option);
+            }
+            selectedDate = filterDate.value;
+        }
+
+        // Fetch cinemas from Firestore
+        async function loadCinemas() {
+            try {
+                const cinemas = await getCachedDocs("cinemas", "cinemas");
+                const filterCinema = document.getElementById("filterCinema");
+                filterCinema.innerHTML = "";
+                
+                cinemas.forEach((data) => {
+                    const option = document.createElement("option");
+                    option.value = data.id;
+                    option.innerText = data.name;
+                    filterCinema.appendChild(option);
+                });
+                selectedCinemaId = filterCinema.value;
+            } catch (e) {
+                console.error("Error loading cinemas: ", e);
+            }
+        }
+
+        // Fetch movies from Firestore to populate filters and cache metadata
+        async function loadMovies() {
+            try {
+                const movies = await getCachedDocs("movies", "movies");
+                const filterMovie = document.getElementById("filterMovie");
+                filterMovie.innerHTML = '<option value="all">Tất Cả Phim</option>';
+                
+                allMoviesMap = {};
+                movies.forEach((data) => {
+                    allMoviesMap[data.id] = data;
+                    
+                    if (data.status === "now_showing") {
+                        const option = document.createElement("option");
+                        option.value = data.id;
+                        option.innerText = data.title;
+                        filterMovie.appendChild(option);
+                    }
+                });
+            } catch (e) {
+                console.error("Error loading movies: ", e);
+            }
+        }
+
+        // Load showtimes and render grouped by movie
+        async function loadShowtimes() {
+            const container = document.getElementById("showtimesContainer");
+            container.innerHTML = `
+                <div class="movie-showtime-card">
+                    <div class="movie-poster-box skeleton" style="border-radius: 8px; background-color: #ddd;"></div>
+                    <div class="movie-info-details" style="width: 100%;">
+                        <div class="movie-title-row">
+                            <div class="skeleton" style="width: 50%; height: 24px; margin-bottom: 8px;"></div>
+                            <div class="movie-meta-tags">
+                                <div class="skeleton" style="width: 100px; height: 18px;"></div>
+                                <div class="skeleton" style="width: 80px; height: 18px;"></div>
+                            </div>
+                        </div>
+                        <div class="showtimes-divider"></div>
+                        <div class="format-group">
+                            <div class="skeleton" style="width: 120px; height: 14px; margin-bottom: 8px;"></div>
+                            <div class="hours-grid">
+                                <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
+                                <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
+                                <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="movie-showtime-card">
+                    <div class="movie-poster-box skeleton" style="border-radius: 8px; background-color: #ddd;"></div>
+                    <div class="movie-info-details" style="width: 100%;">
+                        <div class="movie-title-row">
+                            <div class="skeleton" style="width: 40%; height: 24px; margin-bottom: 8px;"></div>
+                            <div class="movie-meta-tags">
+                                <div class="skeleton" style="width: 90px; height: 18px;"></div>
+                                <div class="skeleton" style="width: 70px; height: 18px;"></div>
+                            </div>
+                        </div>
+                        <div class="showtimes-divider"></div>
+                        <div class="format-group">
+                            <div class="skeleton" style="width: 100px; height: 14px; margin-bottom: 8px;"></div>
+                            <div class="hours-grid">
+                                <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
+                                <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                let q;
+                if (selectedMovieId === "all") {
+                    q = query(
+                        collection(db, "showtimes"),
+                        where("cinemaId", "==", selectedCinemaId),
+                        where("date", "==", selectedDate),
+                        where("status", "==", "active")
+                    );
+                } else {
+                    q = query(
+                        collection(db, "showtimes"),
+                        where("cinemaId", "==", selectedCinemaId),
+                        where("date", "==", selectedDate),
+                        where("movieId", "==", selectedMovieId),
+                        where("status", "==", "active")
+                    );
+                }
+
+                const querySnapshot = await getDocs(q);
+                const showtimesList = [];
+                querySnapshot.forEach((docSnap) => {
+                    showtimesList.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                if (showtimesList.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 60px 20px; color: var(--text-sub, #777777); background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); width: 100%;">
+                            <i class="far fa-calendar-times fa-3x" style="color: var(--accent-color, #f58020); margin-bottom: 15px; display: block;"></i>
+                            <h3 style="font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Không có lịch chiếu</h3>
+                            <p style="margin: 0; font-size: 14px;">Không tìm thấy suất chiếu nào phù hợp với bộ lọc đã chọn. Vui lòng chọn ngày hoặc rạp khác.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Group showtimes by movieId
+                const grouped = {};
+                showtimesList.forEach((st) => {
+                    if (!grouped[st.movieId]) {
+                        grouped[st.movieId] = {
+                            movieTitle: st.movieTitle,
+                            slots: []
+                        };
+                    }
+                    grouped[st.movieId].slots.push(st);
+                });
+
+                // Sort time slots chronologically
+                for (const mId in grouped) {
+                    grouped[mId].slots.sort((a, b) => a.time.localeCompare(b.time));
+                }
+
+                // Build HTML
+                let html = "";
+                for (const mId in grouped) {
+                    const mMeta = allMoviesMap[mId] || {
+                        posterUrl: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=90",
+                        genre: "Hành động",
+                        duration: 120,
+                        rating: "P",
+                        language: "2D Phụ Đề"
+                    };
+
+                    const ratingClass = "badge-" + (mMeta.rating ? mMeta.rating.toLowerCase() : "p");
+                    let slotsHtml = "";
+                    grouped[mId].slots.forEach((st) => {
+                        slotsHtml += `
+                            <a href="/Booking/Seats?showtimeId=${st.id}" class="hour-btn">${st.time}</a>
+                        `;
+                    });
+
+                    html += `
+                        <div class="movie-showtime-card">
+                            <div class="movie-poster-box">
+                                <span class="movie-rating-badge ${ratingClass}">${mMeta.rating || 'P'}</span>
+                                <img src="${mMeta.posterUrl}" alt="${grouped[mId].movieTitle}" onerror="this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=90'" />
+                            </div>
+                            <div class="movie-info-details">
+                                <div class="movie-title-row">
+                                    <h3>${grouped[mId].movieTitle}</h3>
+                                    <div class="movie-meta-tags">
+                                        <div class="movie-meta-tag">
+                                            <i class="fas fa-tags"></i>
+                                            <span>${mMeta.genre || 'N/A'}</span>
+                                        </div>
+                                        <div class="movie-meta-tag">
+                                            <i class="far fa-clock"></i>
+                                            <span>${mMeta.duration || 120} Phút</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="showtimes-divider"></div>
+                                
+                                <div class="format-group">
+                                    <div class="format-title">${mMeta.language || '2D Phụ Đề Tiếng Việt'}</div>
+                                    <div class="hours-grid">
+                                        ${slotsHtml}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = html;
+
+            } catch (e) {
+                console.error("Error loading showtimes: ", e);
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: var(--text-sub, #777777); background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); width: 100%;">
+                        <i class="fas fa-exclamation-triangle fa-3x" style="color: var(--accent-color, #f58020); margin-bottom: 15px; display: block;"></i>
+                        <h3 style="font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Lỗi kết nối</h3>
+                        <p style="margin: 0; font-size: 14px;">Không thể tải dữ liệu lịch chiếu: ${e.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Apply filters handler
+        window.applyFilters = function() {
+            selectedCinemaId = document.getElementById("filterCinema").value;
+            selectedDate = document.getElementById("filterDate").value;
+            selectedMovieId = document.getElementById("filterMovie").value;
+            loadShowtimes();
+        };
+
+        // DOM Loaded Init
+        window.addEventListener('DOMContentLoaded', async () => {
+            initDateFilter();
+            await loadCinemas();
+            await loadMovies();
+            await loadShowtimes();
+        });
+    </script>
+}

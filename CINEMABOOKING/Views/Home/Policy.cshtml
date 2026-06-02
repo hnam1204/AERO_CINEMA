@@ -1,0 +1,270 @@
+@{
+    ViewBag.Title = "Chính Sách & Điều Khoản - AERO Cinema";
+}
+
+<style>
+    .policy-wrapper {
+        margin-bottom: 50px;
+    }
+
+    .policy-hero {
+        position: relative;
+        padding: 60px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #1e1b29 0%, #0b0b0d 100%);
+        border-radius: 12px;
+        margin-bottom: 40px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .policy-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(41, 188, 234, 0.05) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .policy-hero h1 {
+        font-size: 36px;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #fff;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    .policy-hero h1 span {
+        color: var(--accent-color);
+    }
+
+    .policy-hero p {
+        font-size: 15px;
+        color: var(--text-sub);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* Policy layout with sidebar navigation tabs */
+    .policy-layout {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 40px;
+    }
+
+    .policy-sidebar {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 25px;
+        height: fit-content;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .policy-nav-btn {
+        display: block;
+        width: 100%;
+        padding: 12px 20px;
+        color: var(--text-sub);
+        font-size: 13px;
+        font-weight: 700;
+        text-align: left;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        background: transparent;
+    }
+
+    .policy-nav-btn:hover, .policy-nav-btn.active {
+        color: #fff;
+        background-color: var(--primary-color);
+    }
+
+    .policy-content-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 40px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .policy-section {
+        display: none;
+    }
+
+    .policy-section.active {
+        display: block;
+    }
+
+    .policy-section h2 {
+        font-size: 20px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #fff;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 12px;
+    }
+
+    .policy-section h3 {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--accent-color);
+        margin: 20px 0 10px 0;
+        text-transform: uppercase;
+    }
+
+    .policy-section p {
+        font-size: 13px;
+        color: var(--text-sub);
+        line-height: 1.8;
+        margin-bottom: 15px;
+    }
+
+    .policy-section ul {
+        padding-left: 20px;
+        margin-bottom: 15px;
+    }
+
+    .policy-section li {
+        font-size: 13px;
+        color: var(--text-sub);
+        line-height: 1.8;
+        margin-bottom: 8px;
+        list-style-type: square;
+    }
+
+    @@media (max-width: 992px) {
+        .policy-layout {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .policy-content-panel {
+            padding: 25px;
+        }
+        .policy-hero h1 {
+            font-size: 28px;
+        }
+    }
+</style>
+
+<div class="policy-wrapper">
+    
+    <!-- Hero Header -->
+    <div class="policy-hero">
+        <h1>Chính sách & Điều khoản <span>AERO Cinema</span></h1>
+        <p>Tìm hiểu các điều khoản sử dụng dịch vụ và chính sách bảo vệ quyền lợi khách hàng tại hệ thống cụm rạp AERO Cinema.</p>
+    </div>
+
+    <!-- Layout Grid -->
+    <div class="policy-layout">
+        
+        <!-- Left Sidebar Navigation -->
+        <aside class="policy-sidebar">
+            <button class="policy-nav-btn active" onclick="switchTab(this, 'secMember')">Chính sách thành viên</button>
+            <button class="policy-nav-btn" onclick="switchTab(this, 'secTerms')">Điều khoản sử dụng</button>
+            <button class="policy-nav-btn" onclick="switchTab(this, 'secRefund')">Chính sách đổi trả vé</button>
+            <button class="policy-nav-btn" onclick="switchTab(this, 'secPrivacy')">Chính sách bảo mật</button>
+        </aside>
+
+        <!-- Right Main Panel Content -->
+        <main class="policy-content-panel">
+            
+            <!-- Section 1: Member Policy -->
+            <div id="secMember" class="policy-section active">
+                <h2>Chính sách thành viên</h2>
+                <p>Chương trình Khách hàng Thân thiết AERO Star được xây dựng nhằm mang lại những quyền lợi thiết thực nhất cho khách hàng sử dụng dịch vụ xem phim tại cụm rạp AERO Cinema.</p>
+                
+                <h3>1. Đăng ký tài khoản</h3>
+                <p>Khách hàng từ 13 tuổi trở lên có đầy đủ hành vi dân sự đều được đăng ký tài khoản thành viên miễn phí trực tuyến hoặc tại quầy của cụm rạp AERO Cinema.</p>
+                
+                <h3>2. Quy định thăng hạng</h3>
+                <ul>
+                    <li>Hạng Silver: Mặc định sau khi đăng ký thành viên.</li>
+                    <li>Hạng Gold: Đạt chi tiêu tích lũy tối thiểu 1.000.000đ trong 12 tháng liên tục.</li>
+                    <li>Hạng Platinum: Đạt chi tiêu tích lũy tối thiểu 3.000.000đ trong 12 tháng liên tục.</li>
+                    <li>Hạng Diamond: Đạt chi tiêu tích lũy tối thiểu 8.000.000đ trong 12 tháng liên tục.</li>
+                </ul>
+
+                <h3>3. Quy định tích lũy điểm thưởng</h3>
+                <p>Điểm thưởng thành viên (AERO Points) được tích lũy theo tỷ lệ tương ứng với từng hạng thành viên (từ 5% đến 15% giá trị hóa đơn thực chi). Điểm tích lũy có giá trị sử dụng trong vòng 12 tháng kể từ ngày cộng điểm.</p>
+            </div>
+
+            <!-- Section 2: Terms of Use -->
+            <div id="secTerms" class="policy-section">
+                <h2>Điều khoản sử dụng</h2>
+                <p>Chào mừng bạn đến với hệ thống đặt vé trực tuyến của AERO Cinema. Việc truy cập và sử dụng dịch vụ của website đồng nghĩa với việc bạn chấp thuận các điều khoản dưới đây.</p>
+                
+                <h3>1. Quyền sở hữu trí tuệ</h3>
+                <p>Toàn bộ nội dung giao diện, hình ảnh phim, đoạn giới thiệu phim (trailer), logo thương hiệu AERO Cinema đều thuộc bản quyền sở hữu của AERO Cinema hoặc đối tác cung cấp bản quyền phim.</p>
+                
+                <h3>2. Trách nhiệm người dùng</h3>
+                <p>Người dùng có trách nhiệm tự bảo mật thông tin tài khoản đăng nhập và mật khẩu của mình. Nghiêm cấm mọi hành vi can thiệp kỹ thuật trái phép vào cấu trúc cơ sở dữ liệu hệ thống hoặc phát tán mã nguồn độc hại.</p>
+
+                <h3>3. Giao dịch mua vé</h3>
+                <p>Mỗi giao dịch đặt vé xem phim online được giới hạn tối đa 08 ghế ngồi cho mỗi suất chiếu nhằm tránh hiện tượng đầu cơ vé bất hợp pháp.</p>
+            </div>
+
+            <!-- Section 3: Refund Policy -->
+            <div id="secRefund" class="policy-section">
+                <h2>Chính sách đổi trả vé</h2>
+                <p>Nhằm đảm bảo tính minh bạch và công bằng cho mọi khách hàng xem phim tại rạp, AERO Cinema áp dụng chính sách đổi trả vé cụ thể như sau:</p>
+                
+                <h3>1. Quy định về vé đã mua thành công</h3>
+                <p>Tất cả các giao dịch mua vé trực tuyến đã thanh toán thành công và nhận mã vé QR Code đều <strong>không thể hoàn tiền hoặc hủy giao dịch</strong> dưới bất kỳ hình thức nào.</p>
+                
+                <h3>2. Hỗ trợ đổi giờ chiếu</h3>
+                <p>Trong trường hợp bất khả kháng, quý khách có nhu cầu đổi giờ chiếu vui lòng mang mã vé QR tới quầy chăm sóc khách hàng của rạp tối thiểu trước 60 phút so với giờ in trên vé để được hỗ trợ chuyển sang suất chiếu khác trong cùng ngày (nếu còn ghế trống).</p>
+
+                <h3>3. Trường hợp rạp hủy suất chiếu</h3>
+                <p>Nếu suất chiếu bị hủy do lỗi kỹ thuật phòng chiếu, mất điện hoặc sự cố thiên tai từ phía rạp, AERO Cinema có trách nhiệm hoàn lại 100% số tiền vé đã mua hoặc cấp thẻ đổi vé tương đương cho quý khách.</p>
+            </div>
+
+            <!-- Section 4: Privacy Policy -->
+            <div id="secPrivacy" class="policy-section">
+                <h2>Chính sách bảo mật</h2>
+                <p>AERO Cinema cam kết bảo vệ tối đa dữ liệu thông tin cá nhân của quý khách hàng khi tham gia giao dịch đặt vé trực tuyến tại website.</p>
+                
+                <h3>1. Thu thập thông tin</h3>
+                <p>Chúng tôi chỉ thu thập các thông tin cơ bản phục vụ liên lạc nhận vé như: Họ tên, địa chỉ email, số điện thoại đăng ký và lịch sử đặt vé.</p>
+                
+                <h3>2. Sử dụng thông tin</h3>
+                <p>Dữ liệu khách hàng được sử dụng cho việc xác nhận giao dịch mua vé trực tuyến, cấp mã QR soát vé, và gửi quà tặng tri ân nhân ngày sinh nhật thành viên.</p>
+
+                <h3>3. Cam kết không chia sẻ</h3>
+                <p>AERO Cinema tuyệt đối không chuyển giao, mua bán hay tiết lộ dữ liệu cá nhân của người dùng cho bất kỳ bên thứ ba nào khi chưa được sự cho phép rõ ràng từ khách hàng, trừ trường hợp có yêu cầu bằng văn bản từ cơ quan pháp luật nhà nước.</p>
+            </div>
+
+        </main>
+
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        // Script to switch tab panel
+        function switchTab(btn, targetId) {
+            // Remove active buttons classes
+            document.querySelectorAll(".policy-nav-btn").forEach(el => el.classList.remove("active"));
+            btn.classList.add("active");
+
+            // Hide all sections
+            document.querySelectorAll(".policy-section").forEach(el => el.classList.remove("active"));
+            
+            // Show target section
+            var section = document.getElementById(targetId);
+            if (section) {
+                section.classList.add("active");
+            }
+        }
+    </script>
+}

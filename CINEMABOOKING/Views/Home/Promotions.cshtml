@@ -1,0 +1,234 @@
+@{
+    ViewBag.Title = "Khuyến Mãi & Ưu Đãi - AERO Cinema";
+}
+
+<style>
+    .promo-wrapper {
+        margin-bottom: 50px;
+    }
+
+    .promo-hero {
+        position: relative;
+        padding: 60px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #1e1b29 0%, #0b0b0d 100%);
+        border-radius: 12px;
+        margin-bottom: 40px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .promo-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(214, 0, 0, 0.05) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .promo-hero h1 {
+        font-size: 36px;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #fff;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    .promo-hero h1 span {
+        color: var(--primary-color);
+    }
+
+    .promo-hero p {
+        font-size: 15px;
+        color: var(--text-sub);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* GRID FOR PROMOTIONS */
+    .promo-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+
+    .promo-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .promo-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-color);
+        box-shadow: 0 15px 35px rgba(41, 188, 234, 0.15);
+    }
+
+    .promo-img-box {
+        width: 100%;
+        aspect-ratio: 16/10;
+        position: relative;
+        overflow: hidden;
+        background-color: #111;
+    }
+
+    .promo-img-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    .promo-card:hover .promo-img-box img {
+        transform: scale(1.05);
+    }
+
+    .promo-tag {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        background-color: var(--primary-color);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 5px 12px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    .promo-details {
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        justify-content: space-between;
+    }
+
+    .promo-details h3 {
+        font-size: 16px;
+        font-weight: 800;
+        color: #fff;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        line-height: 1.4;
+    }
+
+    .promo-details p {
+        font-size: 13px;
+        color: var(--text-sub);
+        line-height: 1.6;
+        margin-bottom: 20px;
+        flex: 1;
+    }
+
+    .promo-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid var(--border-color);
+        padding-top: 15px;
+        font-size: 11px;
+        color: #888;
+    }
+
+    .promo-footer i {
+        color: var(--accent-color);
+    }
+
+    .promo-code-badge {
+        background-color: rgba(41, 188, 234, 0.1);
+        color: var(--accent-color);
+        border: 1px dashed var(--accent-color);
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-weight: 700;
+    }
+
+    @@media (max-width: 992px) {
+        .promo-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .promo-grid {
+            grid-template-columns: 1fr;
+        }
+        .promo-hero h1 {
+            font-size: 28px;
+        }
+    }
+</style>
+
+<div class="promo-wrapper">
+    
+    <!-- Hero Header -->
+    <div class="promo-hero">
+        <h1>Khuyến mãi & Ưu đãi hấp dẫn tại <span>AERO Cinema</span></h1>
+        <p>Tận hưởng niềm vui điện ảnh nhân đôi cùng các đặc quyền thành viên và voucher ưu đãi bắp nước độc quyền.</p>
+    </div>
+
+    <!-- Promotions Grid -->
+    <div class="promo-grid">
+        
+        <!-- Promo 1: Welcome members -->
+        <div class="promo-card">
+            <div class="promo-img-box">
+                <span class="promo-tag">Thành viên</span>
+                <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80" alt="Welcome Member" />
+            </div>
+            <div class="promo-details">
+                <h3>Đăng Ký Thành Viên - Nhận Combo Miễn Phí</h3>
+                <p>Khách hàng đăng ký tài khoản thành viên mới trên AERO Cinema được tặng ngay 01 mã Voucher giảm giá 50k bắp nước. Đăng ký nhanh tay nhận quà liền tay!</p>
+                <div class="promo-footer">
+                    <span><i class="far fa-calendar-alt"></i> Hạn dùng: 31/12/2026</span>
+                    <span class="promo-code-badge">AERONEW</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Promo 2: DGCINE50 Discount Voucher -->
+        <div class="promo-card">
+            <div class="promo-img-box">
+                <span class="promo-tag">Voucher</span>
+                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&q=80" alt="Discount Voucher" />
+            </div>
+            <div class="promo-details">
+                <h3>Voucher Ưu Đãi 50K - Áp Dụng Khi Đặt Vé</h3>
+                <p>Nhập mã giảm giá khi thanh toán vé xem phim trực tuyến để được giảm ngay 50.000đ trực tiếp vào tổng hóa đơn. Áp dụng cho mọi suất chiếu trong ngày.</p>
+                <div class="promo-footer">
+                    <span><i class="far fa-calendar-alt"></i> Hạn dùng: 31/07/2026</span>
+                    <span class="promo-code-badge">DGCINE50</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Promo 3: CINEMA10 Promo -->
+        <div class="promo-card">
+            <div class="promo-img-box">
+                <span class="promo-tag">Mã Giảm Giá</span>
+                <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=600&q=80" alt="10% discount" />
+            </div>
+            <div class="promo-details">
+                <h3>Giảm Ngay 10% Hóa Đơn Đặt Vé Trực Tuyến</h3>
+                <p>Ưu đãi dành riêng cho đặt vé online qua QR Banking và MoMo, nhập mã để hưởng chiết khấu 10% trên tổng giá vé. Đặt vé ngay trải nghiệm cực đã!</p>
+                <div class="promo-footer">
+                    <span><i class="far fa-calendar-alt"></i> Hạn dùng: 31/10/2026</span>
+                    <span class="promo-code-badge">CINEMA10</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,392 @@
+@{
+    ViewBag.Title = "Hỗ Trợ Khách Hàng - AERO Cinema";
+}
+
+<style>
+    .support-wrapper {
+        margin-bottom: 50px;
+    }
+
+    .support-hero {
+        position: relative;
+        padding: 60px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #1e1b29 0%, #0b0b0d 100%);
+        border-radius: 12px;
+        margin-bottom: 40px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .support-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(41, 188, 234, 0.05) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .support-hero h1 {
+        font-size: 36px;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #fff;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    .support-hero h1 span {
+        color: var(--accent-color);
+    }
+
+    .support-hero p {
+        font-size: 15px;
+        color: var(--text-sub);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    /* TABS OR COLUMNS Layout */
+    .support-layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 40px;
+    }
+
+    .support-main {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 35px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .support-section-title {
+        font-size: 18px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #111111;
+        margin-bottom: 25px;
+        border-left: 3px solid var(--primary-color);
+        padding-left: 12px;
+    }
+
+    /* FAQ accordion styling */
+    .faq-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 40px;
+    }
+
+    .faq-item {
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 15px;
+    }
+
+    .faq-question {
+        font-size: 14px;
+        font-weight: 700;
+        color: #333333;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: var(--transition);
+        user-select: none;
+    }
+
+    .faq-question:hover {
+        color: var(--accent-color);
+    }
+
+    .faq-answer {
+        font-size: 13px;
+        color: var(--text-sub);
+        line-height: 1.6;
+        margin-top: 10px;
+        display: none;
+    }
+
+    /* Instructions list */
+    .guide-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .guide-step-item {
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .step-number {
+        width: 32px;
+        height: 32px;
+        background-color: var(--primary-color);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+
+    .step-text h4 {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111111;
+        margin-bottom: 5px;
+    }
+
+    .step-text p {
+        font-size: 12px;
+        color: var(--text-sub);
+        line-height: 1.6;
+    }
+
+    /* Right sidebar contact form */
+    .support-sidebar {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 35px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        height: fit-content;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-sub);
+        letter-spacing: 0.5px;
+    }
+
+    .form-control-cinema {
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        color: #333333;
+        padding: 10px 15px;
+        font-family: var(--font-family);
+        font-size: 13px;
+        outline: none;
+        transition: var(--transition);
+    }
+
+    .form-control-cinema:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 5px rgba(41, 188, 234, 0.2);
+    }
+
+    .btn-submit-support {
+        background-color: var(--accent-color);
+        color: #000;
+        border: none;
+        font-weight: 700;
+        font-size: 13px;
+        padding: 12px;
+        width: 100%;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: var(--transition);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-submit-support:hover {
+        background-color: var(--accent-hover);
+        box-shadow: 0 5px 15px rgba(41, 188, 234, 0.3);
+    }
+
+    @@media (max-width: 992px) {
+        .support-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .support-main, .support-sidebar {
+            padding: 25px;
+        }
+        .support-hero h1 {
+            font-size: 28px;
+        }
+    }
+</style>
+
+<div class="support-wrapper">
+    
+    <!-- Hero Header -->
+    <div class="support-hero">
+        <h1>Hỗ trợ khách hàng <span>AERO Cinema</span></h1>
+        <p>AERO Cinema luôn sẵn sàng giải đáp thắc mắc và đồng hành cùng bạn để có trải nghiệm xem phim trọn vẹn nhất.</p>
+    </div>
+
+    <!-- Main Layout Grid -->
+    <div class="support-layout">
+        
+        <!-- Left Main Content -->
+        <main class="support-main">
+            
+            <!-- FAQ Section -->
+            <section>
+                <h3 class="support-section-title">Câu hỏi thường gặp FAQ</h3>
+                <div class="faq-list">
+                    
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>1. Làm thế nào để mua vé xem phim online?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Bạn chỉ cần truy cập vào mục "Lịch Chiếu" hoặc "Phim", chọn suất chiếu thích hợp, chọn các ghế ngồi ưng ý, nhập thông tin liên hệ và tiến hành thanh toán qua chuyển khoản ngân hàng hoặc ví điện tử. Mã vé QR Code sẽ được hiển thị ngay sau khi thanh toán thành công.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>2. Tôi có thể hoàn trả hoặc đổi giờ vé đã mua không?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Theo quy định chung của AERO Cinema, vé xem phim đã thanh toán thành công trực tuyến không được hỗ trợ hủy bỏ hoặc hoàn tiền. Trong trường hợp khẩn cấp, vui lòng liên hệ hotline 1900 1234 tối thiểu trước 60 phút trước giờ chiếu để được xem xét đổi suất chiếu tương đương.
+                        </div>
+                    </div>
+
+                    <div class="faq-item">
+                        <div class="faq-question" onclick="toggleFaq(this)">
+                            <span>3. Làm sao để tích điểm thành viên khi mua vé tại rạp?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Khi thanh toán trực tiếp tại quầy bắp nước hoặc quầy vé, bạn chỉ cần đọc số điện thoại đã đăng ký hoặc hiển thị mã vạch thẻ thành viên trên điện thoại của mình trong mục "Thành viên" để nhân viên rạp quét tích điểm.
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Guide Steps Section -->
+            <section>
+                <h3 class="support-section-title">Hướng dẫn đặt vé trực tuyến</h3>
+                <div class="guide-steps">
+                    
+                    <div class="guide-step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-text">
+                            <h4>Chọn Suất Chiếu</h4>
+                            <p>Vào mục Lịch Chiếu, chọn bộ phim bạn muốn xem, chọn cụm rạp gần nhất và khung giờ chiếu phim thích hợp.</p>
+                        </div>
+                    </div>
+
+                    <div class="guide-step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-text">
+                            <h4>Chọn Vị Trí Ghế Ngồi</h4>
+                            <p>Chọn các vị trí ghế ngồi mong muốn trên sơ đồ phòng chiếu (Standard, VIP hoặc ghế đôi Double Seat).</p>
+                        </div>
+                    </div>
+
+                    <div class="guide-step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-text">
+                            <h4>Thanh Toán & Nhận Vé</h4>
+                            <p>Điền thông tin email, sđt để nhận vé. Chọn phương thức thanh toán VietQR ngân hàng hoặc MoMo. Quét mã QR code nhận vé tức thì.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Right Contact Form Sidebar -->
+        <aside class="support-sidebar">
+            <h3 class="support-section-title">Gửi phản hồi liên hệ</h3>
+            <form onsubmit="submitContactForm(event)">
+                
+                <div class="form-group">
+                    <label for="cName">Họ và Tên</label>
+                    <input type="text" id="cName" class="form-control-cinema" placeholder="Nguyễn Văn A" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="cEmail">Địa chỉ Email</label>
+                    <input type="email" id="cEmail" class="form-control-cinema" placeholder="name@domain.com" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="cPhone">Số Điện Thoại</label>
+                    <input type="tel" id="cPhone" class="form-control-cinema" placeholder="0901234567" required />
+                </div>
+
+                <div class="form-group">
+                    <label for="cMsg">Nội dung liên hệ</label>
+                    <textarea id="cMsg" class="form-control-cinema" rows="4" placeholder="Nhập phản hồi, góp ý của bạn..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit-support">
+                    <span>Gửi Tin Nhắn</span>
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </aside>
+
+    </div>
+
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // FAQ Accordion toggler
+        function toggleFaq(el) {
+            var answer = el.nextElementSibling;
+            var icon = el.querySelector("i");
+            if (answer.style.display === "block") {
+                answer.style.display = "none";
+                icon.className = "fas fa-chevron-down";
+            } else {
+                answer.style.display = "block";
+                icon.className = "fas fa-chevron-up";
+            }
+        }
+
+        // Contact form submit mock response
+        function submitContactForm(event) {
+            event.preventDefault();
+            Swal.fire({
+                icon: 'success',
+                title: 'Đã gửi phản hồi',
+                text: 'Cảm ơn ý kiến đóng góp của bạn. AERO Cinema sẽ liên hệ giải đáp trong vòng 24 giờ làm việc.',
+                background: '#ffffff',
+                color: '#333333',
+                confirmButtonColor: '#f58220'
+            }).then(() => {
+                document.getElementById("cName").value = "";
+                document.getElementById("cEmail").value = "";
+                document.getElementById("cPhone").value = "";
+                document.getElementById("cMsg").value = "";
+            });
+        }
+    </script>
+}

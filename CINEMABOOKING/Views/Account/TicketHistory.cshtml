@@ -1,0 +1,873 @@
+@{
+    ViewBag.Title = "Lịch Sử Đặt Vé - AERO Cinema";
+}
+
+<style>
+    :root {
+        --primary-color: #005baa;
+        --accent-color: #f58220;
+        --accent-hover: #e07316;
+        --text-main: #1f2937;
+        --text-sub: #6b7280;
+        --border-color: #e5e7eb;
+        --bg-body: #f6f6f6;
+        --bg-card: #ffffff;
+        --success-color: #16a34a;
+        --shadow-new: 0 8px 24px rgba(0, 0, 0, 0.08);
+        --font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    body {
+        background-color: var(--bg-body) !important;
+        font-family: var(--font-family) !important;
+        color: var(--text-main) !important;
+    }
+
+    .profile-wrapper {
+        max-width: 1180px;
+        margin: 40px auto 60px auto;
+        padding: 0 15px;
+    }
+
+    .profile-layout {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 30px;
+    }
+
+    .profile-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow-new);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        height: fit-content;
+    }
+
+    /* Circular Avatar */
+    .avatar-wrapper {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: #f3f4f6;
+        border: 3px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        overflow: hidden;
+        color: var(--primary-color);
+        font-size: 40px;
+        font-weight: 700;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .avatar-wrapper i {
+        color: var(--text-sub);
+    }
+
+    .profile-user-name {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0 0 5px 0;
+    }
+
+    .profile-user-email {
+        font-size: 13px;
+        color: var(--text-sub);
+        margin-bottom: 15px;
+        word-break: break-all;
+    }
+
+    /* Rank Badge */
+    .member-rank-badge {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 6px 14px;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        display: inline-block;
+        letter-spacing: 0.5px;
+    }
+
+    .member-rank-badge.standard {
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+    }
+
+    .member-rank-badge.silver {
+        background-color: #e5e7eb;
+        color: #1f2937;
+        border: 1px solid #d1d5db;
+    }
+
+    .member-rank-badge.gold {
+        background-color: #fef3c7;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+
+    .member-rank-badge.vip {
+        background-color: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+    }
+
+    /* Loyalty Card Graphic */
+    .loyalty-card {
+        width: 100%;
+        aspect-ratio: 1.586/1;
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        margin-bottom: 25px;
+        background: linear-gradient(135deg, #005baa 0%, #003666 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s;
+    }
+
+    .loyalty-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .loyalty-card.silver {
+        background: linear-gradient(135deg, #9ca3af 0%, #4b5563 100%);
+    }
+
+    .loyalty-card.gold {
+        background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+    }
+
+    .loyalty-card.vip {
+        background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+        box-shadow: 0 10px 20px rgba(239, 68, 68, 0.15);
+    }
+
+    .card-chip {
+        width: 35px;
+        height: 25px;
+        background: linear-gradient(135deg, #f3f4f6 0%, #d1d5db 100%);
+        border-radius: 4px;
+        opacity: 0.8;
+    }
+
+    .card-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.8);
+        letter-spacing: 1px;
+    }
+
+    .card-number {
+        font-size: 16px;
+        font-weight: 800;
+        font-family: monospace;
+        letter-spacing: 2px;
+        margin-top: 5px;
+    }
+
+    .card-holder {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .card-points {
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .card-points span {
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--accent-color);
+    }
+
+    .profile-nav-links {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .profile-nav-btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: var(--text-sub);
+        font-size: 14px;
+        font-weight: 700;
+        background-color: #f9fafb;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s;
+        text-align: left;
+        text-decoration: none;
+    }
+
+    .profile-nav-btn:hover,
+    .profile-nav-btn.active {
+        color: #fff;
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 91, 170, 0.15);
+    }
+
+    /* Right Main Panel Content */
+    .profile-main-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: var(--shadow-new);
+    }
+
+    .panel-title {
+        font-family: var(--font-family);
+        font-size: 22px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-main);
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .panel-title i {
+        color: var(--primary-color);
+    }
+
+    /* Booking history cards list */
+    .ticket-list {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .ticket-item {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        display: grid;
+        grid-template-columns: 100px 1fr auto;
+        gap: 20px;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        transition: all 0.3s;
+    }
+
+    .ticket-item:hover {
+        border-color: var(--primary-color);
+        box-shadow: var(--shadow-new);
+        transform: translateY(-2px);
+    }
+
+    .ticket-poster-wrap {
+        width: 100px;
+        aspect-ratio: 2/3;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .ticket-poster-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .ticket-details h3 {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text-main);
+        text-transform: uppercase;
+        margin: 0 0 10px 0;
+        letter-spacing: 0.5px;
+    }
+
+    .ticket-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px 15px;
+        font-size: 13px;
+        color: var(--text-sub);
+    }
+
+    .ticket-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ticket-meta-item i {
+        color: var(--primary-color);
+        width: 14px;
+    }
+
+    .ticket-action-box {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .ticket-price-display {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--accent-color);
+    }
+
+    .btn-view-qr {
+        background-color: var(--accent-color);
+        color: #fff;
+        border: none;
+        padding: 8px 18px;
+        font-size: 12px;
+        font-weight: 700;
+        border-radius: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-view-qr:hover {
+        background-color: var(--accent-hover);
+        box-shadow: 0 4px 10px rgba(245, 130, 32, 0.2);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-sub);
+    }
+
+    .empty-state i {
+        font-size: 48px;
+        color: var(--border-color);
+        margin-bottom: 15px;
+    }
+
+    .empty-state h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 10px;
+    }
+
+    .empty-state p {
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .btn-cinema {
+        background-color: var(--accent-color);
+        color: #fff;
+        padding: 10px 24px;
+        border-radius: 20px;
+        font-weight: 700;
+        border: none;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.3s;
+    }
+
+    .btn-cinema:hover {
+        background-color: var(--accent-hover);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    @@media (max-width: 992px) {
+        .profile-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .ticket-item {
+            grid-template-columns: 80px 1fr;
+        }
+        .ticket-action-box {
+            grid-column: span 2;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 15px;
+            margin-top: 5px;
+        }
+    }
+
+    /* Skeleton Loader & Shimmer Animation */
+    .skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 8px;
+        display: inline-block;
+    }
+
+    .avatar-wrapper.skeleton i {
+        opacity: 0;
+    }
+
+    .member-rank-badge.skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%) !important;
+        background-size: 200% 100% !important;
+        animation: shimmer 1.2s infinite !important;
+        color: transparent !important;
+        border-color: transparent !important;
+    }
+
+    .ticket-item.ticket-item-skeleton {
+        pointer-events: none;
+    }
+
+    .ticket-item.ticket-item-skeleton .ticket-poster-wrap {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+</style>
+
+<div class="container profile-wrapper">
+    <div class="profile-layout">
+        
+        <!-- LEFT PANELS (loyalty info & menu) -->
+        <div class="profile-left-sidebar">
+            <div class="profile-card">
+                <!-- Avatar tròn -->
+                <div class="avatar-wrapper skeleton">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3 class="profile-user-name" id="profileDisplayName">
+                    <span class="skeleton" style="width: 120px; height: 18px; border-radius: 4px;"></span>
+                </h3>
+                <p class="profile-user-email" id="profileDisplayEmail">
+                    <span class="skeleton" style="width: 160px; height: 14px; border-radius: 4px;"></span>
+                </p>
+                <span id="rankBadgeText" class="member-rank-badge standard skeleton">STANDARD</span>
+
+                <!-- Loyalty Card Graphic -->
+                <div class="loyalty-card" id="memberCard">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <span class="card-label">Cinema Loyalty</span>
+                            <div class="card-chip"></div>
+                        </div>
+                        <span id="rankBadge" class="card-label" style="background: rgba(255, 255, 255, 0.15); padding: 4px 10px; border-radius: 10px; font-weight: 800;">
+                            <span class="skeleton" style="width: 60px; height: 14px; border-radius: 4px;"></span>
+                        </span>
+                    </div>
+                    
+                    <div>
+                        <span class="card-label">Mã thành viên</span>
+                        <div class="card-number" id="cardMemberId">
+                            <span class="skeleton" style="width: 120px; height: 16px; border-radius: 4px;"></span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px;">
+                        <div>
+                            <span class="card-label">Chủ thẻ</span>
+                            <div class="card-holder" id="cardMemberName">
+                                <span class="skeleton" style="width: 100px; height: 14px; border-radius: 4px;"></span>
+                            </div>
+                        </div>
+                        <div class="card-points">
+                            <span id="cardMemberPoints">
+                                <span class="skeleton" style="width: 30px; height: 20px; border-radius: 4px;"></span>
+                            </span> Điểm
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-nav-links">
+                    <a href="@Url.Action("Profile", "Account")" class="profile-nav-btn">
+                        <i class="fas fa-user-circle"></i> Thông tin cá nhân
+                    </a>
+                    <a href="@Url.Action("TicketHistory", "Account")" class="profile-nav-btn active">
+                        <i class="fas fa-ticket-alt"></i> Lịch sử vé đã đặt
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL (history) -->
+        <main class="profile-main-panel">
+            <h1 class="panel-title">
+                <i class="fas fa-history"></i>
+                <span>Lịch sử giao dịch đặt vé</span>
+            </h1>
+
+            <div class="ticket-list" id="ticketListContainer">
+                <!-- Skeleton Ticket Item 1 -->
+                <div class="ticket-item ticket-item-skeleton">
+                    <div class="ticket-poster-wrap"></div>
+                    <div class="ticket-details">
+                        <div class="skeleton" style="width: 250px; height: 18px; margin-bottom: 12px; border-radius: 4px;"></div>
+                        <div class="ticket-meta-grid">
+                            <div class="ticket-meta-item">
+                                <div class="skeleton" style="width: 140px; height: 14px; border-radius: 4px;"></div>
+                            </div>
+                            <div class="ticket-meta-item">
+                                <div class="skeleton" style="width: 160px; height: 14px; border-radius: 4px;"></div>
+                            </div>
+                            <div class="ticket-meta-item">
+                                <div class="skeleton" style="width: 100px; height: 14px; border-radius: 4px;"></div>
+                            </div>
+                            <div class="ticket-meta-item">
+                                <div class="skeleton" style="width: 120px; height: 14px; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ticket-action-box">
+                        <div class="skeleton" style="width: 80px; height: 18px; border-radius: 4px; margin-bottom: 8px;"></div>
+                        <div class="skeleton" style="width: 110px; height: 32px; border-radius: 20px;"></div>
+                    </div>
+                </div>
+
+                <!-- Skeleton Ticket Item 2 -->
+                <div class="ticket-item ticket-item-skeleton">
+                    <div class="ticket-poster-wrap"></div>
+                    <div class="ticket-details">
+                        <div class="skeleton" style="width: 200px; height: 18px; margin-bottom: 12px; border-radius: 4px;"></div>
+                        <div class="ticket-meta-grid">
+                            <div class="ticket-meta-item">
+                                <div class="skeleton" style="width: 130px; height: 14px; border-radius: 4px;"></div>
+                            </div>
+                            <div class="ticket-meta-item">
+                                <div class="skeleton" style="width: 150px; height: 14px; border-radius: 4px;"></div>
+                            </div>
+                            <div class="ticket-meta-item">
+                                <div class="skeleton" style="width: 90px; height: 14px; border-radius: 4px;"></div>
+                            </div>
+                            <div class="ticket-meta-item">
+                                <div class="skeleton" style="width: 110px; height: 14px; border-radius: 4px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ticket-action-box">
+                        <div class="skeleton" style="width: 80px; height: 18px; border-radius: 4px; margin-bottom: 8px;"></div>
+                        <div class="skeleton" style="width: 110px; height: 32px; border-radius: 20px;"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module">
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const auth = window.auth;
+        const db = window.db;
+        const AERO_CACHE = window.AERO_CACHE;
+
+        let currentUser = null;
+
+        function formatDateSafe(dateValue) {
+            if (!dateValue) return "Đang cập nhật";
+            try {
+                if (typeof dateValue === "string") {
+                    const parts = dateValue.split("-");
+                    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    return dateValue;
+                }
+                if (dateValue.toDate) return dateValue.toDate().toLocaleDateString("vi-VN");
+                return new Date(dateValue).toLocaleDateString("vi-VN");
+            } catch {
+                return "Đang cập nhật";
+            }
+        }
+
+        function formatCurrency(amount) {
+            const value = Number(amount || 0);
+            return value.toLocaleString("vi-VN") + "đ";
+        }
+
+        function safeText(value, fallback = "Đang cập nhật") {
+            return value === undefined || value === null || value === "" ? fallback : value;
+        }
+
+        async function getCachedMovies() {
+            const cached = AERO_CACHE && AERO_CACHE.get ? AERO_CACHE.get("moviesTicketHistory") : null;
+            if (cached) return cached;
+
+            const moviesSnap = await getDocs(query(collection(db, "movies"), limit(50)));
+            const movies = moviesSnap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+            if (AERO_CACHE && AERO_CACHE.set) AERO_CACHE.set("moviesTicketHistory", movies);
+            return movies;
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
+            } else {
+                currentUser = user;
+                await loadLoyaltyCard();
+                await loadTicketHistory();
+            }
+        });
+
+        // Load Left Sidebar Card details
+        async function loadLoyaltyCard() {
+            try {
+                const userDocSnap = await getDoc(doc(db, "users", currentUser.uid));
+                if (userDocSnap.exists()) {
+                    const userData = userDocSnap.data();
+                    document.getElementById("cardMemberName").innerText = (userData.fullName || currentUser.displayName || "Thành viên").toUpperCase();
+                    document.getElementById("cardMemberPoints").innerText = userData.points || 0;
+                    
+                    document.getElementById("profileDisplayName").innerText = userData.fullName || currentUser.displayName || "Thành viên";
+                    document.getElementById("profileDisplayEmail").innerText = userData.email || currentUser.email || "";
+
+                    const rank = userData.rank || userData.memberRank || "Standard";
+                    const badgeEl = document.getElementById("rankBadge");
+                    const badgeTextEl = document.getElementById("rankBadgeText");
+                    const cardEl = document.getElementById("memberCard");
+                    
+                    badgeEl.innerText = rank.toUpperCase();
+                    badgeTextEl.innerText = rank.toUpperCase();
+                    
+                    badgeTextEl.className = "member-rank-badge";
+                    badgeTextEl.classList.add(rank.toLowerCase());
+
+                    cardEl.className = "loyalty-card";
+                    
+                    if (rank.toLowerCase() === "silver") {
+                        cardEl.classList.add("silver");
+                    } else if (rank.toLowerCase() === "gold") {
+                        cardEl.classList.add("gold");
+                    } else if (rank.toLowerCase() === "vip" || rank.toLowerCase() === "platinum") {
+                        cardEl.classList.add("vip");
+                    }
+                }
+                const shortUid = currentUser.uid.substring(0, 8).toUpperCase();
+                document.getElementById("cardMemberId").innerText = `CB-${shortUid.substring(0, 4)}-${shortUid.substring(4, 8)}`;
+
+                // Remove skeletons
+                const avatar = document.querySelector(".avatar-wrapper");
+                if (avatar) avatar.classList.remove("skeleton");
+                const badgeTextEl = document.getElementById("rankBadgeText");
+                if (badgeTextEl) badgeTextEl.classList.remove("skeleton");
+            } catch (e) {
+                console.error("Error loading loyalty card: ", e);
+            }
+        }
+
+        // Load Ticket History from Firestore
+        async function loadTicketHistory() {
+            const container = document.getElementById("ticketListContainer");
+            
+            try {
+                // Fetch bookings, tickets, and movies
+                const bookingsQuery = query(collection(db, "bookings"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"), limit(20));
+                const ticketsQuery = query(collection(db, "tickets"), where("userId", "==", currentUser.uid), limit(20));
+
+                const [bookingsSnap, ticketsSnap, moviesList] = await Promise.all([
+                    getDocs(bookingsQuery),
+                    getDocs(ticketsQuery),
+                    getCachedMovies()
+                ]);
+
+                if (bookingsSnap.empty) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-ticket-alt"></i>
+                            <h3>Bạn chưa có giao dịch nào</h3>
+                            <p>Hãy chọn những bộ phim bom tấn và đặt vé ngay hôm nay!</p>
+                            <a href="/Showtimes" class="btn-cinema">Đặt Vé Ngay</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Map Movies
+                const moviesMap = {};
+                moviesList.forEach(movie => {
+                    moviesMap[movie.id] = movie;
+                });
+
+                // Map Tickets by Booking ID
+                const ticketsMap = {};
+                ticketsSnap.forEach(docSnap => {
+                    const ticketData = docSnap.data();
+                    if (ticketData.bookingId) {
+                        ticketsMap[ticketData.bookingId] = ticketData;
+                    }
+                });
+
+                // Map Bookings
+                const bookingsList = [];
+                bookingsSnap.forEach(docSnap => {
+                    bookingsList.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                // Sort bookings by date client-side desc
+                bookingsList.sort((a, b) => {
+                    const timeA = a.createdAt?.seconds || 0;
+                    const timeB = b.createdAt?.seconds || 0;
+                    return timeB - timeA;
+                });
+
+                // Render List
+                let html = "";
+                bookingsList.forEach(booking => {
+                    const movie = moviesMap[booking.movieId] || {};
+                    const ticket = ticketsMap[booking.id] || {};
+                    const poster = movie.posterUrl || "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=90";
+                    
+                    const dateFormatted = formatDateSafe(booking?.date);
+                    const timeString = `${safeText(booking.time)} - ${dateFormatted}`;
+                    const seatsString = Array.isArray(booking.seats) ? booking.seats.join(", ") : safeText(booking.seats);
+                    
+                    const ticketCode = ticket.ticketCode || "AERO-PENDING";
+                    const qrText = ticket.qrText || "AEROCINEMA-PENDING";
+                    const priceFormatted = formatCurrency(booking.totalPrice);
+
+                    // Determine payment method label
+                    let payMethod = "Tiền mặt tại quầy";
+                    if (booking.paymentMethod === "qr") payMethod = "QR Banking";
+                    if (booking.paymentMethod === "momo") payMethod = "Ví MoMo";
+
+                    html += `
+                        <div class="ticket-item">
+                            <div class="ticket-poster-wrap">
+                                <img src="${poster}" alt="Poster" />
+                            </div>
+                            <div class="ticket-details">
+                                <h3>${booking.movieTitle}</h3>
+                                <div class="ticket-meta-grid">
+                                    <div class="ticket-meta-item">
+                                        <i class="fas fa-video"></i>
+                                        <span>Rạp: ${booking.cinemaName} (${booking.roomName})</span>
+                                    </div>
+                                    <div class="ticket-meta-item">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        <span>Suất chiếu: ${timeString}</span>
+                                    </div>
+                                    <div class="ticket-meta-item">
+                                        <i class="fas fa-couch"></i>
+                                        <span>Ghế: <span style="font-weight: 700; color: var(--primary-color);">${seatsString}</span></span>
+                                    </div>
+                                    <div class="ticket-meta-item">
+                                        <i class="fas fa-tag"></i>
+                                        <span>Mã vé: <span style="font-weight: 700; color: var(--primary-color);">${ticketCode}</span></span>
+                                    </div>
+                                    <div class="ticket-meta-item">
+                                        <i class="fas fa-wallet"></i>
+                                        <span>Thanh toán: ${payMethod}</span>
+                                    </div>
+                                    <div class="ticket-meta-item">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span>Trạng thái: <span class="badge bg-success" style="font-size: 10px; padding: 4px 8px; border-radius: 12px; text-transform: uppercase;">Thành công</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ticket-action-box">
+                                <span class="ticket-price-display">${priceFormatted}</span>
+                                <button class="btn-view-qr" onclick="showTicketQrModal('${ticketCode}', '${qrText}', '${booking.movieTitle.replace(/'/g, "\\'")}', '${safeText(booking.cinemaName)}', '${safeText(booking.roomName)}', '${safeText(booking.time)}', '${safeText(booking.date, '')}', '${seatsString}')">
+                                    <i class="fas fa-qrcode"></i> Vé QR Code
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+
+            } catch (e) {
+                console.error("Error loading ticket history: ", e);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle" style="color: var(--accent-color);"></i>
+                        <h3>Lỗi tải dữ liệu</h3>
+                        <p>Không thể kết nối đến hệ thống. Vui lòng thử lại sau.</p>
+                        <button onclick="loadTicketHistory()" class="btn-cinema mt-2">Tải Lại</button>
+                    </div>
+                `;
+            }
+        }
+
+        // View ticket modal handler
+        window.showTicketQrModal = function(ticketCode, qrText, movieTitle, cinemaName, roomName, time, date, seats) {
+            const dateFormatted = formatDateSafe(date);
+            
+            Swal.fire({
+                title: `<div style="font-size: 16px; font-weight:800; text-transform:uppercase; color:var(--text-main, #1f2937); border-bottom:1px solid var(--border-color, #e5e7eb); padding-bottom:12px; font-family:'Raleway', sans-serif;">${movieTitle}</div>`,
+                html: `
+                    <div style="text-align: left; font-size: 13px; color: var(--text-sub, #6b7280); margin-top: 15px; font-family:'Raleway', sans-serif;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Rạp:</span>
+                            <span style="color:var(--text-main, #1f2937); font-weight:600;">${cinemaName} (${roomName})</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Suất chiếu:</span>
+                            <span style="color:var(--text-main, #1f2937); font-weight:600;">${time} - ${dateFormatted}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                            <span>Ghế đã chọn:</span>
+                            <span style="color: var(--primary-color, #005baa); font-weight:700;">${seats}</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center; background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb; width: 180px; margin: 15px auto 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrText)}" style="width: 150px; height: 150px; object-fit: contain;" alt="QR Code" />
+                        </div>
+                        <div style="text-align: center; font-weight: 800; font-size: 16px; color:var(--primary-color, #005baa); letter-spacing: 0.5px; margin-top: 8px;">
+                            MÃ VÉ: ${ticketCode}
+                        </div>
+                        <div style="text-align: center; font-size: 11px; color:var(--text-sub, #6b7280); margin-top: 10px;">
+                            Vui lòng quét mã QR này tại quầy vé của rạp để nhận vé giấy.
+                        </div>
+                    </div>
+                `,
+                showConfirmButton: true,
+                confirmButtonText: 'Đóng',
+                confirmButtonColor: '#f58220',
+                background: '#ffffff',
+                color: '#1f2937'
+            });
+        };
+    </script>
+}

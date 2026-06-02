@@ -1,0 +1,642 @@
+@{
+    ViewBag.Title = "Danh Sách Phim";
+}
+
+<style>
+    /* SEARCH & FILTER TABS & CONTAINER */
+    .search-filter-row {
+        max-width: 800px;
+        margin: 40px auto 30px auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
+    }
+
+    .search-box-wrap {
+        position: relative;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    #searchInput {
+        width: 100%;
+        padding: 12px 20px 12px 45px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-main);
+        outline: none;
+        font-size: 15px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+
+    #searchInput:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 91, 170, 0.15);
+    }
+
+    .search-box-wrap i {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-sub);
+    }
+
+    .filter-tabs {
+        display: inline-flex;
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 40px;
+        padding: 6px;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+    }
+
+    .filter-tab {
+        background: transparent;
+        border: none;
+        color: var(--text-sub);
+        padding: 10px 30px;
+        font-size: 14px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: var(--transition);
+        outline: none;
+    }
+
+    .filter-tab:hover {
+        color: var(--primary-color);
+    }
+
+    .filter-tab.active {
+        color: #ffffff;
+        background-color: var(--primary-color);
+        box-shadow: 0 4px 10px rgba(0, 91, 170, 0.3);
+    }
+
+    /* PREMIUM MOVIE GRID & CARDS */
+    .movie-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+        margin-bottom: 60px;
+        transition: opacity 0.3s ease;
+    }
+
+    .movie-card-premium {
+        background-color: var(--bg-card);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        position: relative;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .movie-card-premium:hover {
+        transform: translateY(-8px);
+        border-color: var(--primary-color);
+        box-shadow: var(--shadow-md);
+    }
+
+    .poster-box-wrapper {
+        position: relative;
+        padding-top: 145%;
+        overflow: hidden;
+        background-color: #f0f2f5;
+    }
+
+    .poster-box-wrapper img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    .movie-card-premium:hover .poster-box-wrapper img {
+        transform: scale(1.04);
+    }
+
+    /* Top labels */
+    .card-top-tags {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        right: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 5;
+    }
+
+    .rating-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 800;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #ffffff;
+    }
+
+    .badge-t18 { background-color: #d60000; }
+    .badge-t16 { background-color: #e67e22; }
+    .badge-t13 { background-color: #3498db; }
+    .badge-p { background-color: #2ecc71; }
+
+    .card-rating-tag {
+        background-color: rgba(0, 0, 0, 0.75);
+        color: var(--accent-color);
+        font-weight: 800;
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        border: 1px solid rgba(245, 128, 32, 0.3);
+    }
+
+    .card-static-details {
+        padding: 20px;
+        background-color: #ffffff;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+        justify-content: space-between;
+    }
+
+    .card-movie-title {
+        font-size: 16px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-main);
+        line-height: 1.3;
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+    }
+
+    .card-movie-meta-row {
+        font-size: 12px;
+        color: var(--text-sub);
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .card-action-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: auto;
+    }
+
+    /* Skeleton Shimmer Loading Effect */
+    .skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 12px;
+    }
+    @@keyframes shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+    .skeleton-movie-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+    .skeleton-movie-poster {
+        width: 100%;
+        padding-top: 145%;
+        border-radius: 12px 12px 0 0;
+    }
+    .skeleton-movie-info {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-grow: 1;
+    }
+    .skeleton-movie-title {
+        height: 18px;
+        width: 80%;
+    }
+    .skeleton-movie-text {
+        height: 12px;
+        width: 50%;
+    }
+    .skeleton-movie-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: auto;
+    }
+    .skeleton-movie-btn {
+        height: 32px;
+        border-radius: 6px;
+    }
+
+    .btn-secondary-action {
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        font-weight: 700;
+        font-size: 12px;
+        padding: 8px;
+        text-align: center;
+        border-radius: 6px;
+        transition: var(--transition);
+        text-transform: uppercase;
+        background: transparent;
+    }
+
+    .btn-secondary-action:hover {
+        background-color: var(--primary-color);
+        color: #ffffff;
+    }
+
+    .btn-primary-action {
+        background-color: var(--accent-color);
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 8px;
+        text-align: center;
+        border-radius: 6px;
+        transition: var(--transition);
+        text-transform: uppercase;
+        border: none;
+    }
+
+    .btn-primary-action:hover {
+        background-color: var(--accent-hover);
+        color: #ffffff;
+    }
+
+    /* Coming soon date tag for cards */
+    .coming-soon-date-tag {
+        background-color: rgba(245, 128, 32, 0.1);
+        border: 1px solid var(--accent-color);
+        color: var(--accent-color);
+        font-weight: 800;
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: 4px;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        width: fit-content;
+    }
+
+    /* Page Header */
+    .page-header-premium {
+        text-align: center;
+        margin-top: 40px;
+        margin-bottom: 30px;
+    }
+
+    .page-title-premium {
+        font-size: 32px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--primary-color);
+        display: inline-block;
+        position: relative;
+        padding-bottom: 15px;
+    }
+
+    .page-title-premium::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 3px;
+        background-color: var(--accent-color);
+    }
+
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 300px;
+        font-size: 15px;
+        color: var(--text-sub);
+        grid-column: span 4;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+    }
+
+    /* RESPONSIVE LAYOUTS */
+    @@media (max-width: 1200px) {
+        .movie-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .movie-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .movie-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .movie-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .page-title-premium {
+            font-size: 24px;
+        }
+        .filter-tab {
+            padding: 8px 15px;
+            font-size: 11px;
+        }
+    }
+</style>
+
+<div class="container fade-up" style="margin-top: 20px; max-width: 1200px;">
+    
+    <!-- PAGE TITLE -->
+    <div class="page-header-premium">
+        <h1 class="page-title-premium">Phim Đang Chiếu & Sắp Chiếu</h1>
+    </div>
+
+    <!-- SEARCH & FILTER BAR -->
+    <div class="search-filter-row">
+        <div class="search-box-wrap">
+            <input type="text" id="searchInput" placeholder="Tìm kiếm tên phim..." autocomplete="off" />
+            <i class="fas fa-search"></i>
+        </div>
+
+        <div class="filter-tabs">
+            <button class="filter-tab active" id="tabAll" onclick="switchFilter('all')">Tất cả</button>
+            <button class="filter-tab" id="tabNow" onclick="switchFilter('now_showing')">Đang Chiếu</button>
+            <button class="filter-tab" id="tabSoon" onclick="switchFilter('coming_soon')">Sắp Chiếu</button>
+        </div>
+    </div>
+
+    <!-- MOVIES GRID CONTAINER -->
+    <div id="moviesGrid" class="movie-grid">
+        <!-- 4 Movie Card Skeletons -->
+        <div class="skeleton-movie-card">
+            <div class="skeleton skeleton-movie-poster"></div>
+            <div class="skeleton-movie-info">
+                <div class="skeleton skeleton-movie-title"></div>
+                <div class="skeleton skeleton-movie-text"></div>
+                <div class="skeleton-movie-buttons">
+                    <div class="skeleton skeleton-movie-btn"></div>
+                    <div class="skeleton skeleton-movie-btn"></div>
+                </div>
+            </div>
+        </div>
+        <div class="skeleton-movie-card">
+            <div class="skeleton skeleton-movie-poster"></div>
+            <div class="skeleton-movie-info">
+                <div class="skeleton skeleton-movie-title"></div>
+                <div class="skeleton skeleton-movie-text"></div>
+                <div class="skeleton-movie-buttons">
+                    <div class="skeleton skeleton-movie-btn"></div>
+                    <div class="skeleton skeleton-movie-btn"></div>
+                </div>
+            </div>
+        </div>
+        <div class="skeleton-movie-card">
+            <div class="skeleton skeleton-movie-poster"></div>
+            <div class="skeleton-movie-info">
+                <div class="skeleton skeleton-movie-title"></div>
+                <div class="skeleton skeleton-movie-text"></div>
+                <div class="skeleton-movie-buttons">
+                    <div class="skeleton skeleton-movie-btn"></div>
+                    <div class="skeleton skeleton-movie-btn"></div>
+                </div>
+            </div>
+        </div>
+        <div class="skeleton-movie-card">
+            <div class="skeleton skeleton-movie-poster"></div>
+            <div class="skeleton-movie-info">
+                <div class="skeleton skeleton-movie-title"></div>
+                <div class="skeleton skeleton-movie-text"></div>
+                <div class="skeleton-movie-buttons">
+                    <div class="skeleton skeleton-movie-btn"></div>
+                    <div class="skeleton skeleton-movie-btn"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL XEM TRAILER PHIM -->
+<div id="trailerModalPopup" class="trailer-modal" onclick="closeTrailerModal()">
+    <div class="trailer-modal-content" onclick="event.stopPropagation()">
+        <button type="button" class="trailer-close-btn" onclick="closeTrailerModal()">&times;</button>
+        <iframe id="trailerVideoFrame" width="100%" height="100%" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import { collection, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.db;
+        const AERO_CACHE = window.AERO_CACHE;
+
+        let allMovies = [];
+        let currentFilterStatus = "all"; // all, now_showing, coming_soon
+
+        // YouTube ID helper
+        window.getYoutubeId = function(url) {
+            if (!url) return '';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : url;
+        };
+
+        // Fetch movies from Firestore
+        const fetchMovies = async () => {
+            try {
+                const cachedMovies = AERO_CACHE && AERO_CACHE.get ? AERO_CACHE.get("moviesIndex") : null;
+                if (cachedMovies) {
+                    allMovies = cachedMovies;
+                } else {
+                    const querySnapshot = await getDocs(query(collection(db, "movies"), limit(24)));
+                    allMovies = querySnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+                    if (AERO_CACHE && AERO_CACHE.set) AERO_CACHE.set("moviesIndex", allMovies);
+                }
+
+                // Apply initial state
+                filterAndRender();
+
+            } catch (error) {
+                console.error("Error loading movies from Firestore: ", error);
+                document.getElementById("moviesGrid").innerHTML = `
+                    <div style="grid-column: span 4; text-align: center; padding: 50px 20px; color: var(--text-sub);">
+                        <i class="fas fa-exclamation-triangle fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
+                        <span>Lỗi kết nối cơ sở dữ liệu: ${error.message}</span>
+                    </div>
+                `;
+            }
+        };
+
+        // Filter and Render logic
+        const filterAndRender = () => {
+            const searchText = document.getElementById("searchInput").value.toLowerCase().trim();
+            const grid = document.getElementById("moviesGrid");
+            grid.innerHTML = "";
+
+            const filtered = allMovies.filter(m => {
+                const matchesSearch = m.title ? m.title.toLowerCase().includes(searchText) : false;
+                const matchesStatus = (currentFilterStatus === "all") || (m.status === currentFilterStatus);
+                return matchesSearch && matchesStatus;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column: span 4; text-align: center; padding: 50px 20px; color: var(--text-sub);">
+                        <i class="far fa-folder-open fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
+                        <span>Không tìm thấy phim phù hợp yêu cầu.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = "";
+            filtered.forEach(m => {
+                const ratingClass = "badge-" + (m.rating ? m.rating.toLowerCase() : "p");
+                const isNowShowing = m.status === "now_showing";
+                const releaseDateFormatted = m.releaseDate ? m.releaseDate.split("-").reverse().slice(0, 2).join("/") : "Sắp chiếu";
+                const youtubeId = window.getYoutubeId(m.trailerUrl);
+
+                html += `
+                    <div class="movie-card-premium">
+                        <div class="card-top-tags">
+                            <span class="rating-badge ${ratingClass}">${m.rating || 'P'}</span>
+                            ${isNowShowing 
+                                ? (m.isHot ? '<span class="card-rating-tag"><i class="fas fa-fire" style="color: #f58020;"></i> HOT</span>' : '')
+                                : `<span class="coming-soon-date-tag">${releaseDateFormatted}</span>`
+                            }
+                        </div>
+                        <div class="poster-box-wrapper">
+                            <img src="${m.posterUrl}" alt="${m.title}" loading="lazy" decoding="async" onerror="this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
+                        </div>
+                        <div class="card-static-details">
+                            <div>
+                                <h3 class="card-movie-title" title="${m.title}">${m.title}</h3>
+                                <div class="card-movie-meta-row">
+                                    <span>${(m?.genre || "Đang cập nhật").split(",")[0]}</span>
+                                    <span><i class="far fa-clock"></i> ${m.duration} Phút</span>
+                                </div>
+                            </div>
+                            <div class="card-action-buttons">
+                                <a href="/Movies/Details?id=${m.id}" class="btn-secondary-action">Chi Tiết</a>
+                                ${isNowShowing
+                                    ? `<a href="/Movies/Details?id=${m.id}#booking-section" class="btn-primary-action"><i class="fas fa-ticket-alt"></i> Đặt Vé</a>`
+                                    : `<button type="button" class="btn-primary-action" onclick="openTrailerModal('${youtubeId}')"><i class="fas fa-play"></i> Trailer</button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+        };
+
+        // Switch filter tab handler
+        window.switchFilter = function(status) {
+            currentFilterStatus = status;
+            
+            document.querySelectorAll(".filter-tab").forEach(tab => tab.classList.remove("active"));
+            if (status === "all") document.getElementById("tabAll").classList.add("active");
+            else if (status === "now_showing") document.getElementById("tabNow").classList.add("active");
+            else if (status === "coming_soon") document.getElementById("tabSoon").classList.add("active");
+
+            filterAndRender();
+        };
+
+        // Bind Search Input dynamic search
+        document.getElementById("searchInput").addEventListener("input", filterAndRender);
+
+        // Initial setup on load
+        const urlParams = new URLSearchParams(window.location.search);
+        const tabParam = urlParams.get('tab');
+        if (tabParam === 'sap-chieu') {
+            currentFilterStatus = "coming_soon";
+            document.querySelectorAll(".filter-tab").forEach(tab => tab.classList.remove("active"));
+            document.getElementById("tabSoon").classList.add("active");
+        } else if (tabParam === 'dang-chieu') {
+            currentFilterStatus = "now_showing";
+            document.querySelectorAll(".filter-tab").forEach(tab => tab.classList.remove("active"));
+            document.getElementById("tabNow").classList.add("active");
+        }
+
+        fetchMovies();
+    </script>
+
+    <script>
+        // Trailer Video Modal handlers
+        function openTrailerModal(videoId) {
+            if (!videoId) return;
+            var modal = document.getElementById("trailerModalPopup");
+            var frame = document.getElementById("trailerVideoFrame");
+            if (!modal || !frame) return;
+
+            frame.src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1";
+            modal.style.display = "flex";
+            setTimeout(function() {
+                modal.classList.add("show");
+            }, 50);
+        }
+
+        function closeTrailerModal() {
+            var modal = document.getElementById("trailerModalPopup");
+            var frame = document.getElementById("trailerVideoFrame");
+            if (!modal || !frame) return;
+
+            modal.classList.remove("show");
+            setTimeout(function() {
+                frame.src = "";
+                modal.style.display = "none";
+            }, 400);
+        }
+    </script>
+}

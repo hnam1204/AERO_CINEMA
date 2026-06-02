@@ -1,0 +1,386 @@
+@{
+    ViewBag.Title = "Chọn Ghế - AERO Cinema";
+}
+
+<style>
+    .booking-wrapper { margin-top: 40px; margin-bottom: 60px; }
+    .booking-steps-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 40px; }
+    .step-indicator { display: flex; align-items: center; gap: 8px; font-family: 'Raleway', sans-serif; font-size: 14px; font-weight: 700; color: var(--text-sub, #777777); text-transform: uppercase; letter-spacing: 0.5px; }
+    .step-indicator.active { color: var(--primary-color, #005baa); }
+    .step-line { width: 50px; height: 2px; background: var(--border-color, #e0e0e0); align-self: center; }
+    .step-line.active { background: var(--primary-color, #005baa); }
+    .booking-layout { display: grid; grid-template-columns: 1fr 380px; gap: 40px; }
+    .map-container, .invoice-sidebar { background-color: var(--bg-card, #ffffff); border: 1px solid var(--border-color, #e0e0e0); border-radius: 12px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03); }
+    .map-container { padding: 50px 30px; display: flex; flex-direction: column; align-items: center; }
+    .screen-perspective { perspective: 150px; width: 100%; margin-bottom: 60px; display: flex; justify-content: center; }
+    .screen-projection { width: 80%; height: 12px; background: var(--primary-color, #005baa); border-radius: 50% / 100% 100% 0 0; box-shadow: 0 8px 30px rgba(0, 91, 170, 0.3), 0 15px 50px rgba(0, 91, 170, 0.15); transform: rotateX(-5deg); }
+    .screen-label { font-family: 'Raleway', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 6px; color: var(--text-sub, #777777); text-transform: uppercase; margin-top: -35px; margin-bottom: 45px; }
+    .seat-map-grid { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 720px; overflow-x: auto; padding-bottom: 10px; }
+    .row-container { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 640px; }
+    .row-letter { width: 25px; font-size: 14px; font-weight: 800; color: var(--text-sub, #777777); text-align: center; user-select: none; }
+    .seat-element { width: 32px; height: 30px; background-color: #cbd5e1; border: 1px solid #94a3b8; border-radius: 5px 5px 2px 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #475569; transition: all 0.2s ease; position: relative; user-select: none; }
+    .seat-element:hover:not(.sold) { transform: scale(1.15); background-color: #94a3b8; color: #ffffff; }
+    .seat-element.vip { background-color: #3498db; border-color: #2980b9; color: #ffffff; }
+    .seat-element.vip:hover:not(.sold) { background-color: #2980b9; }
+    .seat-element.couple { width: 72px; background-color: #ec4899; border-color: #db2777; color: #ffffff; border-radius: 6px 6px 3px 3px; }
+    .seat-element.couple:hover:not(.sold) { background-color: #db2777; }
+    .seat-element.selected { background-color: var(--accent-color, #f58020) !important; border-color: var(--accent-color, #f58020) !important; color: #ffffff !important; box-shadow: 0 0 12px rgba(245, 128, 32, 0.6); }
+    .seat-element.sold { background-color: #e74c3c; border-color: #c0392b; color: #ffffff; cursor: not-allowed; pointer-events: none; }
+    .seat-element.sold::after, .legend-badge.sold::after { content: '\f00d'; font-family: 'Font Awesome 5 Free'; font-weight: 900; color: rgba(255, 255, 255, 0.7); position: absolute; }
+    .seat-element.sold::after { font-size: 12px; }
+    .seat-element.sold span { visibility: hidden; }
+    .walkway-left { margin-right: 18px; }
+    .walkway-right { margin-left: 18px; }
+    .legend-box { display: flex; justify-content: center; flex-wrap: wrap; gap: 25px; margin-top: 40px; border-top: 1px solid var(--border-color, #e0e0e0); padding-top: 25px; width: 100%; }
+    .legend-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-sub, #777777); }
+    .legend-badge { width: 20px; height: 18px; border-radius: 3px; background-color: #cbd5e1; border: 1px solid #94a3b8; }
+    .legend-badge.vip { background-color: #3498db; border-color: #2980b9; }
+    .legend-badge.couple { width: 35px; background-color: #ec4899; border-color: #db2777; }
+    .legend-badge.selected { background-color: var(--accent-color, #f58020); border-color: var(--accent-color, #f58020); box-shadow: 0 0 8px rgba(245, 128, 32, 0.4); }
+    .legend-badge.sold { background-color: #e74c3c; border-color: #c0392b; position: relative; display: flex; align-items: center; justify-content: center; }
+    .legend-badge.sold::after { font-size: 10px; }
+    .invoice-sidebar { padding: 30px; height: fit-content; position: sticky; top: 80px; }
+    .invoice-header { border-bottom: 1px dashed var(--border-color, #e0e0e0); padding-bottom: 20px; margin-bottom: 20px; }
+    .invoice-movie-title { font-family: 'Raleway', sans-serif; font-size: 20px; font-weight: 800; color: var(--text-main, #333333); text-transform: uppercase; margin: 0 0 5px 0; letter-spacing: 0.5px; }
+    .invoice-movie-tag { font-size: 12px; color: var(--primary-color, #005baa); font-weight: 700; }
+    .invoice-details-list { display: flex; flex-direction: column; gap: 12px; }
+    .invoice-detail-row { display: flex; justify-content: space-between; font-size: 14px; }
+    .invoice-detail-row .lbl { color: var(--text-sub, #777777); }
+    .invoice-detail-row .val { color: var(--text-main, #333333); font-weight: 600; text-align: right; }
+    .invoice-selected-seats { background-color: var(--bg-body, #f6f6f6); border-radius: 8px; padding: 15px; margin-top: 20px; border: 1px solid var(--border-color, #e0e0e0); }
+    .invoice-selected-seats .lbl { font-size: 11px; font-weight: 700; color: var(--text-sub, #777777); text-transform: uppercase; margin-bottom: 5px; display: block; letter-spacing: 0.5px; }
+    .invoice-selected-seats .val { font-size: 18px; font-weight: 800; color: var(--accent-color, #f58020); word-wrap: break-word; }
+    .invoice-total-row { border-top: 1px dashed var(--border-color, #e0e0e0); margin-top: 25px; padding-top: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .invoice-total-row .lbl { font-size: 16px; font-weight: 800; text-transform: uppercase; color: var(--text-main, #333333); }
+    .invoice-total-row .val { font-size: 26px; font-weight: 800; color: var(--accent-color, #f58020); }
+    .btn-checkout-submit { background-color: var(--primary-color, #005baa); border: none; color: #ffffff; font-weight: 700; font-size: 16px; padding: 15px; width: 100%; border-radius: 30px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 5px 15px rgba(0, 91, 170, 0.2); transition: all 0.3s ease; }
+    .btn-checkout-submit:hover:not(:disabled) { background-color: #004b8d; box-shadow: 0 8px 20px rgba(0, 91, 170, 0.3); transform: translateY(-2px); }
+    .btn-checkout-submit:disabled { background-color: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+    .skeleton { background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
+    @@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+    @@media (max-width: 1024px) { .booking-layout { grid-template-columns: 1fr; } .invoice-sidebar { position: relative; top: 0; } }
+</style>
+
+<div class="container booking-wrapper">
+    <div class="booking-steps-bar">
+        <div class="step-indicator active"><i class="fas fa-couch"></i> Chọn Ghế</div>
+        <div class="step-line active"></div>
+        <div class="step-indicator"><i class="fas fa-credit-card"></i> Thanh Toán</div>
+        <div class="step-line"></div>
+        <div class="step-indicator"><i class="fas fa-check-circle"></i> Hoàn Tất</div>
+    </div>
+
+    <div class="booking-layout">
+        <div class="map-container">
+            <div class="screen-perspective"><div class="screen-projection"></div></div>
+            <div class="screen-label">Màn Hình Chiếu Phim</div>
+
+            <div class="seat-map-grid" id="seatMapGrid">
+                <div style="width: 100%; padding: 50px 20px;"><div class="skeleton" style="width: 100%; height: 220px;"></div></div>
+            </div>
+
+            <div class="legend-box">
+                <div class="legend-item"><div class="legend-badge"></div><span id="standardLegendLabel">Thường</span></div>
+                <div class="legend-item"><div class="legend-badge vip"></div><span id="vipLegendLabel">VIP</span></div>
+                <div class="legend-item"><div class="legend-badge couple"></div><span id="coupleLegendLabel">Ghế Đôi</span></div>
+                <div class="legend-item"><div class="legend-badge selected"></div><span>Đang Chọn</span></div>
+                <div class="legend-item"><div class="legend-badge sold"></div><span>Đã Bán</span></div>
+            </div>
+        </div>
+
+        <aside class="invoice-sidebar">
+            <div class="invoice-header">
+                <h2 class="invoice-movie-title"><div class="skeleton" style="width: 80%; height: 24px;"></div></h2>
+                <span class="invoice-movie-tag"><div class="skeleton" style="width: 40px; height: 16px;"></div></span>
+            </div>
+
+            <div class="invoice-details-list">
+                <div class="invoice-detail-row"><span class="lbl">Rạp</span><span class="val"><div class="skeleton" style="width: 100px; height: 18px;"></div></span></div>
+                <div class="invoice-detail-row"><span class="lbl">Phòng chiếu</span><span class="val"><div class="skeleton" style="width: 80px; height: 18px;"></div></span></div>
+                <div class="invoice-detail-row"><span class="lbl">Suất chiếu</span><span class="val"><div class="skeleton" style="width: 120px; height: 18px;"></div></span></div>
+                <div class="invoice-detail-row"><span class="lbl">Thời gian</span><span class="val"><div class="skeleton" style="width: 60px; height: 18px;"></div></span></div>
+            </div>
+
+            <div class="invoice-selected-seats">
+                <span class="lbl">Ghế đã chọn</span>
+                <div class="val" id="selectedSeatsLabel">Chưa chọn</div>
+            </div>
+
+            <div class="invoice-total-row">
+                <span class="lbl">Tạm Tính</span>
+                <span class="val" id="totalPriceLabel">0đ</span>
+            </div>
+
+            <button class="btn-checkout-submit" id="btnContinue" disabled onclick="goToCheckout()">
+                <span>Tiếp Tục</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </aside>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const auth = window.auth;
+        const db = window.db;
+        const urlParams = new URLSearchParams(window.location.search);
+        const showtimeId = urlParams.get("showtimeId");
+
+        let currentUser = null;
+        let selectedSeats = [];
+        let totalPrice = 0;
+
+        onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Yêu cầu đăng nhập",
+                    text: "Bạn cần đăng nhập để tiến hành đặt vé.",
+                    background: "#ffffff",
+                    color: "#333333",
+                    confirmButtonColor: "#f58220"
+                }).then(() => {
+                    window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
+                });
+                return;
+            }
+
+            currentUser = user;
+
+            if (!showtimeId) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Thiếu thông tin",
+                    text: "Không tìm thấy thông tin suất chiếu!",
+                    background: "#ffffff",
+                    color: "#333333",
+                    confirmButtonColor: "#f58220"
+                }).then(() => {
+                    window.location.href = "/Showtimes";
+                });
+                return;
+            }
+
+            loadBookingData();
+        });
+
+        function showSeatError(title, message) {
+            document.getElementById("seatMapGrid").innerHTML = `
+                <div style="text-align: center; padding: 50px 20px; color: var(--text-sub); width: 100%;">
+                    <i class="fas fa-exclamation-triangle fa-3x" style="color: var(--accent-color); margin-bottom: 15px;"></i>
+                    <h3 style="font-weight: 700; color: var(--text-main); margin-bottom: 8px;">${title}</h3>
+                    <p style="font-size: 14px; margin: 0;">${message}</p>
+                </div>
+            `;
+        }
+
+        async function loadBookingData() {
+            try {
+                const showtimeDoc = await getDoc(doc(db, "showtimes", showtimeId));
+
+                if (!showtimeDoc.exists()) {
+                    showSeatError("Suất chiếu không tồn tại", "Suất chiếu này đã bị hủy hoặc không tồn tại trên hệ thống.");
+                    return;
+                }
+
+                const showtime = showtimeDoc.data();
+                const dateFormatted = formatDateSafe(showtime.date);
+                const valElements = document.querySelectorAll(".invoice-detail-row .val");
+
+                document.querySelector(".invoice-movie-title").innerText = showtime.movieTitle || "AERO Cinema";
+                document.querySelector(".invoice-movie-tag").innerText = showtime.format || "2D";
+                valElements[0].innerText = showtime.cinemaName || "";
+                valElements[1].innerText = showtime.roomName || "";
+                valElements[2].innerText = dateFormatted;
+                valElements[3].innerText = showtime.time || "";
+
+                sessionStorage.setItem("movie", showtime.movieTitle || "");
+                sessionStorage.setItem("cinema", showtime.cinemaName || "");
+                sessionStorage.setItem("room", showtime.roomName || "");
+                sessionStorage.setItem("datetime", `${showtime.time || ""} - ${dateFormatted}`);
+                sessionStorage.setItem("movieId", showtime.movieId || "");
+
+                renderSeats(showtime);
+            } catch (error) {
+                console.error("Error loading showtime details: ", error);
+                showSeatError("Lỗi kết nối", "Không thể tải thông tin chi tiết suất chiếu: " + error.message);
+            }
+        }
+
+        function formatDateSafe(dateValue) {
+            if (!dateValue) return "Đang cập nhật";
+            try {
+                if (typeof dateValue === "string") {
+                    const parts = dateValue.split("-");
+                    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    return dateValue;
+                }
+                if (dateValue.toDate) return dateValue.toDate().toLocaleDateString("vi-VN");
+                return new Date(dateValue).toLocaleDateString("vi-VN");
+            } catch {
+                return "Đang cập nhật";
+            }
+        }
+
+        function normalizeRows(value) {
+            if (Array.isArray(value)) return value.map(row => String(row).trim().toUpperCase()).filter(Boolean);
+            if (typeof value === "string") return value.split(",").map(row => row.trim().toUpperCase()).filter(Boolean);
+            return [];
+        }
+
+        function normalizeSeatCodes(value) {
+            if (Array.isArray(value)) return value.map(seat => String(seat).trim().toUpperCase()).filter(Boolean);
+            if (typeof value === "string") return value.split(",").map(seat => seat.trim().toUpperCase()).filter(Boolean);
+            return [];
+        }
+
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString("vi-VN") + "đ";
+        }
+
+        function formatShortPrice(value) {
+            const price = Number(value || 0);
+            return price >= 1000 && price % 1000 === 0 ? (price / 1000).toLocaleString("vi-VN") + "k" : formatCurrency(price);
+        }
+
+        function updateLegendPrices(standardPrice, vipPrice, couplePrice) {
+            document.getElementById("standardLegendLabel").innerText = `Thường (${formatShortPrice(standardPrice)})`;
+            document.getElementById("vipLegendLabel").innerText = `VIP (${formatShortPrice(vipPrice)})`;
+            document.getElementById("coupleLegendLabel").innerText = `Ghế Đôi (${formatShortPrice(couplePrice)})`;
+        }
+
+        function renderSeats(showtime) {
+            try {
+                const defaultSeatRows = ["A", "B", "C", "D", "E", "F", "G", "H"];
+                const defaultVipRows = ["E", "F"];
+                const defaultCoupleRows = ["G", "H"];
+                const configuredSeatRows = normalizeRows(showtime.seatRows);
+                const configuredVipRows = normalizeRows(showtime.vipRows);
+                const configuredCoupleRows = normalizeRows(showtime.coupleRows);
+                const seatRows = configuredSeatRows.length > 0 ? configuredSeatRows : defaultSeatRows;
+                const seatColumns = Number(showtime.seatColumns || 10);
+                const soldSeats = new Set(normalizeSeatCodes(showtime.soldSeats));
+                const vipRows = new Set(configuredVipRows.length > 0 ? configuredVipRows : defaultVipRows);
+                const coupleRows = new Set(configuredCoupleRows.length > 0 ? configuredCoupleRows : defaultCoupleRows);
+                const standardPrice = Number(showtime.standardPrice || 95000);
+                const vipPrice = Number(showtime.vipPrice || 110000);
+                const couplePrice = Number(showtime.couplePrice || 135000);
+
+                if (seatRows.length === 0 || seatColumns <= 0) {
+                    showSeatError("Không tìm thấy sơ đồ ghế", "Phòng chiếu này hiện chưa có cấu hình sơ đồ ghế.");
+                    return;
+                }
+
+                selectedSeats = [];
+                totalPrice = 0;
+                updateSummary();
+                updateLegendPrices(standardPrice, vipPrice, couplePrice);
+
+                const grid = document.getElementById("seatMapGrid");
+                grid.innerHTML = "";
+
+                seatRows.forEach((rowChar) => {
+                    const rowContainer = document.createElement("div");
+                    rowContainer.className = "row-container";
+                    rowContainer.appendChild(createRowLabel(rowChar));
+
+                    for (let col = 1; col <= seatColumns; col++) {
+                        const seatCode = `${rowChar}${col}`;
+                        const seatInfo = getSeatInfo(rowChar, standardPrice, vipPrice, couplePrice, vipRows, coupleRows);
+                        const seatElement = document.createElement("div");
+
+                        seatElement.className = `seat-element ${seatInfo.type}${soldSeats.has(seatCode) ? " sold" : ""}`;
+                        seatElement.setAttribute("data-id", seatCode);
+                        seatElement.setAttribute("data-price", seatInfo.price);
+                        seatElement.setAttribute("data-type", seatInfo.type);
+
+                        if (col === 3) seatElement.classList.add("walkway-left");
+                        if (col === 8) seatElement.classList.add("walkway-right");
+
+                        const span = document.createElement("span");
+                        span.innerText = col;
+                        seatElement.appendChild(span);
+
+                        if (!soldSeats.has(seatCode)) {
+                            seatElement.addEventListener("click", () => toggleSeat(seatElement, seatCode, seatInfo.price));
+                        }
+
+                        rowContainer.appendChild(seatElement);
+                    }
+
+                    rowContainer.appendChild(createRowLabel(rowChar));
+                    grid.appendChild(rowContainer);
+                });
+            } catch (error) {
+                console.error("Error drawing seats: ", error);
+                showSeatError("Lỗi kết nối", "Không thể tải sơ đồ ghế: " + error.message);
+            }
+        }
+
+        function createRowLabel(rowChar) {
+            const label = document.createElement("span");
+            label.className = "row-letter";
+            label.innerText = rowChar;
+            return label;
+        }
+
+        function getSeatInfo(rowChar, standardPrice, vipPrice, couplePrice, vipRows, coupleRows) {
+            if (coupleRows.has(rowChar)) return { type: "couple", price: couplePrice };
+            if (vipRows.has(rowChar)) return { type: "vip", price: vipPrice };
+            return { type: "standard", price: standardPrice };
+        }
+
+        function toggleSeat(seatElement, seatId, seatPrice) {
+            if (seatElement.classList.contains("selected")) {
+                seatElement.classList.remove("selected");
+                selectedSeats = selectedSeats.filter(seat => seat.id !== seatId);
+                totalPrice -= seatPrice;
+            } else {
+                if (selectedSeats.length >= 8) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Chọn tối đa 8 ghế",
+                        text: "Bạn chỉ được phép đặt tối đa 8 ghế trong một giao dịch.",
+                        background: "#ffffff",
+                        color: "#333333",
+                        confirmButtonColor: "#f58220"
+                    });
+                    return;
+                }
+
+                seatElement.classList.add("selected");
+                selectedSeats.push({ id: seatId, price: seatPrice });
+                totalPrice += seatPrice;
+            }
+
+            updateSummary();
+        }
+
+        function updateSummary() {
+            const seatsLabel = document.getElementById("selectedSeatsLabel");
+            const priceLabel = document.getElementById("totalPriceLabel");
+            const btnContinue = document.getElementById("btnContinue");
+
+            if (selectedSeats.length > 0) {
+                selectedSeats.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: "base" }));
+                seatsLabel.innerText = selectedSeats.map(seat => seat.id).join(", ");
+                priceLabel.innerText = formatCurrency(totalPrice);
+                btnContinue.removeAttribute("disabled");
+            } else {
+                seatsLabel.innerText = "Chưa chọn";
+                priceLabel.innerText = "0đ";
+                btnContinue.setAttribute("disabled", "true");
+            }
+        }
+
+        window.goToCheckout = function() {
+            const seatIds = selectedSeats.map(seat => seat.id).join(",");
+            sessionStorage.setItem("seats", seatIds);
+            sessionStorage.setItem("total", totalPrice);
+            window.location.href = `/Booking/Checkout?showtimeId=${showtimeId}&seats=${seatIds}`;
+        };
+    </script>
+}

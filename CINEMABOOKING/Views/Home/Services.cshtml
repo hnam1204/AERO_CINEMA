@@ -1,0 +1,236 @@
+@{
+    ViewBag.Title = "Dịch Vụ - AERO Cinema";
+}
+
+<style>
+    .services-wrapper {
+        margin-bottom: 50px;
+    }
+
+    .services-hero {
+        position: relative;
+        padding: 60px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #1e1b29 0%, #0b0b0d 100%);
+        border-radius: 12px;
+        margin-bottom: 40px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+    }
+
+    .services-hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(41, 188, 234, 0.05) 0%, transparent 60%);
+        pointer-events: none;
+    }
+
+    .services-hero h1 {
+        font-size: 36px;
+        font-weight: 900;
+        text-transform: uppercase;
+        color: #fff;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+    }
+
+    .services-hero h1 span {
+        color: var(--accent-color);
+    }
+
+    .services-hero p {
+        font-size: 15px;
+        color: var(--text-sub);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .services-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+    }
+
+    .service-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 35px;
+        display: flex;
+        gap: 25px;
+        transition: var(--transition);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .service-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--accent-color);
+        box-shadow: 0 15px 35px rgba(41, 188, 234, 0.15);
+    }
+
+    .service-icon {
+        width: 60px;
+        height: 60px;
+        background-color: rgba(41, 188, 234, 0.1);
+        color: var(--accent-color);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        flex-shrink: 0;
+        border: 1px solid rgba(41, 188, 234, 0.2);
+        transition: var(--transition);
+    }
+
+    .service-card:hover .service-icon {
+        background-color: var(--accent-color);
+        color: #000;
+        box-shadow: 0 0 15px var(--accent-color);
+    }
+
+    .service-content h3 {
+        font-size: 18px;
+        font-weight: 800;
+        color: #fff;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    .service-content p {
+        font-size: 13px;
+        color: var(--text-sub);
+        line-height: 1.6;
+        margin-bottom: 15px;
+    }
+
+    .service-features {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+
+    .service-features li {
+        font-size: 12px;
+        color: #ccc;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .service-features li i {
+        color: var(--primary-color);
+        font-size: 10px;
+    }
+
+    @@media (max-width: 992px) {
+        .services-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .service-card {
+            flex-direction: column;
+            gap: 15px;
+            padding: 25px;
+        }
+        .services-hero h1 {
+            font-size: 28px;
+        }
+        .service-features {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="services-wrapper">
+    
+    <!-- Hero Header -->
+    <div class="services-hero">
+        <h1>Dịch vụ đẳng cấp tại <span>AERO Cinema</span></h1>
+        <p>AERO Cinema không chỉ mang đến trải nghiệm điện ảnh chân thực mà còn đồng hành cùng bạn qua các dịch vụ đỉnh cao chuẩn quốc tế.</p>
+    </div>
+
+    <!-- Services Grid -->
+    <div class="services-grid">
+        
+        <!-- Service 1: Combo Bắp Nước -->
+        <div class="service-card">
+            <div class="service-icon">
+                <i class="fas fa-cookie-bite"></i>
+            </div>
+            <div class="service-content">
+                <h3>Combo Bắp Nước Tiện Lợi</h3>
+                <p>Khám phá menu ẩm thực rạp chiếu đa dạng với bắp rang bơ nóng hổi thơm giòn nhiều vị (phô mai, caramel, truyền thống) kết hợp cùng nước ngọt mát lạnh.</p>
+                <ul class="service-features">
+                    <li><i class="fas fa-check"></i> Combo bắp đơn/đôi</li>
+                    <li><i class="fas fa-check"></i> Bắp vị Phô mai, Caramel</li>
+                    <li><i class="fas fa-check"></i> Menu đồ ăn vặt đa dạng</li>
+                    <li><i class="fas fa-check"></i> Bình giữ nhiệt kỷ niệm</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Service 2: Vé Online -->
+        <div class="service-card">
+            <div class="service-icon">
+                <i class="fas fa-tablet-alt"></i>
+            </div>
+            <div class="service-content">
+                <h3>Đặt Vé Online Nhanh Chóng</h3>
+                <p>Hệ thống đặt vé trực tuyến thông minh giúp bạn chọn giữ ghế đẹp chỉ trong 30 giây. Thanh toán linh hoạt qua ví điện tử hoặc cổng QR Banking an toàn.</p>
+                <ul class="service-features">
+                    <li><i class="fas fa-check"></i> Giữ ghế đẹp tức thì</li>
+                    <li><i class="fas fa-check"></i> Nhận vé QR Code quét nhanh</li>
+                    <li><i class="fas fa-check"></i> Không cần xếp hàng chờ đợi</li>
+                    <li><i class="fas fa-check"></i> Tích hợp ví MoMo/VietQR</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Service 3: Phòng Chiếu Cao Cấp -->
+        <div class="service-card">
+            <div class="service-icon">
+                <i class="fas fa-couch"></i>
+            </div>
+            <div class="service-content">
+                <h3>Phòng Chiếu Thượng Hạng VIP</h3>
+                <p>Trải nghiệm xem phim xa hoa hàng đầu với phòng chiếu Premium Lounge riêng biệt, trang bị ghế da cơ học gập ngả linh hoạt và không gian tối tân.</p>
+                <ul class="service-features">
+                    <li><i class="fas fa-check"></i> Ghế da gập ngả tiện lợi</li>
+                    <li><i class="fas fa-check"></i> Hệ thống âm thanh Dolby Atmos</li>
+                    <li><i class="fas fa-check"></i> Phục vụ nước uống miễn phí</li>
+                    <li><i class="fas fa-check"></i> Nút bấm gọi nhân viên phục vụ</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Service 4: Tổ Chức Sự Kiện -->
+        <div class="service-card">
+            <div class="service-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="service-content">
+                <h3>Thuê Phòng Chiếu & Sự Kiện</h3>
+                <p>AERO Cinema cung cấp dịch vụ thuê trọn phòng chiếu chuyên nghiệp đáp ứng các chương trình hội nghị khách hàng, ra mắt sản phẩm hoặc sinh nhật ý nghĩa.</p>
+                <ul class="service-features">
+                    <li><i class="fas fa-check"></i> Hệ thống màn chiếu khổng lồ</li>
+                    <li><i class="fas fa-check"></i> Hỗ trợ kỹ thuật hình ảnh/mic</li>
+                    <li><i class="fas fa-check"></i> Thiết kế tea-break đi kèm</li>
+                    <li><i class="fas fa-check"></i> Đưa clip cá nhân lên rạp</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+</div>

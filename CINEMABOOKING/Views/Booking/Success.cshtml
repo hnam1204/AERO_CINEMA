@@ -1,0 +1,592 @@
+@{
+    ViewBag.Title = "Đặt Vé Thành Công - AERO Cinema";
+}
+
+<style>
+    :root {
+        --primary-color: #005baa;
+        --accent-color: #f58220;
+        --accent-hover: #e07316;
+        --text-main: #1f2937;
+        --text-sub: #6b7280;
+        --border-color: #e5e7eb;
+        --bg-body: #f6f6f6;
+        --bg-card: #ffffff;
+        --success-color: #16a34a;
+        --shadow-new: 0 8px 24px rgba(0, 0, 0, 0.08);
+        --font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    body {
+        background-color: var(--bg-body) !important;
+        font-family: var(--font-family) !important;
+        color: var(--text-main) !important;
+    }
+
+    .success-wrapper {
+        max-width: 520px;
+        margin: 40px auto 60px auto;
+        padding: 0 15px;
+    }
+
+    .booking-steps-bar {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 40px;
+    }
+
+    .step-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .step-indicator.active {
+        color: var(--primary-color);
+    }
+
+    .step-line {
+        width: 50px;
+        height: 2px;
+        background: var(--border-color);
+        align-self: center;
+    }
+
+    .step-line.active {
+        background: var(--primary-color);
+    }
+
+    .success-content {
+        text-align: center;
+    }
+
+    .success-icon-wrap {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .checkmark-circle {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: rgba(22, 163, 74, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--success-color);
+        box-shadow: 0 0 15px rgba(22, 163, 74, 0.2);
+        animation: pulseCheck 2s infinite;
+    }
+
+    .checkmark-circle i {
+        font-size: 32px;
+        color: var(--success-color);
+    }
+
+    @@keyframes pulseCheck {
+        0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.3); }
+        70% { box-shadow: 0 0 0 15px rgba(22, 163, 74, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+    }
+
+    .success-title {
+        font-family: var(--font-family);
+        font-size: 24px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-main);
+        margin-bottom: 10px;
+        letter-spacing: 0.5px;
+    }
+
+    .success-message {
+        font-size: 14px;
+        color: var(--text-sub);
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+
+    /* Ticket Card Design */
+    .ticket-container {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        text-align: left;
+        position: relative;
+        box-shadow: var(--shadow-new);
+        overflow: hidden;
+        margin-bottom: 30px;
+    }
+
+    /* Perforated ticket circles at the sides */
+    .ticket-container::before, .ticket-container::after {
+        content: '';
+        position: absolute;
+        width: 24px;
+        height: 24px;
+        background: var(--bg-body);
+        border-radius: 50%;
+        top: 135px;
+        z-index: 5;
+    }
+
+    .ticket-container::before {
+        left: -12px;
+        border-right: 1px solid var(--border-color);
+    }
+
+    .ticket-container::after {
+        right: -12px;
+        border-left: 1px solid var(--border-color);
+    }
+
+    .ticket-top {
+        padding: 25px 30px;
+        border-bottom: 2px dashed var(--border-color);
+        position: relative;
+    }
+
+    .ticket-movie-title {
+        font-family: var(--font-family);
+        font-size: 18px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-main);
+        margin: 0 0 15px 0;
+        letter-spacing: 0.5px;
+    }
+
+    .ticket-grid-row {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .ticket-info-item .lbl {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-sub);
+        display: block;
+        margin-bottom: 4px;
+        letter-spacing: 0.5px;
+    }
+
+    .ticket-info-item .val {
+        font-size: 14px;
+        color: var(--text-main);
+        font-weight: 600;
+    }
+
+    .ticket-bottom {
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #ffffff;
+    }
+
+    .ticket-barcode-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        width: 100%;
+    }
+
+    .qr-code-box {
+        width: 160px;
+        height: 160px;
+        background: #fff;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    }
+
+    .qr-code-box img {
+        width: 100%;
+        height: 100%;
+    }
+
+    .ticket-id-display {
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--primary-color);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .ticket-status-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--success-color);
+        background: rgba(22, 163, 74, 0.1);
+        padding: 4px 10px;
+        border-radius: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+    }
+
+    .ticket-meta-summary {
+        display: flex;
+        justify-content: space-around;
+        width: 100%;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+        font-size: 13px;
+        color: var(--text-sub);
+    }
+
+    .ticket-meta-summary span.lbl {
+        color: var(--text-sub);
+    }
+
+    .ticket-meta-summary span.val {
+        color: var(--text-main);
+        font-weight: 600;
+    }
+
+    .btn-success-actions {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .btn-ticket-nav {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 20px;
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 30px;
+        text-decoration: none;
+        transition: all 0.3s;
+        text-align: center;
+    }
+
+    .btn-ticket-nav.primary {
+        background-color: var(--accent-color);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(245, 130, 32, 0.2);
+    }
+
+    .btn-ticket-nav.primary:hover {
+        background-color: var(--accent-hover);
+        box-shadow: 0 6px 18px rgba(245, 130, 32, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .btn-ticket-nav.secondary {
+        background-color: #ffffff;
+        color: var(--text-main);
+        border: 1px solid var(--border-color);
+    }
+
+    .btn-ticket-nav.secondary:hover {
+        background-color: #f6f6f6;
+        transform: translateY(-2px);
+    }
+
+    /* Skeleton Loader & Shimmer Animation */
+    .skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 8px;
+        display: inline-block;
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+</style>
+
+<div class="container success-wrapper">
+    
+    <!-- STEP PROGRESS BAR -->
+    <div class="booking-steps-bar">
+        <div class="step-indicator">
+            <i class="fas fa-couch"></i> Chọn Ghế
+        </div>
+        <div class="step-line active"></div>
+        <div class="step-indicator">
+            <i class="fas fa-credit-card"></i> Thanh Toán
+        </div>
+        <div class="step-line active"></div>
+        <div class="step-indicator active">
+            <i class="fas fa-check-circle"></i> Hoàn Tất
+        </div>
+    </div>
+
+    <!-- MAIN CARD CONTENT -->
+    <div class="success-content">
+        
+        <div class="success-icon-wrap">
+            <div class="checkmark-circle">
+                <i class="fas fa-check"></i>
+            </div>
+        </div>
+
+        <h1 class="success-title">Đặt Vé Thành Công!</h1>
+        <p class="success-message">Giao dịch của bạn đã được thực hiện thành công. Vui lòng kiểm tra thông tin vé bên dưới để đối chiếu tại rạp.</p>
+
+        <!-- PHYSICAL TICKET VIEW -->
+        <div class="ticket-container">
+            
+            <div class="ticket-top">
+                <h3 class="ticket-movie-title" id="sucMovie">
+                    <span class="skeleton" style="width: 280px; height: 24px; border-radius: 4px;"></span>
+                </h3>
+                <div class="ticket-grid-row">
+                    <div class="ticket-info-item">
+                        <span class="lbl">Rạp</span>
+                        <span class="val" id="sucCinema">
+                            <span class="skeleton" style="width: 140px; height: 18px; border-radius: 4px;"></span>
+                        </span>
+                    </div>
+                    <div class="ticket-info-item">
+                        <span class="lbl">Phòng chiếu</span>
+                        <span class="val" id="sucRoomName">
+                            <span class="skeleton" style="width: 60px; height: 18px; border-radius: 4px;"></span>
+                        </span>
+                    </div>
+                    <div class="ticket-info-item">
+                        <span class="lbl">Suất chiếu</span>
+                        <span class="val" id="sucDateTime">
+                            <span class="skeleton" style="width: 160px; height: 18px; border-radius: 4px;"></span>
+                        </span>
+                    </div>
+                    <div class="ticket-info-item">
+                        <span class="lbl">Ghế</span>
+                        <span class="val" id="sucSeats" style="color: var(--primary-color); font-weight: 700;">
+                            <span class="skeleton" style="width: 80px; height: 18px; border-radius: 4px;"></span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ticket-bottom">
+                <div class="ticket-barcode-wrap">
+                    <div class="qr-code-box skeleton" id="qrWrapper" style="width: 160px; height: 160px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <img id="sucQR" src="" alt="Vé QR Code" style="display: none; width: 100%; height: 100%; object-fit: contain;" />
+                    </div>
+                    <div style="text-align: center; width: 100%;">
+                        <span class="ticket-id-display" id="sucTicketCode">
+                            <span class="skeleton" style="width: 120px; height: 20px; border-radius: 4px;"></span>
+                        </span>
+                        <div style="margin-top: 8px;">
+                            <span class="ticket-status-label">Đã thanh toán</span>
+                        </div>
+                    </div>
+                    <div class="ticket-meta-summary">
+                        <div>
+                            <span class="lbl">Thanh toán: </span>
+                            <span class="val" id="sucPayment">
+                                <span class="skeleton" style="width: 130px; height: 16px; border-radius: 4px;"></span>
+                            </span>
+                        </div>
+                        <div>
+                            <span class="lbl">Tổng tiền: </span>
+                            <span class="val" id="sucTotal">
+                                <span class="skeleton" style="width: 80px; height: 16px; border-radius: 4px;"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="btn-success-actions">
+            <a href="@Url.Action("Index", "Home")" class="btn-ticket-nav primary">
+                <i class="fas fa-home"></i> Trang Chủ
+            </a>
+            <a href="@Url.Action("TicketHistory", "Account")" class="btn-ticket-nav secondary">
+                <i class="fas fa-ticket-alt"></i> Vé Của Tôi
+            </a>
+        </div>
+
+    </div>
+
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module">
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc, collection, query, where, getDocs, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const auth = window.auth;
+        const db = window.db;
+
+        // Parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookingId = urlParams.get('bookingId');
+
+        function formatDateSafe(dateValue) {
+            if (!dateValue) return "Đang cập nhật";
+            try {
+                if (typeof dateValue === "string") {
+                    const parts = dateValue.split("-");
+                    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    return dateValue;
+                }
+                if (dateValue.toDate) {
+                    return dateValue.toDate().toLocaleDateString("vi-VN");
+                }
+                return new Date(dateValue).toLocaleDateString("vi-VN");
+            } catch {
+                return "Đang cập nhật";
+            }
+        }
+
+        function formatCurrency(amount) {
+            const value = Number(amount || 0);
+            return value.toLocaleString("vi-VN") + "đ";
+        }
+
+        function safeText(value, fallback = "Đang cập nhật") {
+            return value === undefined || value === null || value === "" ? fallback : value;
+        }
+
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
+                return;
+            }
+
+            if (!bookingId) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không tìm thấy mã đặt vé. Vui lòng quay lại trang chủ!',
+                    background: '#ffffff',
+                    color: '#1f2937',
+                    confirmButtonColor: '#f58220'
+                }).then(() => {
+                    window.location.href = '/';
+                });
+                return;
+            }
+
+            loadBookingSuccessData();
+        });
+
+        async function loadBookingSuccessData() {
+            try {
+                // Fetch Booking
+                const bookingDocRef = doc(db, "bookings", bookingId);
+                const bookingSnap = await getDoc(bookingDocRef);
+
+                if (!bookingSnap.exists()) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Đơn hàng không tồn tại',
+                        text: 'Không tìm thấy hóa đơn này trong hệ thống.',
+                        background: '#ffffff',
+                        color: '#1f2937',
+                        confirmButtonColor: '#f58220'
+                    }).then(() => {
+                        window.location.href = '/';
+                    });
+                    return;
+                }
+
+                const bookingData = bookingSnap.data();
+
+                // Fetch associated Ticket
+                let ticketCode = "AERO-UNKNOWN";
+                let qrText = "AEROCINEMA-UNKNOWN";
+                
+                try {
+                    const user = auth.currentUser;
+                    if (!user) {
+                        window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
+                        return;
+                    }
+
+                    const ticketQuery = query(
+                        collection(db, "tickets"),
+                        where("bookingId", "==", bookingId),
+                        where("userId", "==", user.uid),
+                        limit(1)
+                    );
+                    const ticketSnap = await getDocs(ticketQuery);
+                    if (!ticketSnap.empty) {
+                        const ticketData = ticketSnap.docs[0].data();
+                        ticketCode = ticketData.ticketCode || ticketCode;
+                        qrText = ticketData.qrText || qrText;
+                    }
+                } catch (e) {
+                    console.error("Error loading ticket: ", e);
+                }
+
+                // Render UI
+                document.getElementById("sucMovie").innerText = safeText(bookingData.movieTitle, "AERO Cinema");
+                document.getElementById("sucCinema").innerText = safeText(bookingData.cinemaName);
+                document.getElementById("sucRoomName").innerText = safeText(bookingData.roomName);
+
+                // Format DateTime
+                const formattedDateTime = `${safeText(bookingData.time)} - ${formatDateSafe(bookingData.date)}`;
+                document.getElementById("sucDateTime").innerText = formattedDateTime;
+
+                // Format Seats
+                if (bookingData.seats && Array.isArray(bookingData.seats)) {
+                    document.getElementById("sucSeats").innerText = bookingData.seats.join(", ");
+                } else if (bookingData.seats) {
+                    document.getElementById("sucSeats").innerText = bookingData.seats;
+                }
+
+                // Payment Method Formatting
+                let paymentText = "Tiền mặt tại quầy";
+                if (bookingData.paymentMethod === "qr") paymentText = "Chuyển khoản VietQR";
+                if (bookingData.paymentMethod === "momo") paymentText = "Ví MoMo (Demo)";
+                document.getElementById("sucPayment").innerText = paymentText;
+
+                // Total Price
+                const totalVal = bookingData.totalPrice || 0;
+                document.getElementById("sucTotal").innerText = formatCurrency(totalVal);
+
+                // Ticket Code & QR Code
+                document.getElementById("sucTicketCode").innerText = ticketCode;
+                const qrImg = document.getElementById("sucQR");
+                qrImg.onload = () => {
+                    qrImg.style.display = "block";
+                    const wrapper = document.getElementById("qrWrapper");
+                    if (wrapper) wrapper.classList.remove("skeleton");
+                };
+                qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(qrText);
+
+            } catch (error) {
+                console.error("Error loading success page data: ", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi tải dữ liệu',
+                    text: 'Không thể hiển thị thông tin hóa đơn đặt vé.',
+                    background: '#ffffff',
+                    color: '#1f2937',
+                    confirmButtonColor: '#f58220'
+                });
+            }
+        }
+    </script>
+}

@@ -1,0 +1,628 @@
+@{
+    Response.ContentEncoding = System.Text.Encoding.UTF8;
+    Response.Charset = "utf-8";
+
+    var pageTitle = "AERO Cinema";
+
+    if (ViewBag.Title != null)
+    {
+        pageTitle = ViewBag.Title.ToString();
+    }
+
+    var controllerName = "";
+    var actionName = "";
+
+    if (ViewContext != null && ViewContext.RouteData != null && ViewContext.RouteData.Values["controller"] != null)
+    {
+        controllerName = ViewContext.RouteData.Values["controller"].ToString();
+    }
+
+    if (ViewContext != null && ViewContext.RouteData != null && ViewContext.RouteData.Values["action"] != null)
+    {
+        actionName = ViewContext.RouteData.Values["action"].ToString();
+    }
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://image.tmdb.org" crossorigin>
+    <link rel="dns-prefetch" href="//image.tmdb.org">
+    <link rel="dns-prefetch" href="//www.gstatic.com">
+    <title>@pageTitle - AERO Cinema</title>
+
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- Bootstrap CSS from CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" />
+
+    <link href="@Url.Content("~/Content/responsive.css?v=1")" rel="stylesheet" />
+
+    <style>
+        @@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --primary-color: #005baa; /* AERO Blue */
+            --accent-color: #f58020; /* Galaxy Orange */
+            --primary-hover: #023873;
+            --accent-hover: #d46813;
+            --bg-body: #f6f6f6;
+            --bg-card: #ffffff;
+            --text-main: #333333;
+            --text-sub: #777777;
+            --border-color: #e0e0e0;
+            --font-family: 'Raleway', sans-serif;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+            --border-radius: 10px;
+        }
+
+        /* Base styles */
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            color: var(--text-main);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        a:hover {
+            color: var(--primary-color);
+        }
+
+        /* Header redesign - Sticky and white */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: #ffffff;
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            transition: var(--transition);
+        }
+
+        .header-logo a {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .header-logo span {
+            color: var(--accent-color);
+        }
+
+        /* Main Menu centered */
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin: 0 auto 0 40px;
+        }
+
+        .header-nav a {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #444;
+            padding: 8px 0;
+            position: relative;
+        }
+
+        .header-nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background-color: var(--accent-color);
+            transition: var(--transition);
+        }
+
+        .header-nav a:hover {
+            color: var(--primary-color);
+        }
+
+        .header-nav a:hover::after,
+        .header-nav a.active::after {
+            width: 100%;
+        }
+
+        .header-nav a.active {
+            color: var(--primary-color);
+        }
+
+        /* Header Right Controls */
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Search input bar */
+        .header-search-bar {
+            position: relative;
+            width: 240px;
+        }
+
+        .header-search-bar input {
+            width: 100%;
+            background-color: #f0f2f5;
+            border: 1px solid transparent;
+            border-radius: 20px;
+            padding: 6px 15px 6px 35px;
+            color: var(--text-main);
+            font-size: 13px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .header-search-bar input:focus {
+            background-color: #ffffff;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 91, 170, 0.15);
+        }
+
+        .header-search-bar i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-sub);
+            font-size: 13px;
+        }
+
+        /* Auth buttons */
+        .auth-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .auth-actions a {
+            color: #555;
+            text-transform: uppercase;
+        }
+
+        .auth-actions a:hover {
+            color: var(--primary-color);
+        }
+
+        .lang-switch {
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .lang-switch span {
+            cursor: pointer;
+        }
+
+        .lang-switch .active {
+            color: var(--accent-color);
+        }
+
+        .nav-hamburger {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-main);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        /* Main body layout wrapper */
+        .site-wrapper {
+            flex: 1;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        /* Footer Modern white design */
+        .footer-compact {
+            background-color: #ffffff;
+            padding: 60px 40px 30px 40px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 50px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto 40px auto;
+        }
+
+        .footer-col h4 {
+            font-size: 14px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            letter-spacing: 0.5px;
+        }
+
+        .footer-col p,
+        .footer-col li {
+            font-size: 13px;
+            color: var(--text-sub);
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
+        .footer-col ul {
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .footer-col a {
+            color: var(--text-sub);
+            transition: var(--transition);
+        }
+
+        .footer-col a:hover {
+            color: var(--accent-color);
+            padding-left: 3px;
+        }
+
+        .footer-socials {
+            display: flex;
+            gap: 12px;
+            margin-top: 15px;
+        }
+
+        .footer-socials a {
+            width: 36px;
+            height: 36px;
+            background-color: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 15px;
+            color: var(--primary-color);
+            transition: var(--transition);
+        }
+
+        .footer-socials a:hover {
+            background-color: var(--accent-color);
+            color: #ffffff;
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            max-width: 1200px;
+            margin: 0 auto;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: var(--text-sub);
+        }
+
+        /* Mobile layout styling */
+        @@media (max-width: 992px) {
+            .site-header {
+                padding: 0 20px;
+            }
+            .header-nav {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 72px;
+                left: 0;
+                width: 100%;
+                background-color: #ffffff;
+                padding: 20px;
+                gap: 15px;
+                margin: 0;
+                box-shadow: var(--shadow-md);
+                border-bottom: 1px solid var(--border-color);
+            }
+            .header-nav.open {
+                display: flex;
+            }
+            .header-nav a::after {
+                display: none;
+            }
+            .nav-hamburger {
+                display: block;
+            }
+            .header-controls {
+                gap: 10px;
+            }
+            .header-search-bar {
+                display: none;
+            }
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @@media (max-width: 576px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            .footer-bottom {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- STICKY SITE HEADER -->
+    <header class="site-header">
+        <div class="header-logo">
+            <a href="@Url.Action("Index", "Home")">
+                <span>AERO</span> Cinema
+            </a>
+        </div>
+
+        <!-- MAIN HEADER NAVIGATION -->
+        <nav class="header-nav" id="headerNav">
+            <a href="@Url.Action("Index", "Showtimes")" class="@(controllerName == "Showtimes" ? "active" : "")">Mua Vé</a>
+            <a href="@Url.Action("Index", "Movies")" class="@(controllerName == "Movies" ? "active" : "")">Phim</a>
+            <a href="@Url.Action("Promotions", "Home")" class="@(controllerName == "Home" && actionName == "Promotions" ? "active" : "")">Ưu Đãi</a>
+            <a href="@Url.Action("Services", "Home")" class="@(controllerName == "Home" && actionName == "Services" ? "active" : "")">Sự Kiện</a>
+            <a href="@Url.Action("Cinemas", "Home")" class="@(controllerName == "Home" && actionName == "Cinemas" ? "active" : "")">Rạp</a>
+            <a href="@Url.Action("Membership", "Home")" class="@(controllerName == "Home" && actionName == "Membership" ? "active" : "")">Thành Viên</a>
+            <a id="nav-admin-link" href="@Url.Action("Dashboard", "Admin")" class="@(controllerName == "Admin" ? "active" : "")" style="display: none; color: var(--accent-color);">Quản Trị</a>
+        </nav>
+
+        <!-- CONTROLS & AUTH -->
+        <div class="header-controls">
+            <div class="header-search-bar">
+                <input type="text" id="layoutSearch" placeholder="Tìm kiếm phim..." autocomplete="off" />
+                <i class="fas fa-search"></i>
+            </div>
+
+            <div class="auth-actions" id="auth-links">
+                <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
+                <span>|</span>
+                <a href="@Url.Action("Register", "Account")">Đăng ký</a>
+            </div>
+
+            <div class="lang-switch d-none d-sm-flex">
+                <span class="active">VI</span>
+                <span style="color: #ccc;">|</span>
+                <span>EN</span>
+            </div>
+
+            <button type="button" class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu Toggle" aria-controls="headerNav" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN BODY SECTION -->
+    <main class="site-wrapper">
+        @RenderBody()
+    </main>
+
+    <!-- FOOTER SECTION -->
+    <footer class="footer-compact">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4 style="color: var(--primary-color);">AERO Cinema</h4>
+                <p>Hệ thống rạp chiếu phim hiện đại và tiện lợi, mang đến trải nghiệm điện ảnh chuẩn quốc tế ngay tại Việt Nam.</p>
+                <p><i class="fas fa-phone-alt" style="color: var(--accent-color); margin-right: 5px;"></i> Hotline: 1900 1234</p>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Hỗ trợ</h4>
+                <ul>
+                    <li><a href="@Url.Action("Support", "Home")">Hỏi đáp FAQ</a></li>
+                    <li><a href="@Url.Action("Support", "Home")">Hướng dẫn đặt vé trực tuyến</a></li>
+                    <li><a href="@Url.Action("Support", "Home")">Liên hệ góp ý</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Chính sách</h4>
+                <ul>
+                    <li><a href="@Url.Action("Policy", "Home")">Chính sách thành viên</a></li>
+                    <li><a href="@Url.Action("Policy", "Home")">Điều khoản sử dụng</a></li>
+                    <li><a href="@Url.Action("Policy", "Home")">Chính sách thanh toán & đổi trả</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Kết nối</h4>
+                <p><i class="fas fa-map-marker-alt" style="color: var(--accent-color); margin-right: 5px;"></i> Ninh Kiều, Cần Thơ</p>
+                <div class="footer-socials">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div>&copy; @DateTime.Now.Year AERO Cinema. Bảo lưu mọi quyền.</div>
+            <div>Hợp tác cùng thương hiệu AERO Cinema</div>
+        </div>
+    </footer>
+
+    <!-- Script assets -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function toggleMobileMenu() {
+            var menu = document.getElementById("headerNav");
+            var button = document.querySelector(".nav-hamburger");
+            if (menu) {
+                menu.classList.toggle("open");
+                if (button) {
+                    var isOpen = menu.classList.contains("open");
+                    button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+                }
+            }
+        }
+
+        document.addEventListener("click", function (event) {
+            var menu = document.getElementById("headerNav");
+            var button = document.querySelector(".nav-hamburger");
+            if (!menu || !button || !menu.classList.contains("open")) return;
+            if (menu.contains(event.target) || button.contains(event.target)) return;
+            menu.classList.remove("open");
+            button.setAttribute("aria-expanded", "false");
+        });
+
+        // Connect Layout Search with Movies index search dynamic functionality
+        const layoutSearch = document.getElementById("layoutSearch");
+        if (layoutSearch) {
+            layoutSearch.addEventListener("keypress", (e) => {
+                if (e.key === 'Enter') {
+                    const queryVal = e.target.value.trim();
+                    if (window.location.pathname.toLowerCase().includes('/movies')) {
+                        const searchInput = document.getElementById("searchInput");
+                        if (searchInput) {
+                            searchInput.value = queryVal;
+                            searchInput.dispatchEvent(new Event('input'));
+                        }
+                    } else {
+                        window.location.href = `/Movies?search=${encodeURIComponent(queryVal)}`;
+                    }
+                }
+            });
+        }
+
+        // On page load check search parameter for Movies page
+        if (window.location.pathname.toLowerCase().includes('/movies')) {
+            const searchParam = new URLSearchParams(window.location.search).get('search');
+            if (searchParam) {
+                setTimeout(() => {
+                    const searchInput = document.getElementById("searchInput");
+                    if (searchInput) {
+                        searchInput.value = searchParam;
+                        searchInput.dispatchEvent(new Event('input'));
+                    }
+                    const laySearchInput = document.getElementById("layoutSearch");
+                    if (laySearchInput) {
+                        laySearchInput.value = searchParam;
+                    }
+                }, 300);
+            }
+        }
+    </script>
+
+    <!-- Firebase SDK Global Layout Listeners -->
+    <script src="~/Scripts/firebase-config.js"></script>
+    <script type="module" src="~/Scripts/firebase-init.js"></script>
+    <script type="module">
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const auth = window.auth;
+        const db = window.db;
+
+        // Listen to Auth State
+        onAuthStateChanged(auth, async (user) => {
+            const authLinks = document.getElementById("auth-links");
+            const adminLink = document.getElementById("nav-admin-link");
+
+            if (user) {
+                authLinks.innerHTML = `
+                    <a href="@Url.Action("Profile", "Account")" style="color: var(--primary-color); font-weight: 700;">${(user.displayName || user.email || "TÀI KHOẢN").toUpperCase()}</a>
+                    <span style="color:#ddd">|</span>
+                    <a href="#" id="nav-logout-btn">Đăng xuất</a>
+                `;
+
+                // Add logout handler
+                const logoutBtn = document.getElementById("nav-logout-btn");
+                if (logoutBtn) {
+                    logoutBtn.addEventListener("click", async (e) => {
+                        e.preventDefault();
+                        Swal.fire({
+                            title: 'Bạn có chắc chắn muốn đăng xuất?',
+                            icon: 'question',
+                            showCancelButton: true,
+                            confirmButtonColor: 'var(--primary-color)',
+                            cancelButtonColor: '#aaa',
+                            confirmButtonText: 'Đăng xuất',
+                            cancelButtonText: 'Hủy',
+                            background: '#ffffff',
+                            color: '#333'
+                        }).then(async (result) => {
+                            if (result.isConfirmed) {
+                                try {
+                                    await signOut(auth);
+                                    window.location.href = "@Url.Action("Login", "Account")";
+                                } catch (error) {
+                                    console.error("Error signing out: ", error);
+                                }
+                            }
+                        });
+                    });
+                }
+
+                // Check Role in Firestore to show/hide Admin link
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists() && userDoc.data().role === "admin") {
+                        adminLink.style.display = "inline-block";
+                    } else {
+                        adminLink.style.display = "none";
+                    }
+                } catch (error) {
+                    console.error("Error fetching user role: ", error);
+                    adminLink.style.display = "none";
+                }
+            } else {
+                authLinks.innerHTML = `
+                    <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
+                    <span style="color:#ddd">|</span>
+                    <a href="@Url.Action("Register", "Account")">Đăng ký</a>
+                `;
+                adminLink.style.display = "none";
+            }
+        });
+    </script>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

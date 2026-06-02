@@ -1,0 +1,965 @@
+@{
+    ViewBag.Title = "Bảng Điều Khiển Quản Trị - AERO Cinema";
+}
+
+<style>
+    :root {
+        --primary-color: #005baa;
+        --accent-color: #f58220;
+        --accent-hover: #e07316;
+        --text-main: #1f2937;
+        --text-sub: #6b7280;
+        --border-color: #e5e7eb;
+        --bg-body: #f6f6f6;
+        --bg-card: #ffffff;
+        --success-color: #16a34a;
+        --shadow-new: 0 8px 24px rgba(0, 0, 0, 0.08);
+        --font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    body {
+        background-color: var(--bg-body) !important;
+        font-family: var(--font-family) !important;
+        color: var(--text-main) !important;
+    }
+
+    /* Admin Dashboard Layout Styles */
+    .admin-layout {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        min-height: calc(100vh - 72px);
+        background-color: var(--bg-body);
+    }
+
+    .admin-sidebar {
+        background-color: #ffffff;
+        border-right: 1px solid var(--border-color);
+        padding: 30px 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .admin-sidebar-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .admin-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 14px 25px;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-sub);
+        transition: all 0.3s ease;
+        border-left: 4px solid transparent;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+    .admin-menu-item:hover, .admin-menu-item.active {
+        color: var(--primary-color);
+        background-color: rgba(0, 91, 170, 0.04);
+        border-left-color: var(--primary-color);
+    }
+
+    .admin-menu-item i {
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+    }
+
+    .admin-sidebar-footer {
+        padding: 15px 25px 0 25px;
+        font-size: 11px;
+        color: var(--text-sub);
+        border-top: 1px solid var(--border-color);
+    }
+
+    .admin-main {
+        padding: 40px;
+        overflow-y: auto;
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 35px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 20px;
+    }
+
+    .admin-title {
+        font-size: 26px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-main);
+        margin: 0;
+        letter-spacing: 0.5px;
+    }
+
+    .admin-user-profile {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #ffffff;
+        padding: 8px 18px;
+        border-radius: 30px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .admin-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        color: #fff;
+        font-size: 14px;
+    }
+
+    .admin-username {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-main);
+    }
+
+    /* STATS CARDS */
+    .admin-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 35px;
+    }
+
+    .stat-card {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: var(--shadow-new);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--primary-color);
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .stat-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        margin-bottom: 6px;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+        font-size: 26px;
+        font-weight: 800;
+        color: var(--text-main);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background-color: rgba(0, 91, 170, 0.08);
+        color: var(--primary-color);
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    /* CHARTS & ANALYTICS */
+    .dashboard-analytics-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 35px;
+    }
+
+    .analytics-card {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: var(--shadow-new);
+    }
+
+    .analytics-card-title {
+        font-size: 16px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-main);
+        margin-bottom: 25px;
+        border-left: 4px solid var(--primary-color);
+        padding-left: 10px;
+    }
+
+    /* CSS Bar Chart */
+    .bar-chart-container {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        height: 200px;
+        padding-top: 20px;
+        position: relative;
+        background-color: #ffffff;
+    }
+
+    .bar-chart-track {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        justify-content: flex-end;
+        position: relative;
+        background-color: #f9fafb;
+        margin: 0 6px;
+        border-radius: 4px;
+    }
+
+    .bar-chart-fill {
+        width: 24px;
+        border-radius: 6px 6px 0 0;
+        background: linear-gradient(to top, var(--primary-color), #3b82f6);
+        transition: height 1s ease-in-out;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .bar-chart-fill:hover {
+        background: var(--accent-color);
+        box-shadow: 0 0 10px rgba(245, 130, 32, 0.4);
+    }
+
+    .bar-tooltip {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translate(-50%, -10px);
+        background: #1f2937;
+        border: 1px solid #1f2937;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        z-index: 10;
+    }
+
+    .bar-chart-fill:hover .bar-tooltip {
+        opacity: 1;
+    }
+
+    .bar-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-sub);
+        margin-top: 10px;
+    }
+
+    /* TABLE SECTION */
+    .admin-table-card {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: var(--shadow-new);
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+
+    .admin-table th, .admin-table td {
+        padding: 16px 20px;
+        font-size: 14px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .admin-table th {
+        font-weight: 700;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        background-color: #f9fafb;
+    }
+
+    .admin-table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+
+    /* Status badges */
+    .status-badge {
+        display: inline-block;
+        padding: 5px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .status-badge.completed {
+        background-color: rgba(22, 163, 74, 0.1);
+        color: var(--success-color);
+    }
+
+    .status-badge.pending {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
+    }
+
+    .btn-action-view {
+        background: transparent;
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        padding: 6px 14px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+    }
+
+    .btn-action-view:hover {
+        background-color: var(--primary-color);
+        color: #ffffff;
+    }
+
+    /* Responsive */
+    @@media (max-width: 1200px) {
+        .admin-stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .dashboard-analytics-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .admin-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-sidebar {
+            flex-direction: row;
+            overflow-x: auto;
+            padding: 10px 20px;
+            border-right: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .admin-sidebar-menu {
+            flex-direction: row;
+            width: 100%;
+        }
+
+        .admin-menu-item {
+            padding: 12px 20px;
+            border-left: none;
+            border-bottom: 4px solid transparent;
+            white-space: nowrap;
+        }
+
+        .admin-menu-item:hover, .admin-menu-item.active {
+            border-left-color: transparent;
+            border-bottom-color: var(--primary-color);
+        }
+
+        .admin-sidebar-footer {
+            display: none;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .admin-stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .admin-main {
+            padding: 20px;
+        }
+    }
+
+    /* Skeleton Loader & Shimmer Animation */
+    .skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 8px;
+        display: inline-block;
+    }
+
+    .bar-chart-fill.skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%) !important;
+        background-size: 200% 100% !important;
+        animation: shimmer 1.2s infinite !important;
+        pointer-events: none;
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+</style>
+
+<div class="admin-layout">
+    
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+        <nav class="admin-sidebar-menu">
+            <a href="@Url.Action("Dashboard", "Admin")" class="admin-menu-item active">
+                <i class="fas fa-chart-line"></i>
+                <span>Thống kê tổng quan</span>
+            </a>
+            <a href="#" class="admin-menu-item" onclick="alert('Tính năng quản lý danh sách phim sẽ hoạt động ở các giai đoạn tiếp theo.')">
+                <i class="fas fa-film"></i>
+                <span>Quản lý phim</span>
+            </a>
+            <a href="#" class="admin-menu-item" onclick="alert('Tính năng quản lý lịch chiếu sẽ hoạt động ở các giai đoạn tiếp theo.')">
+                <i class="fas fa-calendar-alt"></i>
+                <span>Quản lý lịch chiếu</span>
+            </a>
+            <a href="#" class="admin-menu-item" onclick="alert('Tính năng quản lý danh sách vé đã đặt sẽ hoạt động ở các giai đoạn tiếp theo.')">
+                <i class="fas fa-ticket-alt"></i>
+                <span>Quản lý đặt vé</span>
+            </a>
+            <a href="#" class="admin-menu-item" onclick="alert('Tính năng quản lý tài khoản người dùng sẽ hoạt động ở các giai đoạn tiếp theo.')">
+                <i class="fas fa-users"></i>
+                <span>Quản lý người dùng</span>
+            </a>
+            <a href="#" class="admin-menu-item" onclick="alert('Tính năng cấu hình hệ thống cụm rạp sẽ hoạt động ở các giai đoạn tiếp theo.')">
+                <i class="fas fa-cog"></i>
+                <span>Cấu hình rạp</span>
+            </a>
+        </nav>
+        <div class="admin-sidebar-footer">
+            <span>AERO Cinema Admin v1.0</span>
+        </div>
+    </aside>
+
+    <!-- MAIN SECTION -->
+    <main class="admin-main">
+        
+        <!-- Header -->
+        <div class="admin-header">
+            <h1 class="admin-title">Bảng Tổng Quan</h1>
+            <div class="admin-user-profile">
+                <div class="admin-avatar" id="adminAvatar">AD</div>
+                <span class="admin-username">Administrator</span>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="admin-stats-grid">
+            <div class="stat-card">
+                <div class="stat-info">
+                    <span class="stat-label">Tổng Phim</span>
+                    <span class="stat-value" id="statMovies">
+                        <span class="skeleton" style="width: 50px; height: 26px; border-radius: 4px;"></span>
+                    </span>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-video"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-info">
+                    <span class="stat-label">Vé Đã Bán</span>
+                    <span class="stat-value" id="statTickets">
+                        <span class="skeleton" style="width: 50px; height: 26px; border-radius: 4px;"></span>
+                    </span>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-ticket-alt"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-info">
+                    <span class="stat-label">Doanh Thu Hệ Thống</span>
+                    <span class="stat-value" id="statRevenue">
+                        <span class="skeleton" style="width: 90px; height: 26px; border-radius: 4px;"></span>
+                    </span>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-info">
+                    <span class="stat-label">Thành Viên</span>
+                    <span class="stat-value" id="statUsers">
+                        <span class="skeleton" style="width: 50px; height: 26px; border-radius: 4px;"></span>
+                    </span>
+                </div>
+                <div class="stat-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics charts & boxes -->
+        <div class="dashboard-analytics-grid">
+            <!-- Sales Chart Card -->
+            <div class="analytics-card">
+                <h3 class="analytics-card-title">Doanh Thu Theo Thứ (VNĐ)</h3>
+                <div class="bar-chart-container">
+                    <div class="bar-chart-track">
+                        <div id="barMon" class="bar-chart-fill skeleton" style="height: 40%;">
+                            <span class="bar-tooltip" id="tooltipMon">0đ</span>
+                        </div>
+                        <span class="bar-label">T2</span>
+                    </div>
+                    <div class="bar-chart-track">
+                        <div id="barTue" class="bar-chart-fill skeleton" style="height: 60%;">
+                            <span class="bar-tooltip" id="tooltipTue">0đ</span>
+                        </div>
+                        <span class="bar-label">T3</span>
+                    </div>
+                    <div class="bar-chart-track">
+                        <div id="barWed" class="bar-chart-fill skeleton" style="height: 35%;">
+                            <span class="bar-tooltip" id="tooltipWed">0đ</span>
+                        </div>
+                        <span class="bar-label">T4</span>
+                    </div>
+                    <div class="bar-chart-track">
+                        <div id="barThu" class="bar-chart-fill skeleton" style="height: 70%;">
+                            <span class="bar-tooltip" id="tooltipThu">0đ</span>
+                        </div>
+                        <span class="bar-label">T5</span>
+                    </div>
+                    <div class="bar-chart-track">
+                        <div id="barFri" class="bar-chart-fill skeleton" style="height: 50%;">
+                            <span class="bar-tooltip" id="tooltipFri">0đ</span>
+                        </div>
+                        <span class="bar-label">T6</span>
+                    </div>
+                    <div class="bar-chart-track">
+                        <div id="barSat" class="bar-chart-fill skeleton" style="height: 85%;">
+                            <span class="bar-tooltip" id="tooltipSat">0đ</span>
+                        </div>
+                        <span class="bar-label">T7</span>
+                    </div>
+                    <div class="bar-chart-track">
+                        <div id="barSun" class="bar-chart-fill skeleton" style="height: 45%;">
+                            <span class="bar-tooltip" id="tooltipSun">0đ</span>
+                        </div>
+                        <span class="bar-label">CN</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top movies card -->
+            <div class="analytics-card">
+                <h3 class="analytics-card-title">Xếp Hạng Phim Ăn Khách</h3>
+                <div id="topMoviesList" style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="movie-rank-skeleton" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;">
+                        <span class="skeleton" style="width: 180px; height: 16px; border-radius: 4px;"></span>
+                        <span class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></span>
+                    </div>
+                    <div class="movie-rank-skeleton" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;">
+                        <span class="skeleton" style="width: 150px; height: 16px; border-radius: 4px;"></span>
+                        <span class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></span>
+                    </div>
+                    <div class="movie-rank-skeleton" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;">
+                        <span class="skeleton" style="width: 200px; height: 16px; border-radius: 4px;"></span>
+                        <span class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Latest Orders Table -->
+        <div class="admin-table-card">
+            <h3 class="analytics-card-title">Đơn Đặt Vé Gần Đây</h3>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Mã Vé</th>
+                            <th>Khách Hàng</th>
+                            <th>Tên Phim</th>
+                            <th>Suất Chiếu</th>
+                            <th>Ghế</th>
+                            <th>Tổng Tiền</th>
+                            <th>Phương Thức</th>
+                            <th>Trạng Thái</th>
+                            <th>Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="latestBookingsTable">
+                        <tr class="table-row-skeleton">
+                            <td><span class="skeleton" style="width: 100px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 120px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 150px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 110px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 60px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 80px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 80px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 90px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 70px; height: 26px; border-radius: 4px;"></span></td>
+                        </tr>
+                        <tr class="table-row-skeleton">
+                            <td><span class="skeleton" style="width: 90px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 100px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 180px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 110px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 50px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 80px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 70px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 90px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 70px; height: 26px; border-radius: 4px;"></span></td>
+                        </tr>
+                        <tr class="table-row-skeleton">
+                            <td><span class="skeleton" style="width: 110px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 130px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 130px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 110px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 70px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 80px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 85px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 90px; height: 16px; border-radius: 4px;"></span></td>
+                            <td><span class="skeleton" style="width: 70px; height: 26px; border-radius: 4px;"></span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module">
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const auth = window.auth;
+        const db = window.db;
+
+        function formatDateSafe(dateValue) {
+            if (!dateValue) return "Đang cập nhật";
+            try {
+                if (typeof dateValue === "string") {
+                    const parts = dateValue.split("-");
+                    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    return dateValue;
+                }
+                if (dateValue.toDate) return dateValue.toDate().toLocaleDateString("vi-VN");
+                return new Date(dateValue).toLocaleDateString("vi-VN");
+            } catch {
+                return "Đang cập nhật";
+            }
+        }
+
+        function formatCurrency(amount) {
+            const value = Number(amount || 0);
+            return value.toLocaleString("vi-VN") + "đ";
+        }
+
+        function safeText(value, fallback = "Đang cập nhật") {
+            return value === undefined || value === null || value === "" ? fallback : value;
+        }
+
+        // Security check
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
+                return;
+            }
+
+            try {
+                const userDocSnap = await getDoc(doc(db, "users", user.uid));
+                if (!userDocSnap.exists() || userDocSnap.data().role !== "admin") {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Truy cập bị từ chối',
+                        text: 'Bạn không có quyền quản trị để xem trang này!',
+                        background: '#ffffff',
+                        color: '#1f2937',
+                        confirmButtonColor: '#f58220'
+                    }).then(() => {
+                        window.location.href = '/';
+                    });
+                    return;
+                }
+
+                // Show Admin Profile Name
+                const adminName = userDocSnap.data().fullName || user.displayName || "Admin";
+                document.querySelector(".admin-username").innerText = adminName;
+                document.getElementById("adminAvatar").innerText = adminName.substring(0, 2).toUpperCase();
+
+                // Load stats
+                await loadDashboardStats();
+
+            } catch (e) {
+                console.error("Dashboard Auth Error: ", e);
+                window.location.href = '/';
+            }
+        });
+
+        // Main loader
+        async function loadDashboardStats() {
+            try {
+                // Fetch all movies, users, bookings, tickets in parallel to build fast maps and compute metrics
+                const [moviesSnap, usersSnap, bookingsSnap, ticketsSnap] = await Promise.all([
+                    getDocs(query(collection(db, "movies"), limit(50))),
+                    getDocs(query(collection(db, "users"), limit(100))),
+                    getDocs(query(collection(db, "bookings"), orderBy("createdAt", "desc"), limit(100))),
+                    getDocs(query(collection(db, "tickets"), limit(100)))
+                ]);
+
+                // Count stats
+                document.getElementById("statMovies").innerText = moviesSnap.size;
+                document.getElementById("statUsers").innerText = usersSnap.size;
+
+                // Build Users Map
+                const usersMap = {};
+                usersSnap.forEach(uDoc => {
+                    usersMap[uDoc.id] = uDoc.data();
+                });
+
+                // Build Tickets Map (by Booking ID)
+                const ticketsMap = {};
+                ticketsSnap.forEach(tDoc => {
+                    const ticketData = tDoc.data();
+                    if (ticketData.bookingId) {
+                        ticketsMap[ticketData.bookingId] = ticketData;
+                    }
+                });
+
+                let totalRevenue = 0;
+                let totalSeatsSold = 0;
+                const bookingsList = [];
+                const movieSales = {};
+                const dayRev = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 }; // Mon-Sun
+
+                bookingsSnap.forEach(bDoc => {
+                    const booking = bDoc.data();
+                    const bookingId = bDoc.id;
+                    bookingsList.push({ id: bookingId, ...booking });
+
+                    // Sum completed revenue
+                    totalRevenue += booking.totalPrice || 0;
+
+                    // Sum seats
+                    const seatCount = Array.isArray(booking.seats) ? booking.seats.length : 1;
+                    totalSeatsSold += seatCount;
+
+                    // Group by Movie for popularity rating
+                    const movieId = booking.movieId;
+                    if (movieId) {
+                        if (!movieSales[movieId]) {
+                            movieSales[movieId] = { title: booking.movieTitle || "Phim", count: 0 };
+                        }
+                        movieSales[movieId].count += seatCount;
+                    }
+
+                    // Group revenue by day of week
+                    if (booking.createdAt) {
+                        const date = booking.createdAt.toDate ? booking.createdAt.toDate() : new Date(booking.createdAt);
+                        const day = date.getDay(); // 0 (Sun) - 6 (Sat)
+                        dayRev[day] += booking.totalPrice || 0;
+                    }
+                });
+
+                document.getElementById("statTickets").innerText = totalSeatsSold;
+                document.getElementById("statRevenue").innerText = formatCurrency(totalRevenue);
+
+                // 1. Sort bookings by date desc for the latest orders table
+                bookingsList.sort((a, b) => {
+                    const timeA = a.createdAt?.seconds || 0;
+                    const timeB = b.createdAt?.seconds || 0;
+                    return timeB - timeA;
+                });
+
+                const latestBookings = bookingsList.slice(0, 5);
+                let tableHtml = "";
+
+                if (latestBookings.length === 0) {
+                    tableHtml = `<tr><td colspan="9" class="text-center py-4 text-muted">Không có đơn đặt vé nào.</td></tr>`;
+                } else {
+                    latestBookings.forEach(booking => {
+                        const dateFormatted = formatDateSafe(booking?.date);
+                        const seatsString = Array.isArray(booking.seats) ? booking.seats.join(", ") : safeText(booking.seats);
+                        const userDoc = usersMap[booking.userId] || {};
+                        const customerName = userDoc.fullName || booking.userEmail || "Khách hàng";
+                        
+                        const ticket = ticketsMap[booking.id] || {};
+                        const ticketCode = ticket.ticketCode || "AERO-PENDING";
+                        const qrText = ticket.qrText || "AEROCINEMA-PENDING";
+                        
+                        let payMethod = "Tiền mặt";
+                        if (booking.paymentMethod === "qr") payMethod = "QR Banking";
+                        if (booking.paymentMethod === "momo") payMethod = "Ví MoMo";
+                        
+                        const priceFormatted = formatCurrency(booking.totalPrice);
+
+                        tableHtml += `
+                            <tr>
+                                <td><strong style="color: var(--primary-color);">${ticketCode}</strong></td>
+                                <td>${customerName}</td>
+                                <td>${safeText(booking.movieTitle, "AERO Cinema")}</td>
+                                <td>${safeText(booking.time)} - ${dateFormatted}</td>
+                                <td>${seatsString}</td>
+                                <td>${priceFormatted}</td>
+                                <td>${payMethod}</td>
+                                <td><span class="status-badge completed">Thành công</span></td>
+                                <td>
+                                    <button class="btn-action-view" onclick="showTicketDetailModal('${ticketCode}', '${qrText}', '${booking.movieTitle.replace(/'/g, "\\'")}', '${safeText(booking.cinemaName)}', '${safeText(booking.roomName)}', '${safeText(booking.time)}', '${safeText(booking.date, '')}', '${seatsString}', '${priceFormatted}', '${payMethod}', '${customerName}')">
+                                        Chi tiết
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                document.getElementById("latestBookingsTable").innerHTML = tableHtml;
+
+                // 2. Render Top Movies List (sorted by number of seats sold)
+                const sortedMovieSales = Object.values(movieSales).sort((a, b) => b.count - a.count).slice(0, 4);
+                let moviesListHtml = "";
+                
+                if (sortedMovieSales.length === 0) {
+                    moviesListHtml = `<div class="text-muted text-center py-4">Chưa có xếp hạng phim.</div>`;
+                } else {
+                    sortedMovieSales.forEach((movie, index) => {
+                        moviesListHtml += `
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;">
+                                <span style="font-size: 14px; font-weight: 700; color: var(--text-main);">${index + 1}. ${movie.title}</span>
+                                <span style="font-size: 13px; color: var(--primary-color); font-weight: 700;">${movie.count} Vé</span>
+                            </div>
+                        `;
+                    });
+                }
+                document.getElementById("topMoviesList").innerHTML = moviesListHtml;
+
+                // 3. Render Revenue Weekly Chart heights dynamically
+                const maxRev = Math.max(...Object.values(dayRev), 100000); // base threshold to prevent zero height
+                const daysMap = {
+                    1: { id: "barMon", tooltipId: "tooltipMon" },
+                    2: { id: "barTue", tooltipId: "tooltipTue" },
+                    3: { id: "barWed", tooltipId: "tooltipWed" },
+                    4: { id: "barThu", tooltipId: "tooltipThu" },
+                    5: { id: "barFri", tooltipId: "tooltipFri" },
+                    6: { id: "barSat", tooltipId: "tooltipSat" },
+                    0: { id: "barSun", tooltipId: "tooltipSun" }
+                };
+
+                for (const day in daysMap) {
+                    const rev = dayRev[day];
+                    const pct = Math.min(100, Math.floor((rev / maxRev) * 100));
+                    const fillEl = document.getElementById(daysMap[day].id);
+                    if (fillEl) {
+                        fillEl.style.height = `${pct}%`;
+                        fillEl.classList.remove("skeleton");
+                    }
+                    const tooltipEl = document.getElementById(daysMap[day].tooltipId);
+                    if (tooltipEl) {
+                        tooltipEl.innerText = formatCurrency(rev);
+                    }
+                }
+
+            } catch (e) {
+                console.error("Error loading dashboard data: ", e);
+            }
+        }
+
+        // Global function for modal display
+        window.showTicketDetailModal = function(ticketCode, qrText, movieTitle, cinemaName, roomName, time, date, seats, price, payMethod, userName) {
+            const dateFormatted = formatDateSafe(date);
+            Swal.fire({
+                title: `<div style="font-size: 16px; font-weight:800; text-transform:uppercase; color:var(--text-main); border-bottom:1px solid var(--border-color); padding-bottom:12px; font-family:'Raleway', sans-serif;">Chi Tiết Vé ${ticketCode}</div>`,
+                html: `
+                    <div style="text-align: left; font-size: 13px; color: var(--text-sub); margin-top: 15px; font-family:'Raleway', sans-serif;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Khách hàng:</span>
+                            <span style="color:var(--text-main); font-weight:600;">${userName}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Phim:</span>
+                            <span style="color:var(--text-main); font-weight:600;">${movieTitle}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Rạp:</span>
+                            <span style="color:var(--text-main); font-weight:600;">${cinemaName} (${roomName})</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Suất chiếu:</span>
+                            <span style="color:var(--text-main); font-weight:600;">${time} - ${dateFormatted}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Ghế:</span>
+                            <span style="color: var(--primary-color); font-weight:700;">${seats}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                            <span>Thanh toán:</span>
+                            <span style="color:var(--text-main); font-weight:600;">${payMethod}</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+                            <span>Tổng tiền:</span>
+                            <span style="color:var(--text-main); font-weight:600;">${price}</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center; background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb; width: 180px; margin: 15px auto 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrText)}" style="width: 150px; height: 150px; object-fit: contain;" alt="QR Code" />
+                        </div>
+                        <div style="text-align: center; font-size: 11px; color:var(--text-sub); margin-top: 10px;">
+                            Mã quét: ${qrText}
+                        </div>
+                    </div>
+                `,
+                showConfirmButton: true,
+                confirmButtonText: 'Đóng',
+                confirmButtonColor: '#f58220',
+                background: '#ffffff',
+                color: '#1f2937'
+            });
+        };
+    </script>
+}

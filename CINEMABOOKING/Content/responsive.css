@@ -1,0 +1,1007 @@
+/* AERO Cinema Responsive Core */
+html,
+body {
+    width: 100%;
+    overflow-x: hidden;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+img,
+video,
+iframe,
+canvas,
+svg {
+    max-width: 100%;
+}
+
+img,
+video {
+    height: auto;
+}
+
+body {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+.container,
+.container-fluid,
+.site-wrapper,
+.hero-content,
+.quick-booking-container,
+.movies-section,
+.home-offers-inner,
+.home-cinemas-section,
+.movies-page-wrapper,
+.movie-details-wrapper,
+.showtimes-wrapper,
+.booking-wrapper,
+.checkout-wrapper,
+.success-wrapper,
+.profile-wrapper,
+.ticket-history-wrapper {
+    max-width: min(1200px, calc(100vw - 32px));
+}
+
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.seat-map-wrapper,
+.seat-map-grid {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+input,
+select,
+textarea,
+button {
+    max-width: 100%;
+}
+
+.btn,
+button,
+[role="button"],
+input,
+select,
+textarea,
+.btn-auth-submit,
+.btn-qb-submit,
+.btn-card-detail,
+.btn-card-buy,
+.btn-hero-book,
+.btn-hero-trailer,
+.btn-checkout-submit,
+.btn-confirm-payment,
+.btn-apply-promo,
+.btn-action-view,
+.payment-option-card,
+.showtime-btn,
+.date-tab {
+    touch-action: manipulation;
+}
+
+.movies-grid-display,
+.offers-layout-grid,
+.cinemas-home-grid,
+.admin-stats-grid,
+.dashboard-analytics-grid,
+.form-grid,
+.summary-meta-grid,
+.checkout-layout,
+.booking-layout {
+    min-width: 0;
+}
+
+.movie-display-card,
+.offer-card,
+.cinema-card,
+.checkout-card,
+.stat-card,
+.analytics-card,
+.admin-table-card,
+.invoice-sidebar,
+.map-container,
+.auth-card {
+    min-width: 0;
+}
+
+.card-movie-title,
+.hero-title,
+.invoice-movie-title,
+.summary-movie-details h2,
+.admin-title {
+    overflow-wrap: anywhere;
+}
+
+.hero-meta,
+.hero-buttons,
+.card-actions-row,
+.booking-steps-bar,
+.payment-option-label,
+.promo-input-box,
+.form-helper,
+.footer-bottom,
+.admin-header,
+.admin-sidebar-menu,
+.movies-tabs-nav,
+.showtime-buttons,
+.date-tabs {
+    min-width: 0;
+}
+
+/* Header and navigation */
+.site-header {
+    width: 100%;
+}
+
+.header-logo,
+.header-controls,
+.auth-actions {
+    min-width: 0;
+}
+
+.header-logo a {
+    white-space: nowrap;
+}
+
+.header-nav.open {
+    max-height: calc(100vh - 72px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.header-nav.open .header-search-bar {
+    display: block;
+}
+
+/* External page families */
+.movies-grid,
+.movie-grid,
+.movie-list,
+.movies-list,
+.movies-container,
+#moviesGrid,
+#moviesGridDisplay {
+    min-width: 0;
+}
+
+.movie-card,
+.movie-display-card,
+.card-poster-wrapper,
+.summary-poster-wrap {
+    overflow: hidden;
+}
+
+.card-poster-wrapper,
+.summary-poster-wrap,
+.movie-poster,
+.poster-wrapper,
+.poster-box {
+    aspect-ratio: 2 / 3;
+}
+
+.card-poster-wrapper img,
+.summary-poster-wrap img,
+.movie-poster img,
+.poster-wrapper img,
+.poster-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.date-tabs,
+.movies-tabs-nav,
+.filter-tabs,
+.showtime-date-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.date-tabs > *,
+.movies-tabs-nav > *,
+.filter-tabs > *,
+.showtime-date-tabs > * {
+    flex: 0 0 auto;
+}
+
+.showtime-buttons,
+.showtimes-list,
+.time-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.processing-modal-content,
+.swal2-popup {
+    max-width: min(92vw, 520px) !important;
+}
+
+.qr-placeholder-image,
+.ticket-qr,
+.qr-code,
+.qr-box {
+    max-width: 100%;
+}
+
+.qr-placeholder-image img,
+.ticket-qr img,
+.qr-code img,
+.qr-box img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Mobile small: 320px - 480px */
+@media (max-width: 480px) {
+    body {
+        font-size: 14px;
+    }
+
+    .container,
+    .container-fluid,
+    .hero-content,
+    .quick-booking-container,
+    .movies-section,
+    .home-offers-inner,
+    .home-cinemas-section,
+    .checkout-wrapper,
+    .booking-wrapper {
+        max-width: calc(100vw - 24px) !important;
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    .site-header {
+        height: 64px !important;
+        padding: 0 12px !important;
+        gap: 10px;
+    }
+
+    .header-logo a {
+        font-size: 18px !important;
+        letter-spacing: 0.3px !important;
+    }
+
+    .header-controls {
+        gap: 8px !important;
+    }
+
+    .auth-actions {
+        display: none !important;
+    }
+
+    .nav-hamburger {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+    }
+
+    .header-nav {
+        top: 64px !important;
+        padding: 16px !important;
+        gap: 6px !important;
+        align-items: stretch !important;
+    }
+
+    .header-nav a {
+        min-height: 44px;
+        display: flex !important;
+        align-items: center;
+        border-radius: 8px;
+        padding: 10px 12px !important;
+    }
+
+    .hero-slider-container,
+    .skeleton-banner {
+        height: 420px !important;
+    }
+
+    .hero-content {
+        padding: 0 18px !important;
+        justify-content: center !important;
+    }
+
+    .hero-content-inner {
+        max-width: 100% !important;
+    }
+
+    .hero-title {
+        font-size: 24px !important;
+        line-height: 1.2 !important;
+        margin-bottom: 12px !important;
+    }
+
+    .hero-meta {
+        flex-wrap: wrap !important;
+        gap: 8px 12px !important;
+        font-size: 12px !important;
+    }
+
+    .hero-desc {
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .hero-buttons {
+        flex-direction: column !important;
+        gap: 10px !important;
+        align-items: stretch !important;
+    }
+
+    .btn-hero-book,
+    .btn-hero-trailer {
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .hero-indicators {
+        right: 16px !important;
+        bottom: 18px !important;
+    }
+
+    .quick-booking-container {
+        margin: -24px auto 34px auto !important;
+    }
+
+    .quick-booking-bar {
+        grid-template-columns: 1fr !important;
+        padding: 16px !important;
+        gap: 12px !important;
+    }
+
+    .btn-qb-submit {
+        grid-column: auto !important;
+        min-height: 46px;
+    }
+
+    .movies-tabs-nav {
+        justify-content: flex-start !important;
+        gap: 12px !important;
+        margin-bottom: 24px !important;
+        padding-bottom: 8px !important;
+    }
+
+    .movie-tab-btn {
+        font-size: 14px !important;
+        min-height: 44px;
+        white-space: nowrap;
+    }
+
+    .movies-grid-display,
+    #moviesGridDisplay,
+    .movies-grid,
+    .movie-grid,
+    .movie-list,
+    .movies-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 14px !important;
+    }
+
+    .card-details,
+    .offer-text-box {
+        padding: 12px !important;
+    }
+
+    .card-actions-row {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+    }
+
+    .btn-card-detail,
+    .btn-card-buy {
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px !important;
+    }
+
+    .offers-layout-grid,
+    .cinemas-home-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    .home-offers-section {
+        padding: 36px 0 !important;
+    }
+
+    .home-section-header {
+        font-size: 18px !important;
+    }
+
+    .footer-compact {
+        padding: 36px 16px 24px !important;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr !important;
+        gap: 24px !important;
+    }
+
+    .footer-bottom {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 8px !important;
+    }
+
+    .booking-steps-bar {
+        gap: 8px !important;
+        margin-bottom: 24px !important;
+        overflow-x: auto;
+        justify-content: flex-start !important;
+        padding-bottom: 6px;
+    }
+
+    .step-indicator {
+        font-size: 11px !important;
+        white-space: nowrap;
+        flex: 0 0 auto;
+    }
+
+    .step-line {
+        width: 28px !important;
+        flex: 0 0 auto;
+    }
+
+    .booking-layout,
+    .checkout-layout,
+    .dashboard-analytics-grid,
+    .admin-stats-grid,
+    .form-grid,
+    .summary-meta-grid,
+    .movie-summary-item {
+        grid-template-columns: 1fr !important;
+    }
+
+    .map-container,
+    .invoice-sidebar,
+    .checkout-card,
+    .analytics-card,
+    .admin-table-card,
+    .auth-card {
+        padding: 18px !important;
+        border-radius: 10px !important;
+    }
+
+    .screen-perspective {
+        margin-bottom: 46px !important;
+    }
+
+    .screen-label {
+        letter-spacing: 3px !important;
+        font-size: 10px !important;
+        text-align: center;
+        margin-bottom: 30px !important;
+    }
+
+    .seat-map-grid {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding-bottom: 14px !important;
+    }
+
+    .row-container {
+        min-width: 600px !important;
+    }
+
+    .seat-element {
+        width: 30px !important;
+        height: 30px !important;
+        flex: 0 0 auto;
+    }
+
+    .seat-element.couple {
+        width: 66px !important;
+    }
+
+    .legend-box {
+        gap: 12px !important;
+        justify-content: flex-start !important;
+    }
+
+    .invoice-sidebar {
+        position: relative !important;
+        top: 0 !important;
+        width: 100% !important;
+    }
+
+    .invoice-total-row .val,
+    .total-price-box .val {
+        font-size: 22px !important;
+    }
+
+    .movie-summary-item {
+        gap: 16px !important;
+    }
+
+    .summary-poster-wrap {
+        max-width: 180px;
+        margin: 0 auto;
+    }
+
+    .promo-input-box {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    .payment-option-card,
+    .btn-confirm-payment,
+    .btn-checkout-submit,
+    .btn-auth-submit,
+    .btn-apply-promo,
+    .form-input,
+    .input-field-group input,
+    .qb-select-wrapper select {
+        min-height: 44px;
+    }
+
+    .processing-modal-content {
+        padding: 22px !important;
+        width: calc(100vw - 28px) !important;
+    }
+
+    .qr-placeholder-image {
+        width: min(220px, 72vw) !important;
+        height: min(220px, 72vw) !important;
+    }
+
+    .auth-bg-container {
+        padding: 24px 12px !important;
+        align-items: flex-start !important;
+    }
+
+    .auth-card {
+        max-width: 100% !important;
+        margin-top: 8px;
+    }
+
+    .auth-brand {
+        font-size: 21px !important;
+        letter-spacing: 1.5px !important;
+    }
+
+    .form-helper {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+    }
+
+    .admin-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .admin-sidebar {
+        position: sticky;
+        top: 64px;
+        z-index: 50;
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        padding: 8px 12px !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid var(--border-color, #e5e7eb) !important;
+    }
+
+    .admin-sidebar-menu {
+        flex-direction: row !important;
+        gap: 6px !important;
+    }
+
+    .admin-menu-item {
+        min-height: 44px;
+        padding: 10px 12px !important;
+        white-space: nowrap;
+        border-left: 0 !important;
+        border-bottom: 3px solid transparent;
+    }
+
+    .admin-main {
+        padding: 18px 12px !important;
+    }
+
+    .admin-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 14px !important;
+    }
+
+    .admin-title {
+        font-size: 20px !important;
+    }
+
+    .stat-card {
+        padding: 18px !important;
+    }
+
+    .admin-table {
+        min-width: 820px;
+    }
+}
+
+/* Mobile large: 481px - 767px */
+@media (min-width: 481px) and (max-width: 767px) {
+    .container,
+    .container-fluid,
+    .quick-booking-container,
+    .movies-section,
+    .home-offers-inner,
+    .home-cinemas-section,
+    .checkout-wrapper,
+    .booking-wrapper {
+        max-width: calc(100vw - 32px) !important;
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+    }
+
+    .site-header {
+        height: 68px !important;
+        padding: 0 16px !important;
+    }
+
+    .header-logo a {
+        font-size: 20px !important;
+    }
+
+    .auth-actions {
+        display: none !important;
+    }
+
+    .nav-hamburger {
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+    }
+
+    .header-nav {
+        top: 68px !important;
+        align-items: stretch !important;
+    }
+
+    .header-nav a {
+        min-height: 44px;
+        display: flex !important;
+        align-items: center;
+    }
+
+    .hero-slider-container,
+    .skeleton-banner {
+        height: 420px !important;
+    }
+
+    .hero-content {
+        padding: 0 24px !important;
+    }
+
+    .hero-title {
+        font-size: 28px !important;
+    }
+
+    .hero-meta,
+    .hero-buttons {
+        flex-wrap: wrap !important;
+    }
+
+    .quick-booking-bar {
+        grid-template-columns: 1fr !important;
+    }
+
+    .btn-qb-submit {
+        grid-column: auto !important;
+    }
+
+    .movies-grid-display,
+    #moviesGridDisplay,
+    .movies-grid,
+    .movie-grid,
+    .movie-list,
+    .movies-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 18px !important;
+    }
+
+    .offers-layout-grid,
+    .cinemas-home-grid,
+    .booking-layout,
+    .checkout-layout,
+    .dashboard-analytics-grid,
+    .admin-stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .form-grid,
+    .summary-meta-grid,
+    .movie-summary-item {
+        grid-template-columns: 1fr !important;
+    }
+
+    .invoice-sidebar {
+        position: relative !important;
+        top: 0 !important;
+    }
+
+    .seat-map-grid {
+        max-width: 100% !important;
+    }
+
+    .admin-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .admin-sidebar {
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        padding: 10px 16px !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid var(--border-color, #e5e7eb) !important;
+    }
+
+    .admin-sidebar-menu {
+        flex-direction: row !important;
+    }
+
+    .admin-menu-item {
+        min-height: 44px;
+        white-space: nowrap;
+    }
+
+    .admin-main {
+        padding: 22px 16px !important;
+    }
+
+    .admin-table {
+        min-width: 820px;
+    }
+}
+
+/* Tablet: 768px - 1023px */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .container,
+    .container-fluid,
+    .quick-booking-container,
+    .movies-section,
+    .home-offers-inner,
+    .home-cinemas-section,
+    .checkout-wrapper,
+    .booking-wrapper {
+        max-width: calc(100vw - 48px) !important;
+    }
+
+    .site-header {
+        padding: 0 24px !important;
+    }
+
+    .header-search-bar {
+        display: none !important;
+    }
+
+    .hero-slider-container,
+    .skeleton-banner {
+        height: 500px !important;
+    }
+
+    .hero-title {
+        font-size: 34px !important;
+    }
+
+    .quick-booking-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .btn-qb-submit {
+        grid-column: span 2 !important;
+    }
+
+    .movies-grid-display,
+    #moviesGridDisplay,
+    .movies-grid,
+    .movie-grid,
+    .movie-list,
+    .movies-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 22px !important;
+    }
+
+    .offers-layout-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .cinemas-home-grid,
+    .booking-layout,
+    .checkout-layout,
+    .dashboard-analytics-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .admin-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .form-grid,
+    .summary-meta-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .invoice-sidebar {
+        position: relative !important;
+        top: 0 !important;
+    }
+
+    .admin-layout {
+        grid-template-columns: 1fr !important;
+    }
+
+    .admin-sidebar {
+        flex-direction: row !important;
+        overflow-x: auto !important;
+        padding: 10px 20px !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid var(--border-color, #e5e7eb) !important;
+    }
+
+    .admin-sidebar-menu {
+        flex-direction: row !important;
+    }
+
+    .admin-table {
+        min-width: 900px;
+    }
+}
+
+/* Laptop: 1024px - 1365px */
+@media (min-width: 1024px) and (max-width: 1365px) {
+    .container,
+    .container-fluid,
+    .quick-booking-container,
+    .movies-section,
+    .home-offers-inner,
+    .home-cinemas-section,
+    .checkout-wrapper,
+    .booking-wrapper {
+        max-width: calc(100vw - 64px) !important;
+    }
+
+    .site-header {
+        padding: 0 28px !important;
+    }
+
+    .header-nav {
+        gap: 18px !important;
+        margin-left: 28px !important;
+    }
+
+    .header-search-bar {
+        width: 200px !important;
+    }
+
+    .hero-slider-container,
+    .skeleton-banner {
+        height: 580px !important;
+    }
+
+    .quick-booking-bar {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) 160px !important;
+    }
+
+    .movies-grid-display,
+    #moviesGridDisplay,
+    .movies-grid,
+    .movie-grid,
+    .movie-list,
+    .movies-list {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+
+    .booking-layout {
+        grid-template-columns: minmax(0, 1fr) 340px !important;
+        gap: 28px !important;
+    }
+
+    .checkout-layout {
+        grid-template-columns: minmax(0, 1fr) 360px !important;
+    }
+
+    .admin-layout {
+        grid-template-columns: 230px 1fr !important;
+    }
+
+    .admin-main {
+        padding: 30px !important;
+    }
+
+    .admin-stats-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}
+
+/* Desktop: 1366px - 1919px */
+@media (min-width: 1366px) and (max-width: 1919px) {
+    .container,
+    .container-fluid,
+    .quick-booking-container,
+    .movies-section,
+    .home-offers-inner,
+    .home-cinemas-section,
+    .checkout-wrapper,
+    .booking-wrapper {
+        max-width: 1200px !important;
+    }
+
+    .hero-slider-container,
+    .skeleton-banner {
+        height: 620px !important;
+    }
+
+    .movies-grid-display,
+    #moviesGridDisplay,
+    .movies-grid,
+    .movie-grid,
+    .movie-list,
+    .movies-list {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}
+
+/* Large Screen: 1920px and up */
+@media (min-width: 1920px) {
+    .container,
+    .container-fluid,
+    .quick-booking-container,
+    .movies-section,
+    .home-offers-inner,
+    .home-cinemas-section,
+    .checkout-wrapper,
+    .booking-wrapper {
+        max-width: 1320px !important;
+    }
+
+    .site-header {
+        padding-left: max(48px, calc((100vw - 1600px) / 2)) !important;
+        padding-right: max(48px, calc((100vw - 1600px) / 2)) !important;
+    }
+
+    .hero-slider-container,
+    .skeleton-banner {
+        height: 680px !important;
+    }
+
+    .hero-content {
+        max-width: 1320px !important;
+    }
+
+    .hero-title {
+        font-size: 48px !important;
+    }
+
+    .movies-grid-display,
+    #moviesGridDisplay,
+    .movies-grid,
+    .movie-grid,
+    .movie-list,
+    .movies-list {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}

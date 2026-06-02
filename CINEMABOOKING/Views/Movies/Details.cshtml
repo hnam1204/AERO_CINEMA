@@ -1,0 +1,1412 @@
+@{
+    ViewBag.Title = "Chi Tiết Phim - AERO Cinema";
+}
+
+<style>
+    :root {
+        --primary-color: #005baa; /* AERO Blue */
+        --accent-color: #f58220; /* Galaxy Orange */
+        --accent-hover: #d46813;
+        --bg-body: #f6f6f6;
+        --bg-card: #ffffff;
+        --text-main: #1f2937;
+        --text-sub: #6b7280;
+        --border-color: #e5e7eb;
+        --font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --border-radius: 12px;
+    }
+
+    body {
+        background-color: var(--bg-body) !important;
+        font-family: var(--font-family) !important;
+        color: var(--text-main) !important;
+    }
+
+    /* Cinematic Movie Details Hero Banner */
+    .movie-detail-hero {
+        position: relative;
+        width: 100%;
+        min-height: 480px;
+        background-color: #000;
+        background-repeat: no-repeat;
+        background-position: center 20%;
+        background-size: cover;
+        display: flex;
+        align-items: flex-end;
+        padding-bottom: 50px;
+        transition: background 0.5s ease;
+    }
+
+    .movie-detail-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, rgba(246, 246, 246, 0.98) 85%, rgba(246, 246, 246, 1) 100%);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+    }
+
+    .movie-hero-content {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 50px;
+        align-items: flex-end;
+    }
+
+    .movie-hero-poster {
+        width: 100%;
+        aspect-ratio: 2/3;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        border: 4px solid #ffffff;
+        transform: translateY(70px);
+        transition: var(--transition);
+        background-color: #eaeaea;
+    }
+
+    .movie-hero-poster:hover {
+        transform: translateY(60px) scale(1.02);
+    }
+
+    .movie-hero-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .movie-hero-info {
+        padding-bottom: 15px;
+    }
+
+    .movie-age-badge {
+        background-color: var(--accent-color);
+        color: #ffffff;
+        font-weight: 800;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 12px;
+        display: inline-block;
+        margin-bottom: 15px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 10px rgba(245, 130, 32, 0.3);
+        text-transform: uppercase;
+    }
+
+    .movie-title-vn {
+        font-size: 38px;
+        font-weight: 900;
+        color: var(--text-main);
+        margin: 0 0 10px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        line-height: 1.2;
+    }
+
+    .movie-meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 25px;
+        font-size: 14px;
+        color: var(--text-main);
+        margin-bottom: 25px;
+    }
+
+    .movie-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+    }
+
+    .movie-meta-item i {
+        color: var(--primary-color);
+        font-size: 16px;
+    }
+
+    .movie-actions {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action-trailer {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        font-weight: 700;
+        padding: 12px 28px;
+        border-radius: 30px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+
+    .btn-action-trailer:hover {
+        background: #f9fafb;
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+    }
+
+    .btn-action-booking {
+        background: var(--accent-color);
+        border: none;
+        color: #ffffff;
+        font-weight: 700;
+        padding: 13px 28px;
+        border-radius: 30px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        transition: var(--transition);
+        text-decoration: none;
+        box-shadow: 0 4px 12px rgba(245, 130, 32, 0.35);
+    }
+
+    .btn-action-booking:hover {
+        background-color: var(--accent-hover);
+        color: #ffffff;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(245, 130, 32, 0.45);
+    }
+
+    /* Main Info Grid Section */
+    .movie-detail-main {
+        max-width: 1200px;
+        margin: 110px auto 60px auto;
+        padding: 0 20px;
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 50px;
+    }
+
+    .movie-spec-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        box-shadow: var(--shadow-sm);
+        height: fit-content;
+    }
+
+    .spec-item {
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 15px;
+    }
+
+    .spec-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .spec-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .spec-value {
+        font-size: 13px;
+        color: var(--text-main);
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    /* Content Pane */
+    .movie-detail-content {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+    }
+
+    .info-section-title {
+        font-size: 20px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--primary-color);
+        margin: 0 0 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-left: 4px solid var(--accent-color);
+        padding-left: 15px;
+        letter-spacing: 0.5px;
+    }
+
+    .synopsis-text {
+        font-size: 14px;
+        line-height: 1.8;
+        color: #374151;
+        text-align: justify;
+    }
+
+    /* GALAXY BOOKING SECTION & QUICK BOOKING BAR */
+    .showtimes-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 30px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .quick-booking-bar-details {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+    }
+
+    /* Horizontal Date Selector */
+    .date-scroll-container {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;  /* IE and Edge */
+        padding: 4px 0;
+    }
+
+    .date-scroll-container::-webkit-scrollbar {
+        display: none; /* Chrome, Safari and Opera */
+    }
+
+    .date-pill-btn {
+        background: #f3f4f6;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 8px 18px;
+        min-width: 80px;
+        text-align: center;
+        cursor: pointer;
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-main);
+        outline: none;
+    }
+
+    .date-pill-btn:hover {
+        border-color: var(--primary-color);
+        background: #eef2f6;
+    }
+
+    .date-pill-btn.active {
+        background: var(--accent-color);
+        border-color: var(--accent-color);
+        color: #ffffff;
+        box-shadow: 0 4px 12px rgba(245, 130, 32, 0.25);
+    }
+
+    .date-pill-day {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-sub);
+        margin-bottom: 3px;
+    }
+
+    .date-pill-btn.active .date-pill-day {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .date-pill-num {
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    /* Cinema Custom Filter Dropdown */
+    .cinema-filter-wrapper {
+        position: relative;
+        min-width: 240px;
+    }
+
+    .cinema-filter-select {
+        width: 100%;
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        color: var(--text-main);
+        padding: 12px 40px 12px 18px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        font-weight: 700;
+        border-radius: 8px;
+        outline: none;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+
+    .cinema-filter-select:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 91, 170, 0.1);
+    }
+
+    .cinema-filter-wrapper::after {
+        content: '\f107';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-sub);
+        pointer-events: none;
+    }
+
+    /* Dynamic Showtime Hour Pills & Grid */
+    .showtime-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 25px;
+        transition: opacity 0.3s ease;
+    }
+
+    .cinema-showtime-card {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        transition: var(--transition);
+    }
+
+    .cinema-showtime-card:hover {
+        border-color: rgba(0, 91, 170, 0.15);
+        box-shadow: var(--shadow-md);
+    }
+
+    .cinema-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--primary-color);
+        text-transform: uppercase;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 12px;
+        letter-spacing: 0.5px;
+    }
+
+    .cinema-header i {
+        color: var(--accent-color);
+        font-size: 16px;
+    }
+
+    .cinema-format-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .cinema-format-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .time-slots {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .time-slot-btn {
+        background: #f3f4f6;
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 10px 18px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-main);
+        cursor: pointer;
+        text-decoration: none;
+        transition: var(--transition);
+        display: inline-block;
+        text-align: center;
+        min-width: 75px;
+    }
+
+    .time-slot-btn:hover {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(0, 91, 170, 0.15);
+    }
+
+    .time-slot-btn.selected {
+        background: var(--accent-color) !important;
+        border-color: var(--accent-color) !important;
+        color: #ffffff !important;
+        box-shadow: 0 4px 10px rgba(245, 130, 32, 0.25);
+    }
+
+    /* Empty State Card */
+    .empty-showtimes-card {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-sub);
+        background-color: #f9fafb;
+        border-radius: var(--border-radius);
+        border: 1px dashed var(--border-color);
+        grid-column: span 4;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .empty-showtimes-card .icon {
+        font-size: 40px;
+        color: var(--accent-color);
+    }
+
+    .empty-showtimes-card h4 {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-main);
+        margin: 0;
+    }
+
+    /* Skeleton Shimmer Loading */
+    .skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 8px;
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+
+    .skeleton-cinema-card {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* Trailer YouTube Modal */
+    .trailer-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.85);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        backdrop-filter: blur(8px);
+    }
+
+    .trailer-modal.show {
+        display: flex;
+        opacity: 1;
+    }
+
+    .trailer-modal-content {
+        position: relative;
+        width: 85%;
+        max-width: 800px;
+        aspect-ratio: 16/9;
+        background: #000;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .trailer-close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: rgba(0,0,0,0.5);
+        border: none;
+        color: #fff;
+        font-size: 24px;
+        cursor: pointer;
+        z-index: 10;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: var(--transition);
+    }
+
+    .trailer-close-btn:hover {
+        background: rgba(245, 130, 32, 0.8);
+    }
+
+    /* Responsive Specifications */
+    @@media (max-width: 1200px) {
+        .showtime-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        .empty-showtimes-card {
+            grid-column: span 3;
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .movie-hero-content {
+            grid-template-columns: 220px 1fr;
+            gap: 30px;
+        }
+        .movie-hero-poster {
+            transform: translateY(50px);
+        }
+        .movie-hero-poster:hover {
+            transform: translateY(40px) scale(1.02);
+        }
+        .movie-detail-main {
+            grid-template-columns: 1fr;
+            margin-top: 80px;
+        }
+        .movie-spec-card {
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .spec-item {
+            flex: 1 1 200px;
+            border-bottom: none;
+            border-right: 1px solid #f3f4f6;
+            padding-bottom: 0;
+            padding-right: 20px;
+        }
+        .spec-item:last-child {
+            border-right: none;
+        }
+        .showtime-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .empty-showtimes-card {
+            grid-column: span 2;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .movie-detail-hero {
+            min-height: auto;
+            padding: 40px 0;
+        }
+        .movie-hero-content {
+            grid-template-columns: 1fr;
+            text-align: center;
+            align-items: center;
+            justify-content: center;
+        }
+        .movie-hero-poster {
+            max-width: 200px;
+            margin: 0 auto;
+            transform: translateY(0);
+        }
+        .movie-hero-poster:hover {
+            transform: scale(1.02);
+        }
+        .movie-detail-main {
+            margin-top: 40px;
+        }
+        .movie-title-vn {
+            font-size: 28px;
+        }
+        .movie-meta-row {
+            justify-content: center;
+            gap: 15px;
+        }
+        .movie-actions {
+            justify-content: center;
+        }
+        .spec-item {
+            flex: 1 1 100%;
+            border-right: none;
+            border-bottom: 1px solid #f3f4f6;
+            padding-right: 0;
+            padding-bottom: 15px;
+        }
+        .quick-booking-bar-details {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .cinema-filter-wrapper {
+            width: 100%;
+        }
+        .showtime-grid {
+            grid-template-columns: 1fr;
+        }
+        .empty-showtimes-card {
+            grid-column: span 1;
+        }
+    }
+
+    /* Stepper Styling */
+    .quick-booking-bar-details {
+        display: grid;
+        grid-template-columns: 280px 1fr;
+        gap: 30px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 25px;
+        margin-bottom: 25px;
+        align-items: flex-end;
+    }
+
+    .booking-step-container {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .booking-step-num {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--accent-color);
+        letter-spacing: 1px;
+    }
+
+    .booking-step-label {
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin-bottom: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .booking-step-showtime-header {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 20px;
+    }
+
+    .booking-step-seat-footer {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
+        font-size: 13px;
+        color: var(--text-sub);
+    }
+
+    .booking-step-seat-footer .booking-step-num {
+        background-color: #f3f4f6;
+        color: var(--text-sub);
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-weight: 800;
+    }
+
+    .booking-step-seat-footer .booking-step-label {
+        font-size: 13px;
+        margin-bottom: 0;
+        color: var(--text-main);
+        font-weight: 700;
+    }
+
+    .step-seat-desc {
+        margin: 0;
+        font-style: italic;
+    }
+
+    @@media (max-width: 768px) {
+        .quick-booking-bar-details {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .booking-step-seat-footer {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+        }
+    }
+</style>
+
+<div id="skeletonView">
+    <!-- HERO HEADER BANNER SKELETON -->
+    <section class="movie-detail-hero" style="background-color: #e5e7eb; min-height: 480px; background-image: none;">
+        <div class="movie-hero-content">
+            <div class="movie-hero-poster skeleton" style="height: 420px;"></div>
+            <div class="movie-hero-info" style="width: 100%;">
+                <div class="skeleton" style="width: 90px; height: 28px; margin-bottom: 15px;"></div>
+                <div class="skeleton" style="width: 65%; height: 42px; margin-bottom: 15px;"></div>
+                
+                <div class="movie-meta-row">
+                    <div class="skeleton" style="width: 110px; height: 20px;"></div>
+                    <div class="skeleton" style="width: 150px; height: 20px;"></div>
+                    <div class="skeleton" style="width: 130px; height: 20px;"></div>
+                </div>
+
+                <div class="movie-actions">
+                    <div class="skeleton" style="width: 150px; height: 44px; border-radius: 30px;"></div>
+                    <div class="skeleton" style="width: 150px; height: 44px; border-radius: 30px;"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT SECTION SKELETON -->
+    <div class="movie-detail-main">
+        <!-- LEFT SIDEBAR SKELETON -->
+        <aside class="movie-detail-sidebar">
+            <div class="movie-spec-card">
+                <div class="spec-item" style="border-bottom: none;">
+                    <div class="skeleton" style="width: 65px; height: 12px; margin-bottom: 8px;"></div>
+                    <div class="skeleton" style="width: 80%; height: 18px;"></div>
+                </div>
+                <div class="spec-item" style="border-bottom: none;">
+                    <div class="skeleton" style="width: 75px; height: 12px; margin-bottom: 8px;"></div>
+                    <div class="skeleton" style="width: 90%; height: 18px;"></div>
+                </div>
+                <div class="spec-item" style="border-bottom: none;">
+                    <div class="skeleton" style="width: 55px; height: 12px; margin-bottom: 8px;"></div>
+                    <div class="skeleton" style="width: 70%; height: 18px;"></div>
+                </div>
+                <div class="spec-item" style="border-bottom: none;">
+                    <div class="skeleton" style="width: 70px; height: 12px; margin-bottom: 8px;"></div>
+                    <div class="skeleton" style="width: 75%; height: 18px;"></div>
+                </div>
+                <div class="spec-item" style="border-bottom: none;">
+                    <div class="skeleton" style="width: 85px; height: 12px; margin-bottom: 8px;"></div>
+                    <div class="skeleton" style="width: 85%; height: 18px;"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT CONTENT SKELETON -->
+        <main class="movie-detail-content">
+            <!-- Synopsis SKELETON -->
+            <section>
+                <h2 class="info-section-title" style="border-left-color: #e5e7eb;"><div class="skeleton" style="width: 180px; height: 24px;"></div></h2>
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 15px;">
+                    <div class="skeleton" style="width: 100%; height: 16px;"></div>
+                    <div class="skeleton" style="width: 96%; height: 16px;"></div>
+                    <div class="skeleton" style="width: 98%; height: 16px;"></div>
+                    <div class="skeleton" style="width: 60%; height: 16px;"></div>
+                </div>
+            </section>
+
+            <!-- Showtimes SKELETON -->
+            <section>
+                <h2 class="info-section-title" style="border-left-color: #e5e7eb;"><div class="skeleton" style="width: 220px; height: 24px;"></div></h2>
+                <div class="showtimes-card">
+                    <div class="quick-booking-bar-details">
+                        <div class="date-scroll-container">
+                            <div class="skeleton" style="width: 80px; height: 52px; border-radius: 10px;"></div>
+                            <div class="skeleton" style="width: 80px; height: 52px; border-radius: 10px;"></div>
+                            <div class="skeleton" style="width: 80px; height: 52px; border-radius: 10px;"></div>
+                            <div class="skeleton" style="width: 80px; height: 52px; border-radius: 10px;"></div>
+                            <div class="skeleton" style="width: 80px; height: 52px; border-radius: 10px;"></div>
+                        </div>
+                        <div class="skeleton" style="width: 240px; height: 45px; border-radius: 8px;"></div>
+                    </div>
+
+                    <!-- Cinema list skeleton -->
+                    <div class="showtime-grid">
+                        <div class="skeleton-cinema-card">
+                            <div class="skeleton" style="width: 160px; height: 20px; margin-bottom: 8px;"></div>
+                            <div class="skeleton" style="width: 80px; height: 12px; margin-bottom: 8px;"></div>
+                            <div style="display: flex; gap: 8px;">
+                                <div class="skeleton" style="width: 75px; height: 38px; border-radius: 6px;"></div>
+                                <div class="skeleton" style="width: 75px; height: 38px; border-radius: 6px;"></div>
+                            </div>
+                        </div>
+                        <div class="skeleton-cinema-card">
+                            <div class="skeleton" style="width: 180px; height: 20px; margin-bottom: 8px;"></div>
+                            <div class="skeleton" style="width: 80px; height: 12px; margin-bottom: 8px;"></div>
+                            <div style="display: flex; gap: 8px;">
+                                <div class="skeleton" style="width: 75px; height: 38px; border-radius: 6px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+<div id="errorView" style="display: none; text-align: center; padding: 100px 20px; color: var(--text-sub);">
+    <i class="fas fa-exclamation-triangle fa-3x" style="color: var(--accent-color); margin-bottom: 20px;"></i>
+    <h3 id="errorMessage" style="font-weight: 700; color: var(--text-main); margin-bottom: 10px;">Có lỗi xảy ra</h3>
+    <p id="errorSubMessage">Không thể tải thông tin chi tiết phim.</p>
+    <a href="/Movies" class="btn-action-booking" style="display: inline-flex; margin-top: 20px; text-decoration: none;">Quay lại danh sách phim</a>
+</div>
+
+<div id="detailView" style="display: none;">
+    <!-- HERO HEADER BANNER -->
+    <section class="movie-detail-hero" id="movieHeroBg">
+        <div class="movie-hero-content">
+            <div class="movie-hero-poster">
+                <img id="moviePoster" src="" alt="Movie Poster" loading="lazy" />
+            </div>
+            <div class="movie-hero-info">
+                <span class="movie-age-badge" id="movieAgeBadge">P</span>
+                <h1 class="movie-title-vn" id="movieTitleVn"></h1>
+                
+                <div class="movie-meta-row">
+                    <div class="movie-meta-item">
+                        <i class="far fa-clock"></i>
+                        <span id="movieDuration"></span>
+                    </div>
+                    <div class="movie-meta-item">
+                        <i class="far fa-calendar-alt"></i>
+                        <span id="movieReleaseDate"></span>
+                    </div>
+                    <div class="movie-meta-item" id="movieRatingVal">
+                        <i class="fas fa-star" style="color: #FFE53D;"></i>
+                        <span style="font-weight: 700;">8.8/10 <span style="font-size: 12px; color: var(--text-sub); font-weight: 400;">(350 đánh giá)</span></span>
+                    </div>
+                </div>
+
+                <div class="movie-actions">
+                    <button class="btn-action-trailer" id="trailerBtn">
+                        <i class="fas fa-play" style="color: var(--accent-color);"></i> Xem Trailer
+                    </button>
+                    <a href="#booking-section" class="btn-action-booking" id="btnBookNow">
+                        <i class="fas fa-ticket-alt"></i> Đặt Vé Ngay
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MAIN CONTENT SECTION -->
+    <div class="movie-detail-main">
+        
+        <!-- LEFT SIDEBAR -->
+        <aside class="movie-detail-sidebar">
+            <div class="movie-spec-card">
+                <div class="spec-item">
+                    <div class="spec-label">Đạo diễn</div>
+                    <div class="spec-value" id="movieDirector"></div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Diễn viên</div>
+                    <div class="spec-value" id="movieActors"></div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Thể loại</div>
+                    <div class="spec-value" id="movieGenre"></div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Quốc gia</div>
+                    <div class="spec-value" id="movieCountry"></div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Ngôn ngữ</div>
+                    <div class="spec-value" id="movieLanguage"></div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Định dạng</div>
+                    <div class="spec-value" id="movieFormat">2D/3D/IMAX</div>
+                </div>
+                <div class="spec-item">
+                    <div class="spec-label">Trạng thái</div>
+                    <div class="spec-value" id="movieStatus"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- RIGHT CONTENT -->
+        <main class="movie-detail-content">
+            
+            <!-- Synopsis -->
+            <section>
+                <h2 class="info-section-title">Nội Dung Phim</h2>
+                <p class="synopsis-text" id="movieDescription"></p>
+            </section>
+
+            <!-- Showtimes & Quick Booking Section -->
+            <section id="booking-section">
+                <h2 class="info-section-title">Lịch Chiếu & Đặt Vé</h2>
+                
+                <div class="showtimes-card">
+                    <!-- GALAXY QUICK BOOKING BAR -->
+                    <div class="quick-booking-bar-details">
+                        <!-- Step 1: Choose Cinema Filter -->
+                        <div class="booking-step-container step-cinema">
+                            <span class="booking-step-num">Bước 1</span>
+                            <span class="booking-step-label">Chọn Rạp</span>
+                            <div class="cinema-filter-wrapper">
+                                <select id="detailsCinemaFilter" class="cinema-filter-select" onchange="onCinemaFilterChange()">
+                                    <option value="all">Tất cả rạp</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Choose Date -->
+                        <div class="booking-step-container step-date" style="flex-grow: 1; overflow: hidden;">
+                            <span class="booking-step-num">Bước 2</span>
+                            <span class="booking-step-label">Chọn Ngày</span>
+                            <div class="date-scroll-container" id="datePillContainer">
+                                <!-- Dynamically loaded date pills -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Showtime Hours Grid (Grouped by Cinema) -->
+                    <div class="booking-step-showtime-header">
+                        <span class="booking-step-num">Bước 3</span>
+                        <span class="booking-step-label">Chọn Suất Chiếu</span>
+                    </div>
+                    
+                    <div id="showtimeGroups" class="showtime-grid">
+                        <!-- Dynamically populated or showing empty state -->
+                    </div>
+
+                    <!-- Step 4: Seat selection (Instructional/Status bar) -->
+                    <div class="booking-step-seat-footer">
+                        <span class="booking-step-num">Bước 4</span>
+                        <span class="booking-step-label">Chọn Ghế</span>
+                        <p class="step-seat-desc">Sau khi bấm chọn Suất Chiếu, bạn sẽ được tự động chuyển hướng đến sơ đồ ghế phòng chiếu để chọn vị trí ngồi mong muốn.</p>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>
+
+<!-- TRAILER MODAL -->
+<div id="trailerModal" class="trailer-modal" onclick="closeTrailerModal()">
+    <div class="trailer-modal-content" onclick="event.stopPropagation()">
+        <button class="trailer-close-btn" id="closeTrailerBtn" onclick="closeTrailerModal()">&times;</button>
+        <iframe id="trailerFrame" width="100%" height="100%" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import { doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.db;
+        const AERO_CACHE = window.AERO_CACHE;
+
+        // Helper to extract YouTube video ID
+        function getYoutubeId(url) {
+            if (!url) return '';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : url;
+        }
+
+        // Global variables for page state
+        let currentMovie = null;
+        let allShowtimes = [];
+        let datesList = [];
+        let cachedCinemasMap = {};
+        let cachedRoomsMap = {};
+        
+        let selectedDateStr = "";
+        let selectedCinemaFilter = "all"; // all or cinemaId
+
+        const docsToArray = (snap) => snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+
+        const getCachedDocs = async (cacheKey, queryRef) => {
+            const cached = AERO_CACHE && AERO_CACHE.get ? AERO_CACHE.get(cacheKey) : null;
+            if (cached) return cached;
+
+            const snap = await getDocs(queryRef);
+            const data = docsToArray(snap);
+
+            if (AERO_CACHE && AERO_CACHE.set) AERO_CACHE.set(cacheKey, data);
+            return data;
+        };
+
+        // Helper to show errors beautifully
+        function showError(title, message) {
+            document.getElementById("skeletonView").style.display = "none";
+            document.getElementById("detailView").style.display = "none";
+            
+            document.getElementById("errorMessage").innerText = title;
+            document.getElementById("errorSubMessage").innerText = message;
+            document.getElementById("errorView").style.display = "block";
+        }
+
+        // Smooth Scroll Bind for all possible booking buttons
+        function setupSmoothScroll() {
+            const bookingButtons = document.querySelectorAll('a[href^="#booking-section"], .btn-action-booking, button');
+            bookingButtons.forEach(btn => {
+                const text = btn.textContent.toLowerCase();
+                if (text.includes("mua vé") || text.includes("đặt vé ngay") || text.includes("book now") || btn.getAttribute("href") === "#booking-section") {
+                    btn.onclick = (e) => {
+                        e.preventDefault();
+                        const target = document.getElementById("booking-section");
+                        if (target) {
+                            target.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    };
+                }
+            });
+        }
+
+        // Parse query string for movie ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const movieId = urlParams.get('id');
+
+        if (!movieId) {
+            showError("Không tìm thấy mã phim!", "Vui lòng chọn một bộ phim hợp lệ từ danh sách.");
+        } else {
+            loadMovieDetails(movieId);
+        }
+
+        async function loadMovieDetails(id) {
+            try {
+                // 1. Fetch Movie details
+                const movieDoc = await getDoc(doc(db, "movies", id));
+                if (!movieDoc.exists()) {
+                    showError("Bộ phim không tồn tại!", "Bộ phim này không tồn tại hoặc đã bị gỡ khỏi hệ thống.");
+                    return;
+                }
+
+                currentMovie = movieDoc.data();
+                
+                // Populate elements
+                document.getElementById("movieHeroBg").style.backgroundImage = `url('${currentMovie.bannerUrl || ''}')`;
+                document.getElementById("moviePoster").src = currentMovie.posterUrl || '';
+                document.getElementById("movieAgeBadge").innerText = currentMovie.rating || 'P';
+                document.getElementById("movieTitleVn").innerText = currentMovie.title || '';
+                document.getElementById("movieDuration").innerText = `${currentMovie.duration || 120} phút`;
+                
+                // TMDB Rating Integration
+                const ratingContainer = document.getElementById("movieRatingVal");
+                if (currentMovie.voteAverage) {
+                    let ratingHtml = `<i class="fas fa-star" style="color: #FFE53D;"></i> <span style="font-weight: 700;">${currentMovie.voteAverage}/10`;
+                    if (currentMovie.voteCount) {
+                        ratingHtml += ` <span style="font-size: 12px; color: var(--text-sub); font-weight: 400;">(${Number(currentMovie.voteCount).toLocaleString('vi-VN')} đánh giá)</span>`;
+                    }
+                    ratingHtml += `</span>`;
+                    ratingContainer.innerHTML = ratingHtml;
+                    ratingContainer.style.display = "flex";
+                } else {
+                    // Fallback to Galaxy standard details if TMDB fields are missing in DB
+                    ratingContainer.innerHTML = `
+                        <i class="fas fa-star" style="color: #FFE53D;"></i>
+                        <span style="font-weight: 700;">8.5/10 <span style="font-size: 12px; color: var(--text-sub); font-weight: 400;">(25.000 đánh giá)</span></span>
+                    `;
+                    ratingContainer.style.display = "flex";
+                }
+
+                // Format release date (YYYY-MM-DD to DD/MM/YYYY)
+                let rDate = currentMovie.releaseDate || '';
+                if (rDate) {
+                    rDate = rDate.split("-").reverse().join("/");
+                }
+                document.getElementById("movieReleaseDate").innerText = `Khởi chiếu: ${rDate}`;
+                
+                document.getElementById("movieDirector").innerText = currentMovie.director || 'N/A';
+                document.getElementById("movieActors").innerText = currentMovie.actors || 'N/A';
+                document.getElementById("movieGenre").innerText = currentMovie.genre || 'N/A';
+                document.getElementById("movieCountry").innerText = currentMovie.country || 'N/A';
+                document.getElementById("movieLanguage").innerText = currentMovie.language || 'N/A';
+                document.getElementById("movieDescription").innerText = currentMovie.description || 'Chưa có mô tả.';
+                
+                // Format & Status Specs
+                document.getElementById("movieFormat").innerText = currentMovie.format || "2D Phụ Đề";
+                if (currentMovie.status === "now_showing") {
+                    document.getElementById("movieStatus").innerHTML = `<span style="color: #10B981; font-weight: 800;">Đang chiếu</span>`;
+                } else {
+                    document.getElementById("movieStatus").innerHTML = `<span style="color: var(--accent-color); font-weight: 800;">Sắp chiếu</span>`;
+                }
+
+                // Setup trailer URL (hide button if trailerUrl is missing or invalid)
+                const trailerBtn = document.getElementById("trailerBtn");
+                const trailerId = getYoutubeId(currentMovie.trailerUrl);
+                if (trailerId) {
+                    trailerBtn.style.display = "inline-flex";
+                    trailerBtn.onclick = () => openTrailerModal(trailerId);
+                } else {
+                    trailerBtn.style.display = "none";
+                }
+
+                const showtimesQuery = query(collection(db, "showtimes"), where("movieId", "==", id), where("status", "==", "active"));
+                const [cinemasList, roomsList, showtimesSnap] = await Promise.all([
+                    getCachedDocs("cinemas", collection(db, "cinemas")),
+                    getCachedDocs("rooms", collection(db, "rooms")),
+                    getDocs(showtimesQuery)
+                ]);
+
+                // 2. Fetch all Cinemas to populate dynamic dropdown
+                const selectFilter = document.getElementById("detailsCinemaFilter");
+                selectFilter.innerHTML = '<option value="all">Tất cả rạp</option>';
+                cachedCinemasMap = {};
+                
+                cinemasList.forEach((cData) => {
+                    cachedCinemasMap[cData.id] = cData.name;
+                    const opt = document.createElement("option");
+                    opt.value = cData.id;
+                    opt.innerText = cData.name;
+                    selectFilter.appendChild(opt);
+                });
+
+                // 2b. Fetch all Rooms to populate formats (2D, 3D, IMAX)
+                cachedRoomsMap = {};
+                roomsList.forEach((roomData) => {
+                    cachedRoomsMap[roomData.id] = roomData;
+                });
+
+                // 3. Fetch Showtimes for this movie
+                allShowtimes = docsToArray(showtimesSnap);
+
+                // 4. Generate 7-9 days horizontal scroll pills
+                generateDatePills();
+
+                // Show details view
+                document.getElementById("skeletonView").style.display = "none";
+                document.getElementById("detailView").style.display = "block";
+                
+                // Initialize smooth scroll bindings
+                setupSmoothScroll();
+
+                // Trigger first date selection
+                if (datesList.length > 0) {
+                    const firstDateStr = datesList[0].dateStr;
+                    const firstPillBtn = document.querySelector(".date-pill-btn");
+                    if (firstPillBtn) {
+                        selectDatePill(firstPillBtn, firstDateStr);
+                    }
+                }
+
+            } catch (error) {
+                console.error("Error loading movie: ", error);
+                showError("Lỗi kết nối hệ thống!", error.message);
+            }
+        }
+
+        // Generate date selector pills
+        function generateDatePills() {
+            const daysOfWeek = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+            const today = new Date();
+            datesList = [];
+
+            const container = document.getElementById("datePillContainer");
+            container.innerHTML = "";
+
+            // Show 9 days matching premium layout
+            for (let i = 0; i < 9; i++) {
+                const d = new Date();
+                d.setDate(today.getDate() + i);
+                const dateStr = d.toISOString().split('T')[0]; // YYYY-MM-DD
+                const dayLabel = i === 0 ? "Hôm nay" : (i === 1 ? "Ngày mai" : daysOfWeek[d.getDay()]);
+                const dayNum = d.getDate();
+                const monthNum = d.getMonth() + 1;
+                const formattedDate = `${dayNum < 10 ? '0' + dayNum : dayNum}/${monthNum < 10 ? '0' + monthNum : monthNum}`;
+
+                datesList.push({ dateStr, dayLabel, formattedDate });
+
+                const pillBtn = document.createElement("button");
+                pillBtn.type = "button";
+                pillBtn.className = `date-pill-btn ${i === 0 ? 'active' : ''}`;
+                pillBtn.innerHTML = `
+                    <span class="date-pill-day">${dayLabel}</span>
+                    <span class="date-pill-num">${formattedDate}</span>
+                `;
+                pillBtn.addEventListener("click", () => {
+                    selectDatePill(pillBtn, dateStr);
+                });
+                container.appendChild(pillBtn);
+            }
+        }
+
+        // Select specific date pill handler
+        window.selectDatePill = function(btn, dateStr) {
+            document.querySelectorAll(".date-pill-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            selectedDateStr = dateStr;
+            renderShowtimesRealtime();
+        };
+
+        // Select cinema filter dropdown change
+        window.onCinemaFilterChange = function() {
+            selectedCinemaFilter = document.getElementById("detailsCinemaFilter").value;
+            renderShowtimesRealtime();
+        };
+
+        // Render Showtimes with loading state shimmer
+        function renderShowtimesRealtime() {
+            const groupsContainer = document.getElementById("showtimeGroups");
+            
+            // Show Shimmer Skeleton briefly
+            groupsContainer.style.opacity = "0.5";
+            groupsContainer.innerHTML = `
+                <div class="skeleton-cinema-card">
+                    <div class="skeleton" style="width: 160px; height: 20px; margin-bottom: 8px;"></div>
+                    <div class="skeleton" style="width: 80px; height: 12px; margin-bottom: 8px;"></div>
+                    <div style="display: flex; gap: 8px;">
+                        <div class="skeleton" style="width: 75px; height: 38px; border-radius: 6px;"></div>
+                        <div class="skeleton" style="width: 75px; height: 38px; border-radius: 6px;"></div>
+                    </div>
+                </div>
+            `;
+
+            setTimeout(() => {
+                groupsContainer.style.opacity = "1";
+                
+                // Filter showtimes matching dateStr and optional cinema filter
+                let filtered = allShowtimes.filter(st => st.date === selectedDateStr);
+                if (selectedCinemaFilter !== "all") {
+                    filtered = filtered.filter(st => st.cinemaId === selectedCinemaFilter);
+                }
+
+                if (filtered.length === 0) {
+                    groupsContainer.innerHTML = `
+                        <div class="empty-showtimes-card">
+                            <span class="icon">🎬</span>
+                            <h4>Chưa có lịch chiếu cho ngày này.</h4>
+                            <p style="font-size: 13px; color: var(--text-sub); margin: 0;">Vui lòng chọn ngày khác hoặc thay đổi cụm rạp lọc lịch chiếu.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Group showtimes by Cinema ID and Room Type/Format
+                const grouped = {};
+                filtered.forEach(st => {
+                    const cId = st.cinemaId;
+                    if (!grouped[cId]) {
+                        grouped[cId] = {
+                            name: st.cinemaName || cachedCinemasMap[cId] || "Cụm Rạp",
+                            formats: {}
+                        };
+                    }
+                    
+                    const roomData = cachedRoomsMap[st.roomId] || {};
+                    const roomType = roomData.type || "2D";
+                    const formatLabel = `${roomType} ${currentMovie ? (currentMovie.language || 'Phụ Đề') : 'Phụ Đề'}`;
+                    
+                    if (!grouped[cId].formats[formatLabel]) {
+                        grouped[cId].formats[formatLabel] = [];
+                    }
+                    grouped[cId].formats[formatLabel].push(st);
+                });
+
+                // Render into HTML
+                groupsContainer.innerHTML = "";
+                for (const cId in grouped) {
+                    const group = grouped[cId];
+                    const cardDiv = document.createElement("div");
+                    cardDiv.className = "cinema-showtime-card";
+
+                    let formatsHtml = "";
+                    for (const formatLabel in group.formats) {
+                        const showtimesList = group.formats[formatLabel];
+                        showtimesList.sort((a, b) => a.time.localeCompare(b.time));
+
+                        let slotsHtml = "";
+                        showtimesList.forEach(st => {
+                            slotsHtml += `
+                                <a href="/Booking/Seats?showtimeId=${st.id}" class="time-slot-btn" onclick="selectTimeSlot(this)">
+                                    ${st.time}
+                                </a>
+                            `;
+                        });
+
+                        formatsHtml += `
+                            <div class="cinema-format-row" style="margin-top: 10px;">
+                                <div class="cinema-format-label" style="font-size: 11px; font-weight: 700; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">
+                                    ${formatLabel}
+                                </div>
+                                <div class="time-slots">
+                                    ${slotsHtml}
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    cardDiv.innerHTML = `
+                        <div class="cinema-header" style="display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: var(--primary-color); text-transform: uppercase; border-bottom: 1px solid #f3f4f6; padding-bottom: 12px; letter-spacing: 0.5px;">
+                            <i class="fas fa-map-marker-alt" style="color: var(--accent-color); font-size: 16px;"></i>
+                            <span>${group.name}</span>
+                        </div>
+                        <div class="cinema-formats-container" style="display: flex; flex-direction: column; gap: 15px; margin-top: 12px;">
+                            ${formatsHtml}
+                        </div>
+                    `;
+                    groupsContainer.appendChild(cardDiv);
+                }
+            }, 300);
+        }
+
+        // Highlight selected time slot pill
+        window.selectTimeSlot = function(btn) {
+            document.querySelectorAll(".time-slot-btn").forEach(b => b.classList.remove("selected"));
+            btn.classList.add("selected");
+        };
+    </script>
+
+    <script>
+        // Modal helpers
+        function openTrailerModal(videoId) {
+            const modal = document.getElementById("trailerModal");
+            const frame = document.getElementById("trailerFrame");
+            frame.src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1";
+            modal.style.display = "flex";
+            setTimeout(() => modal.classList.add("show"), 10);
+        }
+
+        function closeTrailerModal() {
+            const modal = document.getElementById("trailerModal");
+            const frame = document.getElementById("trailerFrame");
+            modal.classList.remove("show");
+            setTimeout(() => {
+                frame.src = "";
+                modal.style.display = "none";
+            }, 300);
+        }
+    </script>
+}

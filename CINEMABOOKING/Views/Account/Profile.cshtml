@@ -1,0 +1,739 @@
+@{
+    ViewBag.Title = "Thông Tin Tài Khoản - AERO Cinema";
+}
+
+<style>
+    :root {
+        --primary-color: #005baa;
+        --accent-color: #f58220;
+        --accent-hover: #e07316;
+        --text-main: #1f2937;
+        --text-sub: #6b7280;
+        --border-color: #e5e7eb;
+        --bg-body: #f6f6f6;
+        --bg-card: #ffffff;
+        --success-color: #16a34a;
+        --shadow-new: 0 8px 24px rgba(0, 0, 0, 0.08);
+        --font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    body {
+        background-color: var(--bg-body) !important;
+        font-family: var(--font-family) !important;
+        color: var(--text-main) !important;
+    }
+
+    .profile-wrapper {
+        max-width: 1180px;
+        margin: 40px auto 60px auto;
+        padding: 0 15px;
+    }
+
+    .profile-layout {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 30px;
+    }
+
+    .profile-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: var(--shadow-new);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        height: fit-content;
+    }
+
+    /* Circular Avatar */
+    .avatar-wrapper {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: #f3f4f6;
+        border: 3px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        overflow: hidden;
+        color: var(--primary-color);
+        font-size: 40px;
+        font-weight: 700;
+        position: relative;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .avatar-wrapper i {
+        color: var(--text-sub);
+    }
+
+    .profile-user-name {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0 0 5px 0;
+    }
+
+    .profile-user-email {
+        font-size: 13px;
+        color: var(--text-sub);
+        margin-bottom: 15px;
+        word-break: break-all;
+    }
+
+    /* Rank Badge */
+    .member-rank-badge {
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 6px 14px;
+        border-radius: 20px;
+        margin-bottom: 25px;
+        display: inline-block;
+        letter-spacing: 0.5px;
+    }
+
+    .member-rank-badge.standard {
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+    }
+
+    .member-rank-badge.silver {
+        background-color: #e5e7eb;
+        color: #1f2937;
+        border: 1px solid #d1d5db;
+    }
+
+    .member-rank-badge.gold {
+        background-color: #fef3c7;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+
+    .member-rank-badge.vip {
+        background-color: #fee2e2;
+        color: #dc2626;
+        border: 1px solid #fca5a5;
+    }
+
+    /* Loyalty Card Graphic */
+    .loyalty-card {
+        width: 100%;
+        aspect-ratio: 1.586/1;
+        border-radius: 12px;
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        text-align: left;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        margin-bottom: 25px;
+        background: linear-gradient(135deg, #005baa 0%, #003666 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        transition: transform 0.3s;
+    }
+
+    .loyalty-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .loyalty-card.silver {
+        background: linear-gradient(135deg, #9ca3af 0%, #4b5563 100%);
+    }
+
+    .loyalty-card.gold {
+        background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+    }
+
+    .loyalty-card.vip {
+        background: linear-gradient(135deg, #ef4444 0%, #991b1b 100%);
+        box-shadow: 0 10px 20px rgba(239, 68, 68, 0.15);
+    }
+
+    .card-chip {
+        width: 35px;
+        height: 25px;
+        background: linear-gradient(135deg, #f3f4f6 0%, #d1d5db 100%);
+        border-radius: 4px;
+        opacity: 0.8;
+    }
+
+    .card-label {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.8);
+        letter-spacing: 1px;
+    }
+
+    .card-number {
+        font-size: 16px;
+        font-weight: 800;
+        font-family: monospace;
+        letter-spacing: 2px;
+        margin-top: 5px;
+    }
+
+    .card-holder {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .card-points {
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .card-points span {
+        font-size: 20px;
+        font-weight: 900;
+        color: var(--accent-color);
+    }
+
+    .profile-nav-links {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .profile-nav-btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        color: var(--text-sub);
+        font-size: 14px;
+        font-weight: 700;
+        background-color: #f9fafb;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s;
+        text-align: left;
+        text-decoration: none;
+    }
+
+    .profile-nav-btn:hover,
+    .profile-nav-btn.active {
+        color: #fff;
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 91, 170, 0.15);
+    }
+
+    /* Right Main Panel Content */
+    .profile-main-panel {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: var(--shadow-new);
+    }
+
+    .panel-title {
+        font-family: var(--font-family);
+        font-size: 22px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-main);
+        margin-bottom: 30px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .panel-title i {
+        color: var(--primary-color);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .form-group.full-width {
+        grid-column: span 2;
+    }
+
+    .form-group label {
+        font-family: var(--font-family);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-sub);
+        letter-spacing: 0.5px;
+    }
+
+    .form-control-cinema {
+        background-color: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--text-main);
+        padding: 13px 18px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        outline: none;
+        transition: all 0.3s;
+    }
+
+    .form-control-cinema:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 91, 170, 0.1);
+    }
+
+    .form-control-cinema:disabled {
+        background-color: #f3f4f6;
+        color: var(--text-sub);
+        border-color: var(--border-color);
+        cursor: not-allowed;
+    }
+
+    /* Point Reward Card */
+    .reward-points-card {
+        background: linear-gradient(135deg, rgba(245, 130, 32, 0.05) 0%, rgba(245, 130, 32, 0.1) 100%);
+        border: 1px solid rgba(245, 130, 32, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        grid-column: span 2;
+    }
+
+    .reward-icon-box {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background-color: var(--accent-color);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+    }
+
+    .reward-info-box {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .reward-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-sub);
+        letter-spacing: 0.5px;
+    }
+
+    .reward-value {
+        font-size: 24px;
+        font-weight: 900;
+        color: var(--accent-color);
+    }
+
+    .btn-save-profile {
+        background-color: var(--accent-color);
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        font-size: 15px;
+        padding: 14px 35px;
+        border-radius: 30px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 5px 15px rgba(245, 130, 32, 0.2);
+        transition: all 0.3s;
+        width: fit-content;
+        margin-top: 15px;
+    }
+
+    .btn-save-profile:hover {
+        background-color: var(--accent-hover);
+        box-shadow: 0 8px 20px rgba(245, 130, 32, 0.3);
+        transform: translateY(-2px);
+    }
+
+    @@media (max-width: 992px) {
+        .profile-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        .form-group.full-width,
+        .reward-points-card {
+            grid-column: span 1;
+        }
+    }
+
+    /* Skeleton Loader & Shimmer Animation */
+    .skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 8px;
+        display: inline-block;
+    }
+
+    input.skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%) !important;
+        background-size: 200% 100% !important;
+        animation: shimmer 1.2s infinite !important;
+        color: transparent !important;
+        border-color: transparent !important;
+        pointer-events: none;
+    }
+
+    .avatar-wrapper.skeleton i {
+        opacity: 0;
+    }
+
+    .member-rank-badge.skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%) !important;
+        background-size: 200% 100% !important;
+        animation: shimmer 1.2s infinite !important;
+        color: transparent !important;
+        border-color: transparent !important;
+    }
+
+    @@keyframes shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+</style>
+
+<div class="container profile-wrapper">
+    <div class="profile-layout">
+        
+        <!-- LEFT PANELS (loyalty info & menu) -->
+        <div class="profile-left-sidebar">
+            <div class="profile-card">
+                <!-- Avatar tròn -->
+                <div class="avatar-wrapper skeleton">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3 class="profile-user-name" id="profileDisplayName">
+                    <span class="skeleton" style="width: 120px; height: 18px; border-radius: 4px;"></span>
+                </h3>
+                <p class="profile-user-email" id="profileDisplayEmail">
+                    <span class="skeleton" style="width: 160px; height: 14px; border-radius: 4px;"></span>
+                </p>
+                <span id="rankBadgeText" class="member-rank-badge standard skeleton">STANDARD</span>
+
+                <!-- Loyalty Card Graphic -->
+                <div class="loyalty-card" id="memberCard">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <span class="card-label">Cinema Loyalty</span>
+                            <div class="card-chip"></div>
+                        </div>
+                        <span id="rankBadge" class="card-label" style="background: rgba(255, 255, 255, 0.15); padding: 4px 10px; border-radius: 10px; font-weight: 800;">
+                            <span class="skeleton" style="width: 60px; height: 14px; border-radius: 4px;"></span>
+                        </span>
+                    </div>
+                    
+                    <div>
+                        <span class="card-label">Mã thành viên</span>
+                        <div class="card-number" id="cardMemberId">
+                            <span class="skeleton" style="width: 120px; height: 16px; border-radius: 4px;"></span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 10px;">
+                        <div>
+                            <span class="card-label">Chủ thẻ</span>
+                            <div class="card-holder" id="cardMemberName">
+                                <span class="skeleton" style="width: 100px; height: 14px; border-radius: 4px;"></span>
+                            </div>
+                        </div>
+                        <div class="card-points">
+                            <span id="cardMemberPoints">
+                                <span class="skeleton" style="width: 30px; height: 20px; border-radius: 4px;"></span>
+                            </span> Điểm
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-nav-links">
+                    <a href="@Url.Action("Profile", "Account")" class="profile-nav-btn active">
+                        <i class="fas fa-user-circle"></i> Thông tin cá nhân
+                    </a>
+                    <a href="@Url.Action("TicketHistory", "Account")" class="profile-nav-btn">
+                        <i class="fas fa-ticket-alt"></i> Lịch sử vé đã đặt
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL (fields) -->
+        <main class="profile-main-panel">
+            <h1 class="panel-title">
+                <i class="fas fa-id-card"></i>
+                <span>Cập nhật thông tin cá nhân</span>
+            </h1>
+
+            <form id="profileForm" onsubmit="saveProfileData(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="profName">Họ và Tên</label>
+                        <input type="text" id="profName" class="form-control-cinema skeleton" placeholder="Nhập họ và tên..." required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profPhone">Số Điện Thoại</label>
+                        <input type="tel" id="profPhone" class="form-control-cinema skeleton" placeholder="Nhập số điện thoại..." required />
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="profEmail">Địa chỉ Email</label>
+                        <input type="email" id="profEmail" class="form-control-cinema skeleton" disabled />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profRank">Hạng Thành Viên</label>
+                        <input type="text" id="profRank" class="form-control-cinema skeleton" disabled value="" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="profPoints">Điểm Tích Lũy</label>
+                        <input type="text" id="profPoints" class="form-control-cinema skeleton" disabled value="" />
+                    </div>
+
+                    <!-- Điểm thưởng dạng card -->
+                    <div class="reward-points-card">
+                        <div class="reward-icon-box">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div class="reward-info-box">
+                            <span class="reward-label">Điểm thưởng tích lũy</span>
+                            <span class="reward-value">
+                                <span id="pointsValDisplay">
+                                    <span class="skeleton" style="width: 40px; height: 24px; border-radius: 4px;"></span>
+                                </span> điểm
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save-profile">
+                    <i class="fas fa-save"></i> Lưu Thay Đổi
+                </button>
+            </form>
+        </main>
+
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script type="module">
+        import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const auth = window.auth;
+        const db = window.db;
+
+        let currentUser = null;
+
+        // Force Auth and Load Profile Data
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
+            } else {
+                currentUser = user;
+                await loadUserProfile();
+            }
+        });
+
+        async function loadUserProfile() {
+            try {
+                const userDocRef = doc(db, "users", currentUser.uid);
+                const userSnap = await getDoc(userDocRef);
+                
+                let userData = {};
+
+                if (userSnap.exists()) {
+                    userData = userSnap.data();
+                } else {
+                    // Document doesn't exist, create it with defaults
+                    userData = {
+                        fullName: currentUser.displayName || "",
+                        phone: "",
+                        email: currentUser.email,
+                        role: "customer",
+                        rank: "Standard",
+                        points: 0,
+                        createdAt: serverTimestamp()
+                    };
+                    await setDoc(userDocRef, userData);
+                }
+
+                // Fill form fields
+                document.getElementById("profName").value = userData.fullName || "";
+                document.getElementById("profPhone").value = userData.phone || "";
+                document.getElementById("profEmail").value = userData.email || currentUser.email || "";
+                document.getElementById("profRank").value = userData.rank || userData.memberRank || "Standard";
+                document.getElementById("profPoints").value = (userData.points || 0) + " điểm";
+
+                // Update text display
+                document.getElementById("profileDisplayName").innerText = userData.fullName || currentUser.displayName || "Thành viên";
+                document.getElementById("profileDisplayEmail").innerText = userData.email || currentUser.email || "";
+
+                // Update Premium Card Layout
+                document.getElementById("cardMemberName").innerText = (userData.fullName || currentUser.displayName || "Thành viên").toUpperCase();
+                document.getElementById("cardMemberPoints").innerText = userData.points || 0;
+                
+                // Formulate a dynamic card number based on UID
+                const shortUid = currentUser.uid.substring(0, 8).toUpperCase();
+                document.getElementById("cardMemberId").innerText = `CB-${shortUid.substring(0, 4)}-${shortUid.substring(4, 8)}`;
+
+                // Points Reward Card Display
+                document.getElementById("pointsValDisplay").innerText = userData.points || 0;
+
+                // Style based on Rank
+                const rank = userData.rank || userData.memberRank || "Standard";
+                const badgeEl = document.getElementById("rankBadge");
+                const badgeTextEl = document.getElementById("rankBadgeText");
+                const cardEl = document.getElementById("memberCard");
+                
+                badgeEl.innerText = rank.toUpperCase();
+                badgeTextEl.innerText = rank.toUpperCase();
+                
+                badgeTextEl.className = "member-rank-badge"; // Reset
+                badgeTextEl.classList.add(rank.toLowerCase());
+                
+                cardEl.className = "loyalty-card"; // Reset
+                
+                if (rank.toLowerCase() === "silver") {
+                    cardEl.classList.add("silver");
+                } else if (rank.toLowerCase() === "gold") {
+                    cardEl.classList.add("gold");
+                } else if (rank.toLowerCase() === "vip" || rank.toLowerCase() === "platinum") {
+                    cardEl.classList.add("vip");
+                }
+
+                // Remove skeletons
+                document.getElementById("profName").classList.remove("skeleton");
+                document.getElementById("profPhone").classList.remove("skeleton");
+                document.getElementById("profEmail").classList.remove("skeleton");
+                document.getElementById("profRank").classList.remove("skeleton");
+                document.getElementById("profPoints").classList.remove("skeleton");
+                
+                const avatar = document.querySelector(".avatar-wrapper");
+                if (avatar) avatar.classList.remove("skeleton");
+                
+                badgeTextEl.classList.remove("skeleton");
+
+            } catch (e) {
+                console.error("Error fetching user profile: ", e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi',
+                    text: 'Không thể tải thông tin cá nhân.',
+                    background: '#ffffff',
+                    color: '#1f2937',
+                    confirmButtonColor: '#f58220'
+                });
+            }
+        }
+
+        // Save Profile Action
+        window.saveProfileData = async function(event) {
+            event.preventDefault();
+
+            const fullName = document.getElementById("profName").value.trim();
+            const phone = document.getElementById("profPhone").value.trim();
+
+            if (!fullName || !phone) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Thiếu thông tin',
+                    text: 'Họ tên và Số điện thoại không được để trống.',
+                    background: '#ffffff',
+                    color: '#1f2937',
+                    confirmButtonColor: '#f58220'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Đang lưu...',
+                background: '#ffffff',
+                color: '#1f2937',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                // Update Firestore
+                const userDocRef = doc(db, "users", currentUser.uid);
+                await updateDoc(userDocRef, {
+                    fullName: fullName,
+                    phone: phone
+                });
+
+                // Update Authentication Profile
+                await updateProfile(currentUser, {
+                    displayName: fullName
+                });
+
+                // Update card visual & Display name
+                document.getElementById("cardMemberName").innerText = fullName.toUpperCase();
+                document.getElementById("profileDisplayName").innerText = fullName;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Đã cập nhật',
+                    text: 'Thông tin cá nhân của bạn đã được thay đổi thành công!',
+                    background: '#ffffff',
+                    color: '#1f2937',
+                    confirmButtonColor: '#f58220',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+            } catch (e) {
+                console.error("Error saving profile: ", e);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Thất bại',
+                    text: 'Không thể lưu thông tin. Vui lòng thử lại sau!',
+                    background: '#ffffff',
+                    color: '#1f2937',
+                    confirmButtonColor: '#f58220'
+                });
+            }
+        };
+    </script>
+}

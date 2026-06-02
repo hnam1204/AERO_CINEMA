@@ -1,0 +1,342 @@
+@{
+    ViewBag.Title = "Đăng Ký - AERO Cinema";
+}
+
+<link href="@Url.Content("~/Content/auth.css?v=2")" rel="stylesheet" />
+
+<main class="auth-page">
+    <div class="auth-bg"></div>
+    <div class="auth-overlay"></div>
+
+    <div class="auth-container">
+        <div class="auth-card register-card">
+            <div class="auth-header">
+                <div class="auth-logo">AERO<span>Cinema</span></div>
+                <h1 class="auth-title">TẠO TÀI KHOẢN</h1>
+                <div class="auth-subtitle">Đăng ký thành viên để nhận ưu đãi.</div>
+            </div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="fullname">Họ tên</label>
+                    <div class="form-input-wrap">
+                        <input type="text" id="fullname" class="form-input" placeholder="Nguyễn Văn A" required autocomplete="name" />
+                    </div>
+                    <span class="field-error" id="nameError">Vui lòng nhập họ tên</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <div class="form-input-wrap">
+                        <input type="email" id="email" class="form-input" placeholder="name@domain.com" required autocomplete="email" />
+                    </div>
+                    <span class="field-error" id="emailError">Email không hợp lệ</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Số điện thoại</label>
+                    <div class="form-input-wrap">
+                        <input type="tel" id="phone" class="form-input" placeholder="0901234567" required autocomplete="tel" />
+                    </div>
+                    <span class="field-error" id="phoneError">Số điện thoại không hợp lệ</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mật khẩu</label>
+                    <div class="form-input-wrap">
+                        <input type="password" id="password" class="form-input" placeholder="Ít nhất 8 ký tự" required autocomplete="new-password" />
+                    </div>
+                    <span class="field-error" id="passwordError">Mật khẩu chưa đủ mạnh</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Xác nhận mật khẩu</label>
+                    <div class="form-input-wrap">
+                        <input type="password" id="confirmPassword" class="form-input" placeholder="Nhập lại mật khẩu" required autocomplete="new-password" />
+                    </div>
+                    <span class="field-error" id="confirmPasswordError">Mật khẩu xác nhận không khớp</span>
+                </div>
+
+                <div class="terms-check">
+                    <label for="agreeTerms">
+                        <input type="checkbox" id="agreeTerms" />
+                        <span>Tôi đồng ý <a href="/Home/Terms" target="_blank" rel="noopener">Điều khoản dịch vụ</a> và <a href="/Home/Privacy" target="_blank" rel="noopener">Chính sách bảo mật</a>.</span>
+                    </label>
+                    <span class="field-error" id="termsError">Vui lòng đồng ý điều khoản</span>
+                </div>
+
+                <div class="otp-section" id="otpSection">
+                    <div class="form-group">
+                        <label for="otpCode">Mã OTP</label>
+                        <div class="form-input-wrap">
+                            <input type="text" id="otpCode" class="form-input" placeholder="Nhập 6 số" maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
+                        </div>
+                        <div class="otp-hint" id="otpHint">Mã OTP có hiệu lực trong 5 phút.</div>
+                        <span class="field-error" id="otpError">Mã OTP không hợp lệ</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-auth-submit" id="registerSubmitBtn">
+                    <span id="registerSubmitText">Gửi mã</span>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Đã có tài khoản? <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script type="module">
+        import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const auth = window.auth;
+        const db = window.db;
+        const form = document.getElementById("registerForm");
+        const submitBtn = document.getElementById("registerSubmitBtn");
+        const submitText = document.getElementById("registerSubmitText");
+        const otpSection = document.getElementById("otpSection");
+        const otpHint = document.getElementById("otpHint");
+        const emailInput = document.getElementById("email");
+
+        const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+        const phoneRegex = /^0[0-9]{9}$/;
+        const strongPasswordRegex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@@#$%^&*()_\-+=\[\]{};:'"\\|,.<>/?]).{8,}$/;
+
+        let otpSent = false;
+        let pendingEmail = "";
+
+        function setError(id, show) {
+            document.getElementById(id).classList.toggle("show", show);
+        }
+
+        function getFormData() {
+            return {
+                fullName: document.getElementById("fullname").value.trim(),
+                email: emailInput.value.trim(),
+                phone: document.getElementById("phone").value.trim(),
+                password: document.getElementById("password").value,
+                confirmPassword: document.getElementById("confirmPassword").value,
+                agreeTerms: document.getElementById("agreeTerms").checked,
+                otpCode: document.getElementById("otpCode").value.trim()
+            };
+        }
+
+        function validateStepOne(data) {
+            const invalid = {
+                name: !data.fullName,
+                email: !emailRegex.test(data.email),
+                phone: !phoneRegex.test(data.phone),
+                password: !strongPasswordRegex.test(data.password),
+                confirmPassword: data.password !== data.confirmPassword,
+                terms: !data.agreeTerms
+            };
+
+            setError("nameError", invalid.name);
+            setError("emailError", invalid.email);
+            setError("phoneError", invalid.phone);
+            setError("passwordError", invalid.password);
+            setError("confirmPasswordError", invalid.confirmPassword);
+            setError("termsError", invalid.terms);
+
+            return !Object.values(invalid).some(Boolean);
+        }
+
+        async function postForm(url, payload) {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
+                },
+                body: new URLSearchParams(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error("Request failed");
+            }
+
+            return response.json();
+        }
+
+        async function sendRegisterOtp(data) {
+            submitBtn.disabled = true;
+            submitText.textContent = "Đang gửi...";
+
+            Swal.fire({
+                title: "Đang gửi mã...",
+                text: "Vui lòng chờ trong giây lát",
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading(),
+                background: "#ffffff",
+                color: "#333333"
+            });
+
+            try {
+                const result = await postForm("/Otp/SendRegisterOtp", { email: data.email });
+
+                if (!result.success) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Lỗi",
+                        text: result.message || "Không thể gửi mã xác nhận.",
+                        background: "#ffffff",
+                        color: "#333333",
+                        confirmButtonColor: "#f58220"
+                    });
+                    return;
+                }
+
+                otpSent = true;
+                pendingEmail = data.email;
+                emailInput.readOnly = true;
+                otpSection.classList.add("show");
+                otpHint.textContent = "Mã OTP đã được gửi đến " + data.email + ".";
+                submitText.textContent = "Xác nhận đăng ký";
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Đã gửi mã",
+                    text: "Vui lòng kiểm tra email.",
+                    background: "#ffffff",
+                    color: "#333333",
+                    confirmButtonColor: "#f58220"
+                });
+            } catch (error) {
+                console.error("Send register OTP error:", error);
+                Swal.fire({
+                    icon: "error",
+                    title: "Lỗi",
+                    text: "Không thể gửi mã xác nhận.",
+                    background: "#ffffff",
+                    color: "#333333",
+                    confirmButtonColor: "#f58220"
+                });
+            } finally {
+                submitBtn.disabled = false;
+                if (!otpSent) submitText.textContent = "Gửi mã";
+            }
+        }
+
+        async function verifyOtpAndRegister(data) {
+            const otpInvalid = !/^[0-9]{6}$/.test(data.otpCode);
+            setError("otpError", otpInvalid);
+            if (otpInvalid) return;
+
+            if (data.email !== pendingEmail) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Lỗi",
+                    text: "Email đã thay đổi. Vui lòng gửi lại mã OTP.",
+                    background: "#ffffff",
+                    color: "#333333",
+                    confirmButtonColor: "#f58220"
+                });
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitText.textContent = "Đang xác nhận...";
+
+            Swal.fire({
+                title: "Đang xác nhận...",
+                text: "Vui lòng chờ trong giây lát",
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading(),
+                background: "#ffffff",
+                color: "#333333"
+            });
+
+            try {
+                const verifyResult = await postForm("/Otp/VerifyRegisterOtp", {
+                    email: data.email,
+                    code: data.otpCode
+                });
+
+                if (!verifyResult.success) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Lỗi",
+                        text: verifyResult.message || "Mã xác nhận không đúng hoặc đã hết hạn.",
+                        background: "#ffffff",
+                        color: "#333333",
+                        confirmButtonColor: "#f58220"
+                    });
+                    return;
+                }
+
+                const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+                const user = userCredential.user;
+
+                await updateProfile(user, { displayName: data.fullName });
+
+                await setDoc(doc(db, "users", user.uid), {
+                    uid: user.uid,
+                    fullName: data.fullName,
+                    email: data.email,
+                    phone: data.phone,
+                    role: "customer",
+                    memberRank: "Silver",
+                    points: 0,
+                    emailVerifiedByOtp: true,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                });
+
+                Swal.fire({
+                    icon: "success",
+                    title: "Đăng ký thành công",
+                    text: "Bạn có thể đăng nhập ngay.",
+                    background: "#ffffff",
+                    color: "#333333",
+                    confirmButtonColor: "#f58220",
+                    timer: 1600,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = '@Url.Action("Login", "Account")';
+                });
+            } catch (error) {
+                console.error("Registration error:", error);
+
+                let message = "Đăng ký thất bại. Vui lòng thử lại.";
+                if (error.code === "auth/email-already-in-use") {
+                    message = "Email này đã được sử dụng.";
+                } else if (error.code === "auth/invalid-email") {
+                    message = "Email không hợp lệ.";
+                } else if (error.code === "auth/weak-password") {
+                    message = "Mật khẩu chưa đủ mạnh.";
+                }
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Lỗi",
+                    text: message,
+                    background: "#ffffff",
+                    color: "#333333",
+                    confirmButtonColor: "#f58220"
+                });
+            } finally {
+                submitBtn.disabled = false;
+                submitText.textContent = "Xác nhận đăng ký";
+            }
+        }
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const data = getFormData();
+            if (!validateStepOne(data)) return;
+
+            if (!otpSent) {
+                await sendRegisterOtp(data);
+                return;
+            }
+
+            await verifyOtpAndRegister(data);
+        });
+    </script>
+}
