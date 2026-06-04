@@ -1,0 +1,622 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Nhật ký hoạt động";
+}
+
+<div class="logs-admin">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="heroTitle">
+        <div>
+            <h1 id="heroTitle">Nhật ký hoạt động</h1>
+            <p>Theo dõi toàn bộ thao tác quản trị trên Firestore. Trang này chỉ đọc log, không cho thêm, sửa hoặc xóa thủ công.</p>
+        </div>
+        <div class="hero-actions" style="display: flex; gap: 8px;">
+            <button class="admin-btn admin-btn-secondary" id="exportCsv" type="button"><i class="fas fa-file-csv"></i> Export CSV</button>
+            <button class="admin-btn admin-btn-secondary" id="exportExcel" type="button"><i class="fas fa-file-excel"></i> Export Excel</button>
+        </div>
+    </section>
+
+    <!-- Stats Grid -->
+    <div class="section-title">
+        <h2>Thống kê nhật ký</h2>
+        <span>Realtime statistics</span>
+    </div>
+    <section class="admin-stats-grid">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-list-alt"></i></span>
+            <span class="stat-label">Tổng log</span>
+            <div class="stat-value skeleton" id="sTotal">0</div>
+            <div class="stat-note">Tổng số hoạt động đã ghi</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-calendar-day"></i></span>
+            <span class="stat-label">Hôm nay</span>
+            <div class="stat-value skeleton" id="sToday">0</div>
+            <div class="stat-note">Hoạt động trong ngày</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-calendar-week"></i></span>
+            <span class="stat-label">7 ngày gần nhất</span>
+            <div class="stat-value skeleton" id="s7">0</div>
+            <div class="stat-note">Hoạt động trong tuần</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-calendar-alt"></i></span>
+            <span class="stat-label">30 ngày gần nhất</span>
+            <div class="stat-value skeleton" id="s30">0</div>
+            <div class="stat-note">Hoạt động trong tháng</div>
+        </div>
+    </section>
+
+    <!-- Toolbar Filters -->
+    <section class="log-toolbar" aria-label="Bộ lọc nhật ký">
+        <div class="admin-field search-input">
+            <label for="q">Tìm kiếm</label>
+            <input class="admin-control" id="q" type="search" placeholder="Tìm email, action, documentId..." aria-label="Tìm kiếm log" />
+        </div>
+        <div class="admin-field">
+            <label for="collectionFilter">Collection</label>
+            <select class="admin-control" id="collectionFilter" aria-label="Lọc theo collection">
+                <option value="">Tất cả collection</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="actionFilter">Hành động</label>
+            <select class="admin-control" id="actionFilter" aria-label="Lọc theo hành động">
+                <option value="">Tất cả hành động</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="adminFilter">Quản trị viên</label>
+            <select class="admin-control" id="adminFilter" aria-label="Lọc theo quản trị viên">
+                <option value="">Tất cả admin</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="fromDate">Từ ngày</label>
+            <input class="admin-control" id="fromDate" type="date" aria-label="Từ ngày" />
+        </div>
+        <div class="admin-field">
+            <label for="toDate">Đến ngày</label>
+            <input class="admin-control" id="toDate" type="date" aria-label="Đến ngày" />
+        </div>
+    </section>
+
+    <!-- Grid Data -->
+    <section class="admin-card">
+        <div class="panel-head p-3" style="border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
+            <h3 style="margin: 0; font-size: 15px; font-weight: 700;">Danh sách nhật ký</h3>
+            <span id="count" style="font-size: 13px; color: var(--admin-subtle);">Đang tải...</span>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th><span class="sort-header" data-sort="adminEmail">Quản trị viên <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 160px;"><span class="sort-header" data-sort="action">Hành động <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 140px;"><span class="sort-header" data-sort="collectionName">Collection <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="documentId">Document ID <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 160px;"><span class="sort-header" data-sort="createdAt">Thời gian <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 100px; text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="activityLogsTableBody">
+                    <tr>
+                        <td colspan="6"><div class="empty-state"><span>Đang tải nhật ký...</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span id="pageInfo">Trang 1</span>
+            <div class="page-buttons">
+                <button class="admin-btn admin-btn-secondary" id="prev" type="button">Trước</button> 
+                <button class="admin-btn admin-btn-secondary" id="next" type="button">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal Detail -->
+<div class="admin-modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="admin-modal-panel" style="width: min(1080px, 100%);">
+        <div class="admin-modal-header">
+            <h3 id="modalTitle">Chi tiết nhật ký hoạt động</h3>
+            <button class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" id="closeModal" type="button" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body">
+            <div class="detail" id="detail"></div>
+            <div class="json-grid">
+                <div class="json-card">
+                    <h4>Dữ liệu cũ (oldData)</h4>
+                    <pre id="oldJson">Không có dữ liệu.</pre>
+                </div>
+                <div class="json-card">
+                    <h4>Dữ liệu mới (newData)</h4>
+                    <pre id="newJson">Không có dữ liệu.</pre>
+                </div>
+            </div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="admin-btn admin-btn-secondary" id="closeFoot" type="button">Đóng</button>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+<script type="module">
+import {collection,getDocs,limit,onSnapshot,orderBy,query,where} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const db=window.AeroAdmin?.db||window.db;
+const toast=window.AeroAdmin?.toast||((type,title,message)=>alert(`${title}: ${message}`));
+const state={logs:[],items:[],filtered:[],page:1,size:10,sortKey:"createdAt",sortDirection:"desc",unsub:null,loaded:false};
+const $=id=>document.getElementById(id);
+const el={q:$("q"),collection:$("collectionFilter"),action:$("actionFilter"),admin:$("adminFilter"),from:$("fromDate"),to:$("toDate"),body:$("activityLogsTableBody"),count:$("count"),page:$("pageInfo"),prev:$("prev"),next:$("next"),modal:$("modal"),detail:$("detail"),oldJson:$("oldJson"),newJson:$("newJson")};
+let isLogsLoaded=false;
+let unsubscribeActivityLogs=null;
+let logsFirstLoad=true;
+
+const actionLabels={
+    create_movie:"Thêm phim",update_movie:"Sửa phim",delete_movie:"Xóa phim",
+    create_showtime:"Thêm lịch chiếu",update_showtime:"Sửa lịch chiếu",delete_showtime:"Xóa lịch chiếu",
+    approve_payment:"Xác nhận thanh toán",reject_payment:"Từ chối thanh toán",
+    cancel_booking:"Hủy booking",settings_update:"Cập nhật cấu hình",
+    create_banner:"Thêm banner",update_banner:"Sửa banner",delete_banner:"Xóa banner",
+    create_promotion:"Thêm khuyến mãi",update_promotion:"Sửa khuyến mãi",delete_promotion:"Xóa khuyến mãi",
+    create_news:"Thêm tin tức",update_news:"Sửa tin tức",delete_news:"Xóa tin tức",
+    hide_review:"Ẩn/hiện đánh giá",delete_review:"Xóa đánh giá",reply_ticket:"Trả lời hỗ trợ",
+    login:"Đăng nhập",logout:"Đăng xuất"
+};
+
+const norm=v=>String(v||"").trim().toLowerCase();
+const safe=(v,f="-")=>v===undefined||v===null||v===""?f:v;
+const toDate=v=>{
+    if(!v)return null;
+    if(typeof v.toDate==="function")return v.toDate();
+    if(typeof v.toMillis==="function")return new Date(v.toMillis());
+    if(typeof v==="number")return new Date(v);
+    const parsed=new Date(v);
+    return Number.isNaN(parsed.getTime())?null:parsed;
+};
+const fmt=v=>{const d=toDate(v);return d&&!isNaN(d)?d.toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"-"};
+const dateKey=d=>new Date(d.getFullYear(),d.getMonth(),d.getDate());
+const load=s=>window.AeroAdmin?.showLoader?.(s,"Đang xử lý...");
+const label=a=>actionLabels[a]||String(a||"-").replaceAll("_"," ");
+
+function getTimeValue(value) {
+    const d=toDate(value);
+    return d&&!Number.isNaN(d.getTime())?d.getTime():0;
+}
+
+function normalizeLogDoc(docSnap){
+    const data=docSnap.data?.()||{};
+    const createdAt=data.createdAt??data.timestamp??data.updatedAt??data.created_at??null;
+    return {
+        id:docSnap.id,
+        ...data,
+        adminEmail:data.adminEmail??data.email??data.userEmail??data.admin?.email??"",
+        adminId:data.adminId??data.uid??data.userId??data.admin?.uid??"",
+        action:data.action??data.type??"",
+        collectionName:data.collectionName??data.collection??data.collectionId??"",
+        documentId:data.documentId??data.docId??data.documentID??data.documentPath??"",
+        createdAt,
+        oldData:data.oldData??data.before??data.old??null,
+        newData:data.newData??data.after??data.new??null
+    };
+}
+
+function setLogsLoading(isLoading){
+    isLogsLoaded=!isLoading;
+    state.loaded=!isLoading;
+    load(isLoading);
+    if(isLoading){
+        el.count.innerText="Đang tải...";
+        el.body.innerHTML='<tr><td colspan="6"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><span>Đang tải nhật ký...</span></div></td></tr>';
+    }
+}
+
+function applyFiltersAndRender(){
+    state.logs=state.items;
+    fillFilters();
+    stats();
+    filter();
+}
+
+function actionTone(action){
+    const a=norm(action);
+    if(a.includes("create"))return"success";
+    if(a.includes("delete"))return"danger";
+    if(a.includes("update")||a.includes("settings"))return"warning";
+    if(a.includes("login")||a.includes("logout")||a.includes("payment")||a.includes("paid")||a.includes("approve")||a.includes("reject")||a.includes("booking")||a.includes("ticket"))return"primary";
+    return"secondary";
+}
+
+function readableJson(value){
+    if(value===undefined||value===null||value==="")return"Không có dữ liệu.";
+    try{
+        return JSON.stringify(normalizeForJson(value),null,2);
+    }catch(error){
+        return String(value);
+    }
+}
+
+function normalizeForJson(value){
+    if(value?.toDate)return value.toDate().toISOString();
+    if(Array.isArray(value))return value.map(normalizeForJson);
+    if(value&&typeof value==="object"){
+        const output={};
+        Object.keys(value).sort().forEach(key=>output[key]=normalizeForJson(value[key]));
+        return output;
+    }
+    return value;
+}
+
+function csvCell(value){
+    const text=String(value??"").replaceAll('"','""');
+    return `"${text}"`;
+}
+
+function download(filename,mime,content){
+    const blob=new Blob([content],{type:mime});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download=filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
+
+function stats(){
+    const now=new Date();
+    const startToday=dateKey(now);
+    const start7=new Date(startToday);start7.setDate(start7.getDate()-6);
+    const start30=new Date(startToday);start30.setDate(start30.getDate()-29);
+    
+    setTextElement("sTotal", state.items.length);
+    setTextElement("sToday", state.items.filter(x=>{const d=toDate(x.createdAt);return d&&d>=startToday}).length);
+    setTextElement("s7", state.items.filter(x=>{const d=toDate(x.createdAt);return d&&d>=start7}).length);
+    setTextElement("s30", state.items.filter(x=>{const d=toDate(x.createdAt);return d&&d>=start30}).length);
+}
+
+function setTextElement(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerText = value;
+        el.classList.remove("skeleton");
+    }
+}
+
+function fillFilters(){
+    const collections=[...new Set(state.items.map(x=>safe(x.collectionName||x.collection,"")).filter(Boolean))].sort();
+    const actions=[...new Set(state.items.map(x=>safe(x.action,"")).filter(Boolean))].sort();
+    const admins=[...new Set(state.items.map(x=>safe(x.adminEmail,"")).filter(Boolean))].sort();
+    setOptions(el.collection,collections,"Tất cả collection");
+    setOptions(el.action,actions,"Tất cả action",label);
+    setOptions(el.admin,admins,"Tất cả admin");
+}
+
+function setOptions(select,items,first,formatter){
+    const current=select.value;
+    select.innerHTML=`<option value="">${first}</option>`+items.map(x=>`<option value="${escapeAttr(x)}">${formatter?formatter(x):x}</option>`).join("");
+    select.value=items.includes(current)?current:"";
+}
+
+function sortData() {
+    const key = state.sortKey;
+    const dir = state.sortDirection === "asc" ? 1 : -1;
+    state.filtered.sort((a, b) => {
+        let valA = a[key];
+        let valB = b[key];
+        if (key === "createdAt") {
+            valA = getTimeValue(valA);
+            valB = getTimeValue(valB);
+        } else if (typeof valA === "string") {
+            valA = valA.toLowerCase();
+            valB = String(valB || "").toLowerCase();
+        } else {
+            valA = Number(valA || 0);
+            valB = Number(valB || 0);
+        }
+        if (valA < valB) return -1 * dir;
+        if (valA > valB) return 1 * dir;
+        return 0;
+    });
+}
+
+function filter(){
+    const q=norm(el.q.value);
+    const from=el.from.value?new Date(el.from.value+"T00:00:00"):null;
+    const to=el.to.value?new Date(el.to.value+"T23:59:59"):null;
+    state.filtered=state.items.filter(x=>{
+        const d=toDate(x.createdAt);
+        const text=norm([x.adminEmail,x.adminId,x.action,x.collectionName,x.collection,x.documentId,x.docId].join(" "));
+        return (!q||text.includes(q))
+            &&(!el.collection.value||x.collectionName===el.collection.value)
+            &&(!el.action.value||x.action===el.action.value)
+            &&(!el.admin.value||x.adminEmail===el.admin.value)
+            &&(!from||d&&d>=from)
+            &&(!to||d&&d<=to);
+    });
+    sortData();
+    const max=Math.max(1,Math.ceil(state.filtered.length/state.size));
+    if(state.page>max)state.page=max;
+    render();
+}
+
+function render(){
+    const start=(state.page-1)*state.size;
+    const items=state.filtered.slice(start,start+state.size);
+    const max=Math.max(1,Math.ceil(state.filtered.length/state.size));
+    const visibleStart=state.filtered.length?start+1:0;
+    el.count.innerText=`Hiển thị ${visibleStart}-${Math.min(start + state.size, state.filtered.length)} trên ${state.filtered.length} logs`;
+    el.page.innerText=`Trang ${state.page}/${max}`;
+    el.prev.disabled=state.page<=1;
+    el.next.disabled=state.page>=max;
+    if(!state.loaded){
+        return;
+    }
+    if(!items.length){
+        const message=state.items.length?"Không tìm thấy nhật ký phù hợp.":"Chưa có nhật ký hoạt động.";
+        el.body.innerHTML=`<tr><td colspan="6"><div class="empty-state"><span>${message}</span></div></td></tr>`;
+        return;
+    }
+    el.body.innerHTML=items.map(x=>`
+        <tr>
+            <td data-label="Quản trị viên">
+                <div class="main">
+                    <strong>${escapeHtml(safe(x.adminEmail,"Không rõ admin"))}</strong>
+                    <span style="font-size:12px;color:var(--admin-subtle);">UID: ${escapeHtml(safe(x.adminId))}</span>
+                </div>
+            </td>
+            <td data-label="Hành động"><span class="admin-badge ${actionTone(x.action)}">${escapeHtml(label(x.action))}</span></td>
+            <td data-label="Collection"><span class="collection-chip">${escapeHtml(safe(x.collectionName))}</span></td>
+            <td data-label="Document ID"><span class="doc-id" title="${escapeHtml(safe(x.documentId))}">${escapeHtml(safe(x.documentId))}</span></td>
+            <td data-label="Thời gian">${fmt(x.createdAt)}</td>
+            <td data-label="Hành động" class="action-col">
+                <div class="admin-actions">
+                    <button type="button" class="admin-icon-btn view btn-view-log" data-id="${x.id}" title="Xem chi tiết"><i class="fas fa-eye"></i></button>
+                </div>
+            </td>
+        </tr>`).join("");
+}
+
+function openDetail(item){
+    el.detail.innerHTML=`
+        <div class="detail-row"><span>Admin ID</span><strong>${escapeHtml(safe(item.adminId))}</strong></div>
+        <div class="detail-row"><span>Admin Email</span><strong>${escapeHtml(safe(item.adminEmail))}</strong></div>
+        <div class="detail-row"><span>Action</span><strong>${escapeHtml(safe(item.action))} - ${escapeHtml(label(item.action))}</strong></div>
+        <div class="detail-row"><span>Collection</span><strong>${escapeHtml(safe(item.collectionName))}</strong></div>
+        <div class="detail-row full"><span>Document ID</span><strong>${escapeHtml(safe(item.documentId))}</strong></div>
+        <div class="detail-row"><span>IP Address</span><strong>${escapeHtml(safe(item.ipAddress,"Không có dữ liệu."))}</strong></div>
+        <div class="detail-row"><span>Created At</span><strong>${fmt(item.createdAt)}</strong></div>
+        <div class="detail-row full"><span>User Agent</span><strong>${escapeHtml(safe(item.userAgent,"Không có dữ liệu."))}</strong></div>`;
+    el.oldJson.innerText=readableJson(item.oldData);
+    el.newJson.innerText=readableJson(item.newData);
+    el.oldJson.classList.toggle("json-empty",!item.oldData);
+    el.newJson.classList.toggle("json-empty",!item.newData);
+    openModal();
+}
+
+function openModal() {
+    el.modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+
+function closeModal(){
+    el.modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+
+function exportRows(){
+    return state.filtered.map(x=>({
+        adminEmail:safe(x.adminEmail,""),
+        action:safe(x.action,""),
+        actionLabel:label(x.action),
+        collectionName:safe(x.collectionName||x.collection,""),
+        documentId:safe(x.documentId||x.docId,""),
+        ipAddress:safe(x.ipAddress,""),
+        userAgent:safe(x.userAgent,""),
+        createdAt:fmt(x.createdAt),
+        oldData:readableJson(x.oldData),
+        newData:readableJson(x.newData)
+    }));
+}
+
+function exportCsv(){
+    const rows=exportRows();
+    if(!rows.length){toast("warning","Không có dữ liệu","Không có log phù hợp để export.");return;}
+    const headers=["Admin Email","Action","Action Label","Collection","Document ID","IP Address","User Agent","Created At","Old Data","New Data"];
+    const body=rows.map(x=>[x.adminEmail,x.action,x.actionLabel,x.collectionName,x.documentId,x.ipAddress,x.userAgent,x.createdAt,x.oldData,x.newData].map(csvCell).join(",")).join("\r\n");
+    download(`aero-activity-logs-${new Date().toISOString().slice(0,10)}.csv`,"text/csv;charset=utf-8","\ufeff"+headers.map(csvCell).join(",")+"\r\n"+body);
+    toast("success","Đã export CSV",`${rows.length} dòng log đã được xuất.`);
+}
+
+function exportExcel(){
+    const rows=exportRows();
+    if(!rows.length){toast("warning","Không có dữ liệu","Không có log phù hợp để export.");return;}
+    const html=`<html><head><meta charset="utf-8" /></head><body><table border="1"><thead><tr><th>Admin Email</th><th>Action</th><th>Action Label</th><th>Collection</th><th>Document ID</th><th>IP Address</th><th>User Agent</th><th>Created At</th><th>Old Data</th><th>New Data</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${escapeHtml(x.adminEmail)}</td><td>${escapeHtml(x.action)}</td><td>${escapeHtml(x.actionLabel)}</td><td>${escapeHtml(x.collectionName)}</td><td>${escapeHtml(x.documentId)}</td><td>${escapeHtml(x.ipAddress)}</td><td>${escapeHtml(x.userAgent)}</td><td>${escapeHtml(x.createdAt)}</td><td><pre>${escapeHtml(x.oldData)}</pre></td><td><pre>${escapeHtml(x.newData)}</pre></td></tr>`).join("")}</tbody></table></body></html>`;
+    download(`aero-activity-logs-${new Date().toISOString().slice(0,10)}.xls`,"application/vnd.ms-excel;charset=utf-8","\ufeff"+html);
+    toast("success","Đã export Excel",`${rows.length} dòng log đã được xuất.`);
+}
+
+function escapeHtml(value){
+    return String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+}
+
+function escapeAttr(value){
+    return escapeHtml(value);
+}
+
+function renderLogsError(error){
+    state.items=[];
+    state.logs=[];
+    state.filtered=[];
+    state.loaded=true;
+    setTextElement("sTotal",0);
+    setTextElement("sToday",0);
+    setTextElement("s7",0);
+    setTextElement("s30",0);
+    fillFilters();
+
+    let message="Không thể tải nhật ký hoạt động.";
+    if(error?.code==="permission-denied"){
+        message="Không có quyền đọc nhật ký hoạt động. Hãy kiểm tra Firestore Rules hoặc tài khoản admin.";
+    }else if(error?.isRenderError){
+        message="Không thể hiển thị nhật ký. Vui lòng kiểm tra Console.";
+    }
+
+    el.count.innerText="0 logs";
+    el.page.innerText="Trang 1/1";
+    el.prev.disabled=true;
+    el.next.disabled=true;
+    el.body.innerHTML=`
+        <tr>
+            <td colspan="6">
+                <div class="empty-state">
+                    <strong>${escapeHtml(message)}</strong>
+                    <span>${escapeHtml(error?.message||"")}</span>
+                </div>
+            </td>
+        </tr>`;
+    toast("error","Không thể tải activity_logs",message);
+}
+
+function renderLoadedLogs(){
+    setLogsLoading(false);
+    try{
+        applyFiltersAndRender();
+    }catch(err){
+        console.error("ActivityLogs render error:",err);
+        renderLogsError({message:err?.message||"",isRenderError:true});
+    }finally{
+        setLogsLoading(false);
+    }
+}
+
+function handleSorting(event) {
+    const header = event.target.closest(".sort-header");
+    if (!header) return;
+    const key = header.dataset.sort;
+    if (state.sortKey === key) {
+        state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+    } else {
+        state.sortKey = key;
+        state.sortDirection = "asc";
+    }
+    document.querySelectorAll(".sort-header i").forEach(icon => {
+        icon.className = "fas fa-sort";
+    });
+    const activeIcon = header.querySelector("i");
+    if (activeIcon) {
+        activeIcon.className = state.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+    }
+    filter();
+}
+
+function bind(){
+    [el.q,el.collection,el.action,el.admin,el.from,el.to].forEach(x=>{
+        x.addEventListener("input",()=>{state.page=1;filter();});
+        x.addEventListener("change",()=>{state.page=1;filter();});
+    });
+    el.prev.onclick=()=>{if(state.page>1){state.page--;render();}};
+    el.next.onclick=()=>{const max=Math.max(1,Math.ceil(state.filtered.length/state.size));if(state.page<max){state.page++;render();}};
+    $("exportCsv").onclick=exportCsv;
+    $("exportExcel").onclick=exportExcel;
+    $("closeModal").onclick=closeModal;
+    $("closeFoot").onclick=closeModal;
+    
+    document.querySelectorAll(".sort-header").forEach(header => {
+        header.addEventListener("click", handleSorting);
+    });
+
+    document.addEventListener("click",event=>{
+        const btn=event.target.closest(".btn-view-log");
+        if(!btn)return;
+        const item=state.items.find(x=>x.id===btn.dataset.id);
+        if(item)openDetail(item);
+    });
+
+    // Close modal on escape key
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeModal();
+        }
+    });
+
+    // Close modal on click outside modal panel
+    el.modal.addEventListener("click", (e) => {
+        if (e.target === el.modal) {
+            closeModal();
+        }
+    });
+}
+
+function startActivityLogsListener(){
+    state.unsub?.();
+    unsubscribeActivityLogs?.();
+    setLogsLoading(true);
+
+    try{
+        const logsRef=collection(db,"activity_logs");
+        const logsQuery=query(logsRef,orderBy("createdAt","desc"));
+
+        unsubscribeActivityLogs=onSnapshot(logsQuery,async snapshot=>{
+            let docs=snapshot.docs;
+            if(logsFirstLoad&&snapshot.empty){
+                try{
+                    const fallbackSnap=await getDocs(collection(db,"activity_logs"));
+                    docs=fallbackSnap.docs;
+                }catch(fallbackError){
+                    console.warn("ActivityLogs first-load fallback getDocs error:",fallbackError);
+                }
+            }
+
+            state.items=docs
+                .map(normalizeLogDoc)
+                .sort((a,b)=>getTimeValue(b.createdAt)-getTimeValue(a.createdAt));
+            renderLoadedLogs();
+            logsFirstLoad=false;
+        },async error=>{
+            console.error("ActivityLogs onSnapshot error:",error);
+
+            try{
+                const fallbackSnap=await getDocs(collection(db,"activity_logs"));
+                state.items=fallbackSnap.docs
+                    .map(normalizeLogDoc)
+                    .sort((a,b)=>getTimeValue(b.createdAt)-getTimeValue(a.createdAt));
+                renderLoadedLogs();
+            }catch(fallbackError){
+                console.error("ActivityLogs fallback getDocs error:",fallbackError);
+                setLogsLoading(false);
+                renderLogsError(fallbackError?.code?fallbackError:error);
+            }finally{
+                logsFirstLoad=false;
+            }
+        });
+
+        state.unsub=unsubscribeActivityLogs;
+    }catch(err){
+        console.error("ActivityLogs listener init error:",err);
+        setLogsLoading(false);
+        renderLogsError(err);
+        logsFirstLoad=false;
+    }
+}
+
+function attach(){
+    if(!db){
+        setLogsLoading(false);
+        renderLogsError({message:"Không thể kết nối Firestore."});
+        return;
+    }
+    startActivityLogsListener();
+}
+
+bind();
+window.addEventListener("aero-admin-ready",attach,{once:true});
+if(window.AeroAdmin?.state?.ready)attach();
+window.addEventListener("beforeunload",()=>state.unsub?.());
+</script>
+}

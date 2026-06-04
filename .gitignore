@@ -1,0 +1,19 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build files
+bin/
+obj/
+
+# Logs
+*.log
+
+# Database cache
+*.db
+*.db-shm
+*.db-wal
+
+# Publish
+PublishProfiles/

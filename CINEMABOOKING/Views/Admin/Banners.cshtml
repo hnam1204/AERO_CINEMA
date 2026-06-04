@@ -1,0 +1,626 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý banner";
+}
+
+<div class="banner-admin">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="heroTitle">
+        <div>
+            <h1 id="heroTitle">Quản lý banner</h1>
+            <p>Quản trị ảnh sự kiện nổi bật, thứ tự hiển thị, thời gian chạy và trạng thái kích hoạt trên trang chủ AERO Cinema.</p>
+        </div>
+        <button class="admin-btn admin-btn-primary" id="btnAdd" aria-label="Thêm banner mới">
+            <i class="fas fa-plus"></i> Thêm banner
+        </button>
+    </section>
+
+    <!-- Stats Overview -->
+    <section class="admin-stats-grid">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-images"></i></span>
+            <span class="stat-label">Tổng banner</span>
+            <div class="stat-value skeleton" id="sTotal">0</div>
+            <div class="stat-note">Tổng số lượng banner</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+            <span class="stat-label">Đang bật</span>
+            <div class="stat-value skeleton" id="sActive">0</div>
+            <div class="stat-note">Đang kích hoạt hiển thị</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-calendar-alt"></i></span>
+            <span class="stat-label">Sắp chạy</span>
+            <div class="stat-value skeleton" id="sFuture">0</div>
+            <div class="stat-note">Lên lịch chạy tương lai</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-history"></i></span>
+            <span class="stat-label">Đã hết hạn</span>
+            <div class="stat-value skeleton" id="sExpired">0</div>
+            <div class="stat-note">Hết hạn thời gian chạy</div>
+        </div>
+    </section>
+
+    <!-- Toolbar Filters -->
+    <section class="admin-toolbar" aria-label="Bộ lọc banner">
+        <div class="admin-field search-input" style="grid-column: span 2;">
+            <label for="q">Tìm kiếm banner</label>
+            <input type="search" class="admin-control" id="q" placeholder="Tìm theo tiêu đề, phụ đề, mã phim..." aria-label="Tìm kiếm banner" />
+        </div>
+        <div class="admin-field">
+            <label for="activeFilter">Trạng thái</label>
+            <select class="admin-control" id="activeFilter" aria-label="Lọc theo trạng thái active">
+                <option value="">Tất cả trạng thái</option>
+                <option value="true">Đang bật</option>
+                <option value="false">Đang tắt</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="dateFilter">Thời gian chạy</label>
+            <select class="admin-control" id="dateFilter" aria-label="Lọc theo thời gian chạy">
+                <option value="">Tất cả thời gian</option>
+                <option value="running">Đang chạy</option>
+                <option value="future">Sắp chạy</option>
+                <option value="expired">Hết hạn</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- Data Grid -->
+    <section class="admin-card">
+        <div class="section-head" style="padding: 16px 20px; border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
+            <h2 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--admin-text);">Danh sách banner</h2>
+            <div style="display: flex; align-items: center; gap: 8px; color: var(--admin-subtle); font-size: 12px; font-weight: 600;">
+                <span id="count">Đang tải...</span>
+                <span>·</span>
+                <span>Kéo thả dòng <i class="fas fa-grip-vertical"></i> để sắp xếp</span>
+            </div>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"></th>
+                        <th style="width: 100px;">Ảnh</th>
+                        <th><span class="sort-header" data-sort="title">Nội dung <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="movieId">Mã phim <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="displayOrder">Thứ tự <i class="fas fa-sort"></i></span></th>
+                        <th>Thời gian chạy</th>
+                        <th><span class="sort-header" data-sort="active">Trạng thái <i class="fas fa-sort"></i></span></th>
+                        <th class="action-col" style="text-align: right; width: 140px;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="body">
+                    <tr>
+                        <td colspan="8"><div class="empty-state"><span>Đang tải banner...</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span id="pageInfo">Trang 1 / 1</span>
+            <div class="page-buttons">
+                <button class="admin-btn admin-btn-secondary" id="prev" type="button">Trước</button> 
+                <button class="admin-btn admin-btn-secondary" id="next" type="button">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal Form -->
+<div class="admin-modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="modalTitle">Thêm banner</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="modal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <form id="form">
+            <div class="admin-modal-body">
+                <input type="hidden" id="docId" />
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="title">Tiêu đề</label>
+                        <input class="admin-control" id="title" maxlength="140" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="movieId">Movie ID</label>
+                        <input class="admin-control" id="movieId" maxlength="120" />
+                    </div>
+                    <div class="admin-field full">
+                        <label for="subtitle">Phụ đề</label>
+                        <textarea class="admin-control" style="min-height: 80px;" id="subtitle"></textarea>
+                    </div>
+                    <div class="admin-field full">
+                        <label for="imageUrl">Image URL *</label>
+                        <input class="admin-control" id="imageUrl" required />
+                    </div>
+                    <div class="admin-field full">
+                        <label for="posterUrl">Poster URL</label>
+                        <input class="admin-control" id="posterUrl" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="displayOrder">Thứ tự *</label>
+                        <input class="admin-control" id="displayOrder" type="number" min="1" value="1" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="active">Trạng thái</label>
+                        <select class="admin-control" id="active">
+                            <option value="true">Đang bật</option>
+                            <option value="false">Đang tắt</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="startDate">Ngày bắt đầu</label>
+                        <input class="admin-control" id="startDate" type="date" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="endDate">Ngày kết thúc</label>
+                        <input class="admin-control" id="endDate" type="date" />
+                    </div>
+                </div>
+                <div class="preview" style="margin-top: 18px;">
+                    <div class="banner-preview" id="desktopPreview">
+                        <img alt="" />
+                        <div><strong>Banner Desktop</strong><span>Preview nội dung hero</span></div>
+                    </div>
+                    <div class="banner-preview mobile" id="mobilePreview">
+                        <img alt="" />
+                        <div><strong>Mobile</strong><span>Preview</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="admin-btn admin-btn-secondary" type="button" data-close-modal="modal">Hủy</button>
+                <button class="admin-btn admin-btn-primary" type="submit">Lưu banner</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import {
+            collection,
+            doc,
+            onSnapshot,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.AeroAdmin?.db || window.db;
+        const toast = window.AeroAdmin?.toast || ((t, a, b) => alert(`${a}: ${b}`));
+
+        const state = {
+            items: [],
+            filtered: [],
+            page: 1,
+            size: 8,
+            sortKey: "displayOrder",
+            sortDirection: "asc",
+            dragId: null,
+            unsub: null
+        };
+
+        const $ = id => document.getElementById(id);
+        const el = {
+            q: $("q"),
+            active: $("activeFilter"),
+            date: $("dateFilter"),
+            body: $("body"),
+            count: $("count"),
+            page: $("pageInfo"),
+            prev: $("prev"),
+            next: $("next"),
+            modal: $("modal"),
+            form: $("form")
+        };
+
+        const norm = v => String(v || "").trim().toLowerCase();
+        const safe = (v, f = "-") => v === undefined || v === null || v === "" ? f : v;
+        const today = () => new Date(new Date().toDateString());
+        const toDate = v => v?.toDate ? v.toDate() : (v ? new Date(v) : null);
+        const fmt = v => {
+            const d = toDate(v);
+            return d && !isNaN(d) ? d.toLocaleDateString("vi-VN") : "-";
+        };
+
+        function showLoading(show) {
+            window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
+        }
+
+        function period(x) {
+            const n = today();
+            const s = toDate(x.startDate);
+            const e = toDate(x.endDate);
+            if (s && s > n) return "future";
+            if (e && e < n) return "expired";
+            return "running";
+        }
+
+        function fillStats() {
+            const a = state.items;
+            const p = a.map(period);
+            setTextElement("sTotal", a.length);
+            setTextElement("sActive", a.filter(x => x.active === true).length);
+            setTextElement("sFuture", p.filter(x => x === "future").length);
+            setTextElement("sExpired", p.filter(x => x === "expired").length);
+        }
+
+        function setTextElement(id, value) {
+            const element = $(id);
+            if (element) {
+                element.innerText = value;
+                element.classList.remove("skeleton");
+            }
+        }
+
+        function sortFilteredBanners() {
+            const key = state.sortKey;
+            const dir = state.sortDirection === "asc" ? 1 : -1;
+
+            state.filtered.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                if (key === "startDate" || key === "endDate" || key === "createdAt" || key === "updatedAt") {
+                    valA = toDate(valA)?.getTime() || 0;
+                    valB = toDate(valB)?.getTime() || 0;
+                } else if (typeof valA === "string") {
+                    valA = valA.toLowerCase();
+                    valB = String(valB || "").toLowerCase();
+                } else {
+                    valA = Number(valA || 0);
+                    valB = Number(valB || 0);
+                }
+
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+        }
+
+        function filter() {
+            const q = norm(el.q.value);
+            state.filtered = state.items.filter(x => {
+                const text = norm([x.title, x.subtitle, x.movieId].join(" "));
+                return (!q || text.includes(q))
+                    && (!el.active.value || String(x.active) === el.active.value)
+                    && (!el.date.value || period(x) === el.date.value);
+            });
+
+            sortFilteredBanners();
+
+            const max = Math.max(1, Math.ceil(state.filtered.length / state.size));
+            if (state.page > max) state.page = max;
+            render();
+        }
+
+        function render() {
+            const start = (state.page - 1) * state.size,
+                  items = state.filtered.slice(start, start + state.size),
+                  max = Math.max(1, Math.ceil(state.filtered.length / state.size));
+
+            el.count.innerText = `${state.filtered.length} banner`;
+            el.page.innerText = `Trang ${state.page}/${max}`;
+            el.prev.disabled = state.page <= 1;
+            el.next.disabled = state.page >= max;
+
+            if (!items.length) {
+                el.body.innerHTML = '<tr><td colspan="8"><div class="empty-state"><span>Không có banner phù hợp.</span></div></td></tr>';
+                return;
+            }
+
+            el.body.innerHTML = items.map(x => `
+                <tr draggable="true" data-row="${x.id}">
+                    <td><i class="fas fa-grip-vertical drag"></i></td>
+                    <td data-label="Ảnh"><img class="thumb" src="${safe(x.imageUrl, x.posterUrl || "")}" alt=""></td>
+                    <td data-label="Nội dung">
+                        <div class="main">
+                            <strong>${safe(x.title, "AERO Cinema")}</strong>
+                            <span>${safe(x.subtitle, "Không có phụ đề")}</span>
+                        </div>
+                    </td>
+                    <td data-label="Mã phim">${safe(x.movieId)}</td>
+                    <td data-label="Thứ tự">${Number(x.displayOrder || 0)}</td>
+                    <td data-label="Thời gian chạy">${fmt(x.startDate)} - ${fmt(x.endDate)}</td>
+                    <td data-label="Trạng thái"><span class="admin-badge ${x.active === true ? 'success' : 'secondary'}">${x.active === true ? 'Bật' : 'Tắt'}</span></td>
+                    <td data-label="Hành động" class="action-col">
+                        <div class="admin-actions">
+                            <button type="button" class="admin-icon-btn approve" data-a="toggle" data-id="${x.id}" title="Bật/tắt" aria-label="Bật tắt trạng thái hoạt động">
+                                <i class="fas fa-power-off"></i>
+                            </button>
+                            <button type="button" class="admin-icon-btn view" style="color:var(--admin-warning);" data-a="edit" data-id="${x.id}" title="Sửa" aria-label="Chỉnh sửa banner">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button type="button" class="admin-icon-btn reject" data-a="delete" data-id="${x.id}" title="Xóa" aria-label="Xóa banner">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`).join("");
+        }
+
+        function openForm(item) {
+            el.form.reset();
+            $("docId").value = item?.id || "";
+            $("modalTitle").innerText = item ? "Sửa banner" : "Thêm banner";
+            $("title").value = item?.title || "";
+            $("subtitle").value = item?.subtitle || "";
+            $("imageUrl").value = item?.imageUrl || "";
+            $("posterUrl").value = item?.posterUrl || "";
+            $("movieId").value = item?.movieId || "";
+            $("displayOrder").value = item?.displayOrder || nextOrder();
+            $("active").value = String(item?.active ?? true);
+            $("startDate").value = item?.startDate || "";
+            $("endDate").value = item?.endDate || "";
+            preview();
+            
+            el.modal.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeForm() {
+            el.modal.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+
+        function nextOrder() {
+            return (Math.max(0, ...state.items.map(x => Number(x.displayOrder || 0))) + 1);
+        }
+
+        function getFormData() {
+            return {
+                title: $("title").value.trim(),
+                subtitle: $("subtitle").value.trim(),
+                imageUrl: $("imageUrl").value.trim(),
+                posterUrl: $("posterUrl").value.trim(),
+                movieId: $("movieId").value.trim(),
+                active: $("active").value === "true",
+                displayOrder: Number($("displayOrder").value || 0),
+                startDate: $("startDate").value,
+                endDate: $("endDate").value,
+                updatedAt: serverTimestamp()
+            };
+        }
+
+        function validate(v, id) {
+            if (!v.imageUrl) return "Image URL bắt buộc.";
+            if (v.startDate && v.endDate && new Date(v.startDate) > new Date(v.endDate)) return "Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.";
+            if (!v.displayOrder || v.displayOrder < 1) return "Thứ tự phải lớn hơn 0.";
+            if (state.items.some(x => x.id !== id && Number(x.displayOrder) === Number(v.displayOrder))) return "Thứ tự displayOrder không được trùng.";
+            return "";
+        }
+
+        function preview() {
+            const img = $("imageUrl").value.trim() || $("posterUrl").value.trim();
+            ["desktopPreview", "mobilePreview"].forEach(id => {
+                $(id).querySelector("img").src = img;
+                $(id).querySelector("strong").innerText = $("title").value.trim() || (id === "desktopPreview" ? "Banner Desktop" : "Mobile");
+                $(id).querySelector("span").innerText = $("subtitle").value.trim() || "Preview";
+            });
+        }
+
+        async function save(e) {
+            e.preventDefault();
+            const id = $("docId").value,
+                  v = getFormData(),
+                  err = validate(v, id);
+
+            if (err) {
+                toast("error", "Dữ liệu chưa hợp lệ", err);
+                return;
+            }
+
+            showLoading(true);
+            try {
+                if (id) {
+                    const old = state.items.find(x => x.id === id);
+                    await updateDoc(doc(db, "banners", id), v);
+                    await window.AeroAdmin?.logActivity?.("update_banner", "banners", id, old, v);
+                } else {
+                    v.createdAt = serverTimestamp();
+                    const ref = await addDoc(collection(db, "banners"), v);
+                    await window.AeroAdmin?.logActivity?.("create_banner", "banners", ref.id, null, v);
+                }
+                closeForm();
+                toast("success", "Đã lưu banner", "Dữ liệu banner đã được cập nhật.");
+            } catch (errSave) {
+                console.error(errSave);
+                toast("error", "Không thể lưu banner", errSave.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function remove(item) {
+            const res = await Swal.fire({
+                title: "Xác nhận xóa?",
+                text: `Bạn có chắc chắn muốn xóa banner "${item.title || item.id}"? Thao tác này không thể phục hồi.`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "var(--admin-danger)",
+                cancelButtonColor: "var(--admin-subtle)",
+                confirmButtonText: "Đồng ý xóa",
+                cancelButtonText: "Hủy"
+            });
+
+            if (!res.isConfirmed) return;
+
+            showLoading(true);
+            try {
+                await deleteDoc(doc(db, "banners", item.id));
+                await window.AeroAdmin?.logActivity?.("delete_banner", "banners", item.id, item, null);
+                toast("success", "Đã xóa banner", "Banner đã được xóa khỏi Firestore.");
+            } catch (e) {
+                toast("error", "Không thể xóa banner", e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function toggle(item) {
+            showLoading(true);
+            try {
+                await updateDoc(doc(db, "banners", item.id), { active: !item.active, updatedAt: serverTimestamp() });
+                await window.AeroAdmin?.logActivity?.("update_banner", "banners", item.id, item, { active: !item.active });
+                toast("success", "Đã cập nhật trạng thái", "Banner đã đổi active.");
+            } catch (e) {
+                toast("error", "Không thể cập nhật", e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function reorder(fromId, toId) {
+            if (!fromId || !toId || fromId === toId) return;
+            const ordered = [...state.items].sort((a, b) => Number(a.displayOrder || 9999) - Number(b.displayOrder || 9999));
+            const from = ordered.findIndex(x => x.id === fromId),
+                  to = ordered.findIndex(x => x.id === toId);
+
+            if (from < 0 || to < 0) return;
+            const [moved] = ordered.splice(from, 1);
+            ordered.splice(to, 0, moved);
+
+            showLoading(true);
+            try {
+                await Promise.all(ordered.map((x, i) => updateDoc(doc(db, "banners", x.id), { displayOrder: i + 1, updatedAt: serverTimestamp() })));
+                await window.AeroAdmin?.logActivity?.("update_banner", "banners", fromId, null, { reorder: true });
+                toast("success", "Đã sắp xếp banner", "Thứ tự hiển thị đã được cập nhật.");
+            } catch (e) {
+                toast("error", "Không thể sắp xếp", e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Sorting trigger
+        function handleSorting(event) {
+            const header = event.target.closest(".sort-header");
+            if (!header) return;
+
+            const key = header.dataset.sort;
+            if (state.sortKey === key) {
+                state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+            } else {
+                state.sortKey = key;
+                state.sortDirection = "asc";
+            }
+
+            // Update all sorting icons
+            document.querySelectorAll(".sort-header i").forEach(icon => {
+                icon.className = "fas fa-sort";
+            });
+            const activeIcon = header.querySelector("i");
+            if (activeIcon) {
+                activeIcon.className = state.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+            }
+
+            filter();
+        }
+
+        function bind() {
+            [$("imageUrl"), $("posterUrl"), $("title"), $("subtitle")].forEach(x => x.addEventListener("input", preview));
+            $("btnAdd").onclick = () => openForm(null);
+
+            // Table headers sorting
+            document.querySelectorAll(".sort-header").forEach(header => {
+                header.addEventListener("click", handleSorting);
+            });
+
+            [el.q, el.active, el.date].forEach(x => {
+                x.addEventListener("input", () => {
+                    state.page = 1;
+                    filter();
+                });
+                x.addEventListener("change", () => {
+                    state.page = 1;
+                    filter();
+                });
+            });
+
+            el.prev.onclick = () => {
+                if (state.page > 1) {
+                    state.page--;
+                    render();
+                }
+            };
+            el.next.onclick = () => {
+                const max = Math.max(1, Math.ceil(state.filtered.length / state.size));
+                if (state.page < max) {
+                    state.page++;
+                    render();
+                }
+            };
+
+            document.addEventListener("click", e => {
+                const closeBtn = e.target.closest("[data-close-modal]");
+                if (closeBtn) {
+                    closeForm();
+                    return;
+                }
+
+                const b = e.target.closest("[data-a]");
+                if (!b) return;
+                const item = state.items.find(x => x.id === b.dataset.id);
+                if (!item) return;
+
+                if (b.dataset.a === "edit") openForm(item);
+                if (b.dataset.a === "delete") remove(item);
+                if (b.dataset.a === "toggle") toggle(item);
+            });
+
+            // Modal overlay click to close
+            document.querySelectorAll(".admin-modal").forEach(modal => {
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) {
+                        closeForm();
+                    }
+                });
+            });
+
+            // ESC key to close modals
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    closeForm();
+                }
+            });
+
+            // Drag and drop reordering handlers
+            el.body.addEventListener("dragstart", e => {
+                const tr = e.target.closest("tr[data-row]");
+                if (tr) {
+                    state.dragId = tr.dataset.row;
+                    tr.classList.add("dragging");
+                }
+            });
+            el.body.addEventListener("dragend", e => e.target.closest("tr[data-row]")?.classList.remove("dragging"));
+            el.body.addEventListener("dragover", e => e.preventDefault());
+            el.body.addEventListener("drop", e => {
+                e.preventDefault();
+                const tr = e.target.closest("tr[data-row]");
+                if (tr) reorder(state.dragId, tr.dataset.row);
+            });
+        }
+
+        function attach() {
+            state.unsub?.();
+            state.unsub = onSnapshot(collection(db, "banners"), s => {
+                state.items = s.docs.map(d => ({
+                    id: d.id,
+                    ...d.data()
+                }));
+                fillStats();
+                filter();
+            }, e => toast("error", "Không thể tải banners", e.message));
+        }
+
+        bind();
+        window.addEventListener("aero-admin-ready", attach, { once: true });
+        if (window.AeroAdmin?.state?.ready) attach();
+        window.addEventListener("beforeunload", () => state.unsub?.());
+    </script>
+}

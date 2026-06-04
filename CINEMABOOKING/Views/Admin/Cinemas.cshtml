@@ -1,0 +1,470 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý rạp";
+}
+
+<style>
+    .cinema-admin { display: flex; flex-direction: column; gap: 22px; }
+    .cinema-name strong, .cinema-name span { display: block; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cinema-name strong { color: var(--admin-text); font-weight: 700; }
+    .cinema-name span { color: var(--admin-muted); font-size: 11px; margin-top: 4px; }
+    
+    .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+    .detail-item { padding: 13px; border: 1px solid var(--admin-border); border-radius: 12px; background: var(--admin-surface-2); }
+    .detail-item span { display: block; color: var(--admin-muted); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .detail-item strong, .detail-item p { display: block; margin: 5px 0 0; color: var(--admin-text); font-size: 13px; font-weight: 700; line-height: 1.55; }
+    .detail-item.full { grid-column: 1 / -1; }
+    
+    @@media (max-width: 720px) {
+        .detail-grid { grid-template-columns: 1fr; }
+    }
+</style>
+
+<div class="cinema-admin">
+    <section class="dashboard-hero">
+        <div>
+            <h1>Quản lý rạp chiếu</h1>
+            <p>Quản lý các cụm rạp, địa chỉ và thông tin liên hệ. Hệ thống tự động kiểm tra sự tồn tại của phòng chiếu để bảo vệ dữ liệu trước khi xóa.</p>
+        </div>
+        <button type="button" class="admin-btn admin-btn-primary" id="btnOpenCreate"><i class="fas fa-plus"></i> Thêm rạp</button>
+    </section>
+
+    <div class="section-title">
+        <h2>Thống kê tổng quan</h2>
+        <span>Realtime cinema metrics</span>
+    </div>
+
+    <section class="admin-stats-grid">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-building"></i></span>
+            <span class="stat-label">Tổng số rạp</span>
+            <div class="stat-value skeleton" id="statCinemas">0</div>
+            <div class="stat-note">Các cụm rạp trong hệ thống</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-door-open"></i></span>
+            <span class="stat-label">Tổng số phòng</span>
+            <div class="stat-value skeleton" id="statRooms">0</div>
+            <div class="stat-note">Phòng chiếu đã cấu hình</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-chair"></i></span>
+            <span class="stat-label">Tổng sức chứa</span>
+            <div class="stat-value skeleton" id="statCapacity">0</div>
+            <div class="stat-note">Ghế hoạt động trên toàn cụm rạp</div>
+        </div>
+    </section>
+
+    <section class="admin-toolbar">
+        <div class="admin-field search-input">
+            <label for="searchInput">Tìm kiếm rạp</label>
+            <input type="search" class="admin-control" id="searchInput" placeholder="Tìm theo tên rạp, thành phố, địa chỉ..." aria-label="Tìm kiếm rạp" />
+        </div>
+        <div class="admin-field">
+            <label for="cityFilter">Thành phố</label>
+            <select class="admin-control" id="cityFilter" aria-label="Lọc thành phố"><option value="">Tất cả thành phố</option></select>
+        </div>
+        <div class="admin-field">
+            <label for="statusFilter">Trạng thái</label>
+            <select class="admin-control" id="statusFilter" aria-label="Lọc trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active">Hoạt động</option>
+                <option value="inactive">Tạm ẩn</option>
+                <option value="maintenance">Bảo trì</option>
+            </select>
+        </div>
+    </section>
+
+    <section class="admin-card">
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Tên rạp</th>
+                        <th>Thành phố</th>
+                        <th>Địa chỉ</th>
+                        <th>Điện thoại</th>
+                        <th>Email</th>
+                        <th>Trạng thái</th>
+                        <th>Ngày tạo</th>
+                        <th style="width: 120px; text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="cinemasTableBody">
+                    <tr><td colspan="8"><div class="empty-state">Đang tải dữ liệu rạp...</div></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="panel-footer d-flex justify-content-between align-items-center p-3" style="border-top: 1px solid var(--admin-border);">
+            <span id="tableCount" style="font-size: 13px; color: var(--admin-muted);">0 rạp</span>
+            <div class="admin-btn-group d-flex gap-2">
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnPrevPage">Trước</button>
+                <span id="pageInfo" class="align-self-center" style="font-size: 13px; font-weight: 600;">Trang 1</span>
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnNextPage">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Form Modal -->
+<div class="admin-modal" id="cinemaFormModal" role="dialog" aria-modal="true" aria-labelledby="cinemaFormTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="cinemaFormTitle">Thêm rạp</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="cinemaFormModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <form id="cinemaForm">
+            <div class="admin-modal-body">
+                <input type="hidden" id="cinemaId" />
+                <div class="admin-form-grid">
+                    <div class="admin-field"><label for="name">Tên rạp *</label><input class="admin-control" id="name" required /></div>
+                    <div class="admin-field"><label for="city">Thành phố *</label><input class="admin-control" id="city" required /></div>
+                    <div class="admin-field full"><label for="address">Địa chỉ *</label><input class="admin-control" id="address" required /></div>
+                    <div class="admin-field"><label for="phone">Điện thoại</label><input class="admin-control" id="phone" /></div>
+                    <div class="admin-field"><label for="email">Email</label><input class="admin-control" id="email" type="email" /></div>
+                    <div class="admin-field"><label for="status">Trạng thái</label><select class="admin-control" id="status"><option value="active">Hoạt động</option><option value="inactive">Tạm ẩn</option><option value="maintenance">Bảo trì</option></select></div>
+                    <div class="admin-field full"><label for="description">Mô tả</label><textarea class="admin-control" style="min-height: 110px; resize: vertical;" id="description"></textarea></div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="cinemaFormModal">Hủy</button>
+                <button type="submit" class="admin-btn admin-btn-primary">Lưu rạp</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="admin-modal" id="cinemaDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="detailTitle">Chi tiết rạp</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="cinemaDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body" id="cinemaDetailBody"></div>
+        <div class="admin-modal-footer"><button type="button" class="admin-btn admin-btn-secondary" data-close-modal="cinemaDetailModal">Đóng</button></div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import { collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, query, where, getDocs, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.AeroAdmin?.db || window.db;
+        const toast = window.AeroAdmin?.toast || ((type, title, message) => alert(`${title}: ${message}`));
+        const state = { cinemas: [], rooms: [], showtimes: [], filtered: [], page: 1, pageSize: 10, unsubs: [] };
+        
+        const els = {
+            search: document.getElementById("searchInput"),
+            city: document.getElementById("cityFilter"),
+            status: document.getElementById("statusFilter"),
+            body: document.getElementById("cinemasTableBody"),
+            count: document.getElementById("tableCount"),
+            pageInfo: document.getElementById("pageInfo"),
+            prev: document.getElementById("btnPrevPage"),
+            next: document.getElementById("btnNextPage"),
+            form: document.getElementById("cinemaForm")
+        };
+        const fields = ["name", "address", "city", "phone", "email", "description", "status"];
+
+        const safe = (v, f = "-") => v === undefined || v === null || v === "" ? f : v;
+        const normalize = v => String(v || "").trim().toLowerCase();
+        const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+        const toDate = v => v?.toDate ? v.toDate() : (v ? new Date(v) : null);
+        const formatDate = v => { const d = toDate(v); return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString("vi-VN") : "Đang cập nhật"; };
+        const roomCapacity = r => num(r.seatRows) * num(r.seatColumns);
+        const roomsOf = id => state.rooms.filter(r => r.cinemaId === id);
+        const showtimesOfCinema = id => state.showtimes.filter(s => s.cinemaId === id).length;
+        const showLoading = show => window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
+        const statusText = s => ({ active: "Hoạt động", inactive: "Tạm ẩn", maintenance: "Bảo trì" }[s] || safe(s));
+
+        function setOptions() {
+            const current = els.city.value;
+            const cities = [...new Set(state.cinemas.map(c => c.city).filter(Boolean))].sort();
+            els.city.innerHTML = '<option value="">Tất cả thành phố</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join("");
+            els.city.value = current;
+        }
+
+        function updateStats() {
+            setText("statCinemas", state.cinemas.length);
+            setText("statRooms", state.rooms.length);
+            setText("statCapacity", state.rooms.reduce((sum, r) => sum + roomCapacity(r), 0).toLocaleString("vi-VN"));
+        }
+
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.warn(`[Cinemas] Missing element #${id}`);
+                return;
+            }
+            el.textContent = value ?? "0";
+            el.classList.remove("skeleton");
+        }
+
+        function filterData() {
+            const keyword = normalize(els.search.value);
+            state.filtered = state.cinemas.filter(c => {
+                const text = normalize([c.name, c.city, c.address].join(" "));
+                return (!keyword || text.includes(keyword)) &&
+                    (!els.city.value || c.city === els.city.value) &&
+                    (!els.status.value || c.status === els.status.value);
+            });
+            const max = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+            if (state.page > max) state.page = max;
+            renderTable();
+        }
+
+        function renderTable() {
+            const start = (state.page - 1) * state.pageSize;
+            const items = state.filtered.slice(start, start + state.pageSize);
+            const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+            els.count.innerText = `Hiển thị ${start + 1}-${Math.min(start + state.pageSize, state.filtered.length)} trên ${state.filtered.length} rạp`;
+            els.pageInfo.innerText = `Trang ${state.page} / ${totalPages}`;
+            els.prev.disabled = state.page <= 1;
+            els.next.disabled = state.page >= totalPages;
+            if (!items.length) {
+                els.body.innerHTML = '<tr><td colspan="8"><div class="empty-state">Không tìm thấy rạp phù hợp.</div></td></tr>';
+                return;
+            }
+            els.body.innerHTML = items.map(c => {
+                const statusVal = normalize(c.status);
+                const badgeClass = statusVal === 'active' ? 'success' : statusVal === 'inactive' ? 'secondary' : 'warning';
+                return `
+                    <tr>
+                        <td>
+                            <div class="cinema-name">
+                                <strong>${safe(c.name)}</strong>
+                                <span>${roomsOf(c.id).length} phòng · ${showtimesOfCinema(c.id)} lịch chiếu</span>
+                            </div>
+                        </td>
+                        <td>${safe(c.city)}</td>
+                        <td>${safe(c.address)}</td>
+                        <td>${safe(c.phone)}</td>
+                        <td>${safe(c.email)}</td>
+                        <td><span class="admin-badge ${badgeClass}">${statusText(c.status)}</span></td>
+                        <td>${formatDate(c.createdAt)}</td>
+                        <td style="text-align: right;">
+                            <div class="d-flex justify-content-end gap-1">
+                                <button type="button" class="admin-btn admin-btn-secondary btn-view p-2" style="min-height: auto; min-width: auto;" data-id="${c.id}" title="Chi tiết">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button type="button" class="admin-btn admin-btn-secondary btn-edit p-2" style="min-height: auto; min-width: auto;" data-id="${c.id}" title="Sửa">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button type="button" class="admin-btn admin-btn-danger btn-delete p-2" style="min-height: auto; min-width: auto;" data-id="${c.id}" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+            }).join("");
+
+            // Bind events to dynamically generated buttons
+            els.body.querySelectorAll(".btn-view").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const c = state.cinemas.find(item => item.id === btn.dataset.id);
+                    if (c) openDetail(c);
+                });
+            });
+
+            els.body.querySelectorAll(".btn-edit").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const c = state.cinemas.find(item => item.id === btn.dataset.id);
+                    if (c) openEdit(c);
+                });
+            });
+
+            els.body.querySelectorAll(".btn-delete").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const c = state.cinemas.find(item => item.id === btn.dataset.id);
+                    if (c) deleteCinema(c);
+                });
+            });
+        }
+
+        function getFormData() {
+            const data = {};
+            fields.forEach(f => data[f] = document.getElementById(f).value.trim());
+            if (!data.status) data.status = "active";
+            return data;
+        }
+
+        function validate(data) {
+            if (!data.name) return "Tên rạp là bắt buộc.";
+            if (!data.city) return "Thành phố là bắt buộc.";
+            if (!data.address) return "Địa chỉ là bắt buộc.";
+            return "";
+        }
+
+        function openModal(id) {
+            const m = document.getElementById(id);
+            m.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+        
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            m.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+        
+        function resetForm() {
+            els.form.reset();
+            document.getElementById("cinemaId").value = "";
+            document.getElementById("status").value = "active";
+        }
+        
+        function openCreate() {
+            resetForm();
+            document.getElementById("cinemaFormTitle").innerText = "Thêm rạp";
+            openModal("cinemaFormModal");
+        }
+        
+        function openEdit(c) {
+            resetForm();
+            document.getElementById("cinemaFormTitle").innerText = "Sửa rạp";
+            document.getElementById("cinemaId").value = c.id;
+            fields.forEach(f => document.getElementById(f).value = c[f] ?? "");
+            openModal("cinemaFormModal");
+        }
+        
+        function openDetail(c) {
+            const rs = roomsOf(c.id);
+            document.getElementById("cinemaDetailBody").innerHTML = `
+                <div class="detail-grid">
+                    <div class="detail-item"><span>Tên rạp</span><strong>${safe(c.name)}</strong></div>
+                    <div class="detail-item"><span>Thành phố</span><strong>${safe(c.city)}</strong></div>
+                    <div class="detail-item full"><span>Địa chỉ</span><strong>${safe(c.address)}</strong></div>
+                    <div class="detail-item"><span>Điện thoại</span><strong>${safe(c.phone)}</strong></div>
+                    <div class="detail-item"><span>Email</span><strong>${safe(c.email)}</strong></div>
+                    <div class="detail-item"><span>Trạng thái</span><strong>${statusText(c.status)}</strong></div>
+                    <div class="detail-item"><span>Tổng số phòng</span><strong>${rs.length}</strong></div>
+                    <div class="detail-item"><span>Tổng số lịch chiếu</span><strong>${showtimesOfCinema(c.id)}</strong></div>
+                    <div class="detail-item full"><span>Mô tả</span><p>${safe(c.description, "Chưa có mô tả")}</p></div>
+                </div>`;
+            openModal("cinemaDetailModal");
+        }
+
+        async function saveCinema(e) {
+            e.preventDefault();
+            const id = document.getElementById("cinemaId").value;
+            const data = getFormData();
+            const error = validate(data);
+            if (error) { toast("warning", "Dữ liệu chưa hợp lệ", error); return; }
+            showLoading(true);
+            try {
+                if (id) {
+                    const oldData = state.cinemas.find(c => c.id === id) || null;
+                    await updateDoc(doc(db, "cinemas", id), { ...data, updatedAt: serverTimestamp() });
+                    await window.AeroAdmin?.logActivity?.("update", "cinemas", id, oldData, data);
+                    toast("success", "Đã cập nhật", "Thông tin rạp đã được lưu.");
+                } else {
+                    const ref = await addDoc(collection(db, "cinemas"), { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+                    await window.AeroAdmin?.logActivity?.("create", "cinemas", ref.id, null, data);
+                    toast("success", "Đã thêm rạp", "Rạp mới đã được tạo.");
+                }
+                closeModal("cinemaFormModal");
+            } catch (err) {
+                console.error("Save cinema error:", err);
+                toast("error", "Không thể lưu rạp", err.message || "Vui lòng thử lại.");
+            } finally { showLoading(false); }
+        }
+
+        async function canDelete(id) {
+            if (roomsOf(id).length > 0) return false;
+            const snap = await getDocs(query(collection(db, "rooms"), where("cinemaId", "==", id), limit(1)));
+            return snap.empty;
+        }
+
+        async function deleteCinema(c) {
+            const hasRooms = !(await canDelete(c.id));
+            if (hasRooms) {
+                await Swal.fire({
+                    icon: "error",
+                    title: "Không thể xóa rạp",
+                    text: `Rạp "${c.name || c.id}" đang chứa phòng chiếu. Vui lòng xóa các phòng chiếu trước.`,
+                    confirmButtonColor: "#dc2626"
+                });
+                return;
+            }
+
+            const res = await Swal.fire({
+                title: "Xóa rạp chiếu?",
+                text: `Bạn có chắc muốn xóa rạp "${c.name || c.id}"? Thao tác này không thể phục hồi.`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dc2626",
+                cancelButtonColor: "#475569",
+                confirmButtonText: "Đồng ý xóa",
+                cancelButtonText: "Hủy"
+            });
+
+            if (res.isConfirmed) {
+                showLoading(true);
+                try {
+                    await deleteDoc(doc(db, "cinemas", c.id));
+                    await window.AeroAdmin?.logActivity?.("delete", "cinemas", c.id, c, null);
+                    toast("success", "Đã xóa rạp", "Rạp đã được xóa khỏi Firestore.");
+                } catch (err) {
+                    console.error("Delete cinema error:", err);
+                    toast("error", "Không thể xóa rạp", err.message || "Vui lòng thử lại.");
+                } finally { showLoading(false); }
+            }
+        }
+
+        function bindEvents() {
+            document.getElementById("btnOpenCreate").addEventListener("click", openCreate);
+            els.form.addEventListener("submit", saveCinema);
+            [els.search, els.city, els.status].forEach(el => {
+                el.addEventListener("input", () => { state.page = 1; filterData(); });
+                el.addEventListener("change", () => { state.page = 1; filterData(); });
+            });
+            els.prev.addEventListener("click", () => { if (state.page > 1) { state.page--; renderTable(); } });
+            els.next.addEventListener("click", () => {
+                const total = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+                if (state.page < total) { state.page++; renderTable(); }
+            });
+
+            // Close modals click handlers
+            document.querySelectorAll("[data-close-modal]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    closeModal(btn.dataset.closeModal);
+                });
+            });
+
+            // Modal overlay click to close
+            document.querySelectorAll(".admin-modal").forEach(modal => {
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+
+            // ESC key to close modals
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    document.querySelectorAll(".admin-modal.show").forEach(m => closeModal(m.id));
+                }
+            });
+        }
+
+        function attachRealtime() {
+            state.unsubs.forEach(unsub => unsub());
+            state.unsubs = [
+                onSnapshot(collection(db, "cinemas"), snap => {
+                    state.cinemas = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "vi"));
+                    setOptions(); updateStats(); filterData();
+                    if (document.getElementById("lastUpdated")) setText("lastUpdated", new Date().toLocaleTimeString("vi-VN"));
+                }, err => { console.error(err); toast("error", "Không thể tải rạp", err.message || "Kiểm tra Firestore Rules."); }),
+                onSnapshot(collection(db, "rooms"), snap => { state.rooms = snap.docs.map(d => ({ id: d.id, ...d.data() })); updateStats(); renderTable(); }, err => console.warn(err)),
+                onSnapshot(collection(db, "showtimes"), snap => { state.showtimes = snap.docs.map(d => ({ id: d.id, ...d.data() })); renderTable(); }, err => console.warn(err))
+            ];
+        }
+
+        bindEvents();
+        window.addEventListener("aero-admin-ready", attachRealtime, { once: true });
+        if (window.AeroAdmin?.state?.ready) attachRealtime();
+        window.addEventListener("beforeunload", () => state.unsubs.forEach(unsub => unsub()));
+    </script>
+}

@@ -447,7 +447,7 @@
             <div class="footer-col">
                 <h4 style="color: var(--primary-color);">AERO Cinema</h4>
                 <p>Hệ thống rạp chiếu phim hiện đại và tiện lợi, mang đến trải nghiệm điện ảnh chuẩn quốc tế ngay tại Việt Nam.</p>
-                <p><i class="fas fa-phone-alt" style="color: var(--accent-color); margin-right: 5px;"></i> Hotline: 1900 1234</p>
+                <p><i class="fas fa-phone-alt" style="color: var(--accent-color); margin-right: 5px;"></i> Hotline: 037 905 2767</p>
             </div>
             
             <div class="footer-col">
@@ -470,11 +470,11 @@
             
             <div class="footer-col">
                 <h4>Kết nối</h4>
-                <p><i class="fas fa-map-marker-alt" style="color: var(--accent-color); margin-right: 5px;"></i> Ninh Kiều, Cần Thơ</p>
+                <p><i class="fas fa-map-marker-alt" style="color: var(--accent-color); margin-right: 5px;"></i> Đức Hòa, Long An</p>
                 <div class="footer-socials">
-                    <a href="#"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#"><i class="fab fa-instagram"></i></a>
-                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="https://www.facebook.com/Please.respond.to.my.question"><i class="fab fa-facebook-f"></i></a>
+                    <a href="https://www.instagram.com/hnamm12_04n"><i class="fab fa-instagram"></i></a>
+                    <a href="https://zalo.me/0379052767"><i class="fa-solid fa-comment"></i></a>
                 </div>
             </div>
         </div>
@@ -566,8 +566,28 @@
             const adminLink = document.getElementById("nav-admin-link");
 
             if (user) {
+                let userData = null;
+                let isAdmin = false;
+
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    userData = userDoc.exists() ? userDoc.data() : null;
+                    const role = String(userData?.role || "").trim().toLowerCase();
+                    const status = String(userData?.status || "active").trim().toLowerCase();
+                    isAdmin = role === "admin" && status === "active";
+
+                    console.log("AERO LAYOUT AUTH - UID:", user.uid);
+                    console.log("AERO LAYOUT AUTH - Document path:", `users/${user.uid}`);
+                    console.log("AERO LAYOUT AUTH - User data:", userData);
+                } catch (error) {
+                    console.error("Error fetching user role: ", error);
+                }
+
+                const displayName = userData?.fullName || user.displayName || user.email || "TÀI KHOẢN";
+                const roleLabel = isAdmin ? "Admin" : "Thành viên";
+
                 authLinks.innerHTML = `
-                    <a href="@Url.Action("Profile", "Account")" style="color: var(--primary-color); font-weight: 700;">${(user.displayName || user.email || "TÀI KHOẢN").toUpperCase()}</a>
+                    <a href="@Url.Action("Profile", "Account")" style="color: var(--primary-color); font-weight: 700;">${displayName.toUpperCase()} · ${roleLabel}</a>
                     <span style="color:#ddd">|</span>
                     <a href="#" id="nav-logout-btn">Đăng xuất</a>
                 `;
@@ -600,17 +620,8 @@
                     });
                 }
 
-                // Check Role in Firestore to show/hide Admin link
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists() && userDoc.data().role === "admin") {
-                        adminLink.style.display = "inline-block";
-                    } else {
-                        adminLink.style.display = "none";
-                    }
-                } catch (error) {
-                    console.error("Error fetching user role: ", error);
-                    adminLink.style.display = "none";
+                if (adminLink) {
+                    adminLink.style.display = isAdmin ? "inline-block" : "none";
                 }
             } else {
                 authLinks.innerHTML = `

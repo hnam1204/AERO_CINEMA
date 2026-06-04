@@ -1,0 +1,427 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý đánh giá";
+}
+
+<div class="review-admin">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="heroTitle">
+        <div>
+            <h1 id="heroTitle">Quản lý đánh giá</h1>
+            <p>Kiểm duyệt review phim, ẩn nội dung không phù hợp và theo dõi phân bố số sao theo thời gian thực.</p>
+        </div>
+    </section>
+    
+    <!-- Stats Overview -->
+    <div class="section-title">
+        <h2>Thống kê đánh giá</h2>
+        <span>Realtime statistics</span>
+    </div>
+    <section class="admin-stats-grid" style="grid-template-columns: repeat(6, minmax(0, 1fr));">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-comments"></i></span>
+            <span class="stat-label">Tổng review</span>
+            <div class="stat-value skeleton" id="sTotal">0</div>
+            <div class="stat-note">Tổng số đánh giá</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-star" style="color: var(--admin-warning);"></i></span>
+            <span class="stat-label">1 sao</span>
+            <div class="stat-value skeleton" id="s1">0</div>
+            <div class="stat-note">Rất tệ</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-star" style="color: var(--admin-warning);"></i></span>
+            <span class="stat-label">2 sao</span>
+            <div class="stat-value skeleton" id="s2">0</div>
+            <div class="stat-note">Tệ</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-star" style="color: var(--admin-warning);"></i></span>
+            <span class="stat-label">3 sao</span>
+            <div class="stat-value skeleton" id="s3">0</div>
+            <div class="stat-note">Bình thường</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-star" style="color: var(--admin-warning);"></i></span>
+            <span class="stat-label">4 sao</span>
+            <div class="stat-value skeleton" id="s4">0</div>
+            <div class="stat-note">Tốt</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-star" style="color: var(--admin-warning);"></i></span>
+            <span class="stat-label">5 sao</span>
+            <div class="stat-value skeleton" id="s5">0</div>
+            <div class="stat-note">Tuyệt vời</div>
+        </div>
+    </section>
+    
+    <!-- Toolbar Filters -->
+    <section class="admin-toolbar" aria-label="Bộ lọc đánh giá" style="grid-template-columns: minmax(260px, 1.2fr) repeat(3, 1fr);">
+        <div class="admin-field search-input">
+            <label for="q">Tìm kiếm</label>
+            <input class="admin-control" id="q" type="search" placeholder="Tìm email, phim, bình luận..." aria-label="Tìm kiếm đánh giá" />
+        </div>
+        <div class="admin-field">
+            <label for="movieFilter">Phim ảnh</label>
+            <select class="admin-control" id="movieFilter" aria-label="Lọc theo phim">
+                <option value="">Tất cả phim</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="ratingFilter">Điểm đánh giá</label>
+            <select class="admin-control" id="ratingFilter" aria-label="Lọc theo số sao">
+                <option value="">Tất cả sao</option>
+                <option value="5">5 sao</option>
+                <option value="4">4 sao</option>
+                <option value="3">3 sao</option>
+                <option value="2">2 sao</option>
+                <option value="1">1 sao</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="statusFilter">Trạng thái duyệt</label>
+            <select class="admin-control" id="statusFilter" aria-label="Lọc theo trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option value="visible">visible</option>
+                <option value="hidden">hidden</option>
+                <option value="pending">pending</option>
+                <option value="approved">approved</option>
+            </select>
+        </div>
+    </section>
+    
+    <!-- Grid Data -->
+    <section class="admin-card">
+        <div class="panel-head p-3" style="border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
+            <h3 style="margin: 0; font-size: 15px; font-weight: 700;">Danh sách đánh giá</h3>
+            <span id="count" style="font-size: 13px; color: var(--admin-subtle);">Đang tải...</span>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th><span class="sort-header" data-sort="userEmail">Người dùng <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="movieTitle">Phim <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 120px;"><span class="sort-header" data-sort="rating">Rating <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="comment">Bình luận <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 120px;"><span class="sort-header" data-sort="status">Trạng thái <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 150px;"><span class="sort-header" data-sort="createdAt">Ngày tạo <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 140px; text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="body">
+                    <tr>
+                        <td colspan="7"><div class="empty-state"><span>Đang tải đánh giá...</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span id="pageInfo">Trang 1</span>
+            <div class="page-buttons">
+                <button class="admin-btn admin-btn-secondary" id="prev" type="button" aria-label="Trang trước">Trước</button>
+                <button class="admin-btn admin-btn-secondary" id="next" type="button" aria-label="Trang sau">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal Detail -->
+<div class="admin-modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="admin-modal-panel" style="width: min(600px, 100%);">
+        <div class="admin-modal-header">
+            <h3 id="modalTitle">Chi tiết đánh giá</h3>
+            <button class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" id="closeModal" type="button" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body" style="padding: 0;">
+            <div class="detail" id="detail"></div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="admin-btn admin-btn-secondary" type="button" id="closeFoot">Đóng</button>
+            <div style="margin-left: auto; display: flex; gap: 8px;">
+                <button class="admin-btn admin-btn-secondary" type="button" id="toggleBtn">Ẩn/hiện</button>
+                <button class="admin-btn admin-btn-danger" type="button" id="deleteBtn">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+<script type="module">
+import {collection,doc,onSnapshot,updateDoc,deleteDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+const db=window.AeroAdmin?.db||window.db, toast=window.AeroAdmin?.toast||((t,a,b)=>alert(`${a}: ${b}`));
+const state={items:[],filtered:[],selected:null,page:1,size:10,sortKey:"createdAt",sortDirection:"desc",unsub:null};
+const $=id=>document.getElementById(id), el={q:$("q"),movie:$("movieFilter"),rating:$("ratingFilter"),status:$("statusFilter"),body:$("body"),count:$("count"),page:$("pageInfo"),prev:$("prev"),next:$("next"),modal:$("modal"),detail:$("detail")};
+const norm=v=>String(v||"").trim().toLowerCase(), safe=(v,f="-")=>v===undefined||v===null||v===""?f:v, toDate=v=>v?.toDate?v.toDate():(v?new Date(v):null), fmt=v=>{const d=toDate(v);return d&&!isNaN(d)?d.toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"-"}, statusOf=x=>norm(x.status||"visible"), load=s=>window.AeroAdmin?.showLoader?.(s,"Đang xử lý...");
+function stars(n){n=Math.max(0,Math.min(5,Number(n||0)));return "★".repeat(n)+"☆".repeat(5-n)}
+function stats(){
+    for(let i=1;i<=5;i++) {
+        setTextElement("s"+i, state.items.filter(x=>Number(x.rating||0)===i).length);
+    }
+    setTextElement("sTotal", state.items.length);
+    const movies=[...new Set(state.items.map(x=>safe(x.movieTitle,x.movieId)).filter(Boolean))].sort();
+    const cur=el.movie.value;
+    el.movie.innerHTML='<option value="">Tất cả phim</option>'+movies.map(x=>`<option value="${x}">${x}</option>`).join("");
+    el.movie.value=movies.includes(cur)?cur:"";
+}
+function setTextElement(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerText = value;
+        el.classList.remove("skeleton");
+    }
+}
+
+function sortData() {
+    const key = state.sortKey;
+    const dir = state.sortDirection === "asc" ? 1 : -1;
+    state.filtered.sort((a, b) => {
+        let valA = a[key];
+        let valB = b[key];
+        if (key === "createdAt") {
+            valA = toDate(valA)?.getTime() || 0;
+            valB = toDate(valB)?.getTime() || 0;
+        } else if (typeof valA === "string") {
+            valA = valA.toLowerCase();
+            valB = String(valB || "").toLowerCase();
+        } else {
+            valA = Number(valA || 0);
+            valB = Number(valB || 0);
+        }
+        if (valA < valB) return -1 * dir;
+        if (valA > valB) return 1 * dir;
+        return 0;
+    });
+}
+
+function filter(){
+    const q=norm(el.q.value);
+    state.filtered=state.items.filter(x=>{
+        const movie=safe(x.movieTitle,x.movieId);
+        const text=norm([x.userEmail,x.movieTitle,x.comment,x.status].join(" "));
+        return(!q||text.includes(q))&&
+              (!el.movie.value||movie===el.movie.value)&&
+              (!el.rating.value||Number(x.rating||0)===Number(el.rating.value))&&
+              (!el.status.value||statusOf(x)===el.status.value);
+    });
+    sortData();
+    const max=Math.max(1,Math.ceil(state.filtered.length/state.size));
+    if(state.page>max)state.page=max;
+    render();
+}
+function render(){
+    const start=(state.page-1)*state.size,items=state.filtered.slice(start,start+state.size),max=Math.max(1,Math.ceil(state.filtered.length/state.size));
+    el.count.innerText=`Hiển thị ${start + 1}-${Math.min(start + state.size, state.filtered.length)} trên ${state.filtered.length} đánh giá`;
+    el.page.innerText=`Trang ${state.page}/${max}`;
+    el.prev.disabled=state.page<=1;
+    el.next.disabled=state.page>=max;
+    if(!items.length){
+        el.body.innerHTML='<tr><td colspan="7"><div class="empty-state"><span>Không có đánh giá phù hợp.</span></div></td></tr>';
+        return;
+    }
+    el.body.innerHTML=items.map(x=>{
+        const st = statusOf(x);
+        const badgeClass = st === "visible" || st === "approved" || st === "active" ? "success" : (st === "hidden" || st === "rejected" ? "danger" : "warning");
+        let statusText = st;
+        if(st === "visible") statusText = "Hiển thị";
+        else if(st === "hidden") statusText = "Đang ẩn";
+        else if(st === "pending") statusText = "Chờ duyệt";
+        else if(st === "approved") statusText = "Đã duyệt";
+        return `<tr>
+            <td data-label="Người dùng">
+                <div class="main">
+                    <strong>${safe(x.userEmail,"Ẩn danh")}</strong>
+                    <span style="font-size:12px;color:var(--admin-subtle);">UID: ${safe(x.userId)}</span>
+                </div>
+            </td>
+            <td data-label="Phim">${safe(x.movieTitle,x.movieId)}</td>
+            <td data-label="Rating"><span class="stars">${stars(x.rating)}</span></td>
+            <td data-label="Bình luận"><div class="main"><span>${safe(x.comment,"Không có bình luận")}</span></div></td>
+            <td data-label="Trạng thái"><span class="admin-badge ${badgeClass}">${statusText}</span></td>
+            <td data-label="Ngày tạo">${fmt(x.createdAt)}</td>
+            <td data-label="Hành động" class="action-col">
+                <div class="admin-actions">
+                    <button type="button" class="admin-icon-btn view btn-view" data-id="${x.id}" title="Chi tiết"><i class="fas fa-eye"></i></button>
+                    <button type="button" class="admin-icon-btn approve btn-toggle" style="color:var(--admin-warning);" data-id="${x.id}" title="Ẩn/hiện"><i class="fas fa-eye-slash"></i></button>
+                    <button type="button" class="admin-icon-btn reject btn-delete" data-id="${x.id}" title="Xóa"><i class="fas fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join("");
+
+    // Bind action events
+    el.body.querySelectorAll(".btn-view").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = state.items.find(x => x.id === btn.dataset.id);
+            if (item) openDetail(item);
+        });
+    });
+    el.body.querySelectorAll(".btn-toggle").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = state.items.find(x => x.id === btn.dataset.id);
+            if (item) toggle(item);
+        });
+    });
+    el.body.querySelectorAll(".btn-delete").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = state.items.find(x => x.id === btn.dataset.id);
+            if (item) remove(item);
+        });
+    });
+}
+function openDetail(item){
+    state.selected=item;
+    el.detail.innerHTML=`
+        <div class="detail-row">
+            <span>Người dùng</span>
+            <strong>${safe(item.userEmail,"Ẩn danh")} (ID: ${safe(item.userId)})</strong>
+        </div>
+        <div class="detail-row">
+            <span>Phim</span>
+            <strong>${safe(item.movieTitle,item.movieId)}</strong>
+        </div>
+        <div class="detail-row">
+            <span>Rating</span>
+            <strong class="stars">${stars(item.rating)}</strong>
+        </div>
+        <div class="detail-row">
+            <span>Bình luận</span>
+            <p>${safe(item.comment,"Không có bình luận")}</p>
+        </div>
+        <div class="detail-row">
+            <span>Trạng thái</span>
+            <strong>${safe(item.status,"visible")}</strong>
+        </div>
+        <div class="detail-row">
+            <span>Ngày tạo</span>
+            <strong>${fmt(item.createdAt)}</strong>
+        </div>`;
+    openModal();
+}
+function openModal() {
+    el.modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+function closeModal(){
+    el.modal.classList.remove("show");
+    document.body.style.overflow = "";
+    state.selected=null;
+}
+async function toggle(item){
+    const next=statusOf(item)==="hidden"?"visible":"hidden";
+    const actionText = next === "visible" ? "hiển thị" : "ẩn";
+    const result = await Swal.fire({
+        title: `${next === "visible" ? "Hiển thị" : "Ẩn"} đánh giá?`,
+        text: `Bạn có chắc chắn muốn ${actionText} đánh giá này?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#f97316",
+        cancelButtonColor: "#475569",
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Hủy"
+    });
+    if (!result.isConfirmed) return;
+
+    load(true);
+    try{
+        await updateDoc(doc(db,"reviews",item.id),{status:next,updatedAt:serverTimestamp()});
+        await window.AeroAdmin?.logActivity?.("hide_review","reviews",item.id,item,{status:next});
+        toast("success","Đã cập nhật đánh giá",`Review đã chuyển sang trạng thái ${actionText}.`);
+        closeModal();
+    }catch(e){
+        toast("error","Không thể cập nhật",e.message);
+    }finally{
+        load(false);
+    }
+}
+async function remove(item){
+    const result = await Swal.fire({
+        title: "Xóa đánh giá?",
+        text: `Bạn có chắc chắn muốn xóa đánh giá của "${item.userEmail || item.id}"? Hành động này không thể hoàn tác.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#475569",
+        confirmButtonText: "Xóa",
+        cancelButtonText: "Hủy"
+    });
+    if (!result.isConfirmed) return;
+
+    load(true);
+    try{
+        await deleteDoc(doc(db,"reviews",item.id));
+        await window.AeroAdmin?.logActivity?.("delete_review","reviews",item.id,item,null);
+        toast("success","Đã xóa đánh giá","Đánh giá đã được xóa khỏi hệ thống.");
+        closeModal();
+    }catch(e){
+        toast("error","Không thể xóa",e.message);
+    }finally{
+        load(false);
+    }
+}
+
+function handleSorting(event) {
+    const header = event.target.closest(".sort-header");
+    if (!header) return;
+    const key = header.dataset.sort;
+    if (state.sortKey === key) {
+        state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+    } else {
+        state.sortKey = key;
+        state.sortDirection = "asc";
+    }
+    document.querySelectorAll(".sort-header i").forEach(icon => {
+        icon.className = "fas fa-sort";
+    });
+    const activeIcon = header.querySelector("i");
+    if (activeIcon) {
+        activeIcon.className = state.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+    }
+    filter();
+}
+
+function bind(){
+    [$("closeModal"),$("closeFoot")].forEach(x=>x.onclick=closeModal);
+    $("toggleBtn").onclick=()=>state.selected&&toggle(state.selected);
+    $("deleteBtn").onclick=()=>state.selected&&remove(state.selected);
+    
+    document.querySelectorAll(".sort-header").forEach(header => {
+        header.addEventListener("click", handleSorting);
+    });
+
+    [el.q,el.movie,el.rating,el.status].forEach(x=>{
+        x.addEventListener("input",()=>{state.page=1;filter()});
+        x.addEventListener("change",()=>{state.page=1;filter()})
+    });
+    el.prev.onclick=()=>{if(state.page>1){state.page--;render()}};
+    el.next.onclick=()=>{const max=Math.max(1,Math.ceil(state.filtered.length/state.size));if(state.page<max){state.page++;render()}};
+    
+    // Close modal on escape key
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeModal();
+        }
+    });
+
+    // Close modal on click outside modal panel
+    el.modal.addEventListener("click", (e) => {
+        if (e.target === el.modal) {
+            closeModal();
+        }
+    });
+}
+function attach(){
+    state.unsub?.();
+    state.unsub=onSnapshot(collection(db,"reviews"),s=>{
+        state.items=s.docs.map(d=>({id:d.id,...d.data()}));
+        stats();
+        filter();
+    },e=>toast("error","Không thể tải reviews",e.message));
+}
+bind();
+window.addEventListener("aero-admin-ready",attach,{once:true});
+if(window.AeroAdmin?.state?.ready)attach();
+window.addEventListener("beforeunload",()=>state.unsub?.());
+</script>
+}

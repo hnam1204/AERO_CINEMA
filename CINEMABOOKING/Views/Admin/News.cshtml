@@ -1,0 +1,520 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý tin tức";
+}
+
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+
+<div class="news-admin">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="heroTitle">
+        <div>
+            <h1 id="heroTitle">Quản lý tin tức</h1>
+            <p>Biên tập bài viết, tin khuyến mãi và nội dung truyền thông hiển thị trên website.</p>
+        </div>
+        <button class="admin-btn admin-btn-primary" id="btnAdd"><i class="fas fa-plus"></i> Thêm bài viết</button>
+    </section>
+    
+    <!-- Stats Overview -->
+    <div class="section-title">
+        <h2>Thống kê tin tức</h2>
+        <span>Realtime statistics</span>
+    </div>
+    <section class="admin-stats-grid">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-newspaper"></i></span>
+            <span class="stat-label">Tổng bài</span>
+            <div class="stat-value skeleton" id="sTotal">0</div>
+            <div class="stat-note">Tổng số bài viết đã đăng</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-eye"></i></span>
+            <span class="stat-label">Đang hiển thị</span>
+            <div class="stat-value skeleton" id="sActive">0</div>
+            <div class="stat-note">Tin tức hiển thị cho user</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-eye-slash"></i></span>
+            <span class="stat-label">Đang ẩn</span>
+            <div class="stat-value skeleton" id="sHidden">0</div>
+            <div class="stat-note">Bài viết lưu nháp hoặc ẩn</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-user-edit"></i></span>
+            <span class="stat-label">Tác giả</span>
+            <div class="stat-value skeleton" id="sAuthor">0</div>
+            <div class="stat-note">Người biên tập bài viết</div>
+        </div>
+    </section>
+    
+    <!-- Toolbar Filters -->
+    <section class="admin-toolbar" aria-label="Bộ lọc tin tức" style="grid-template-columns: minmax(260px, 1.2fr) repeat(2, 1fr);">
+        <div class="admin-field search-input">
+            <label for="q">Tìm kiếm</label>
+            <input class="admin-control" id="q" type="search" placeholder="Tìm tiêu đề, tóm tắt, tác giả..." aria-label="Tìm kiếm bài viết" />
+        </div>
+        <div class="admin-field">
+            <label for="activeFilter">Trạng thái hiển thị</label>
+            <select class="admin-control" id="activeFilter" aria-label="Lọc theo trạng thái hiển thị">
+                <option value="">Tất cả trạng thái</option>
+                <option value="true">Hiển thị</option>
+                <option value="false">Đang ẩn</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="authorFilter">Tác giả</label>
+            <select class="admin-control" id="authorFilter" aria-label="Lọc theo tác giả">
+                <option value="">Tất cả tác giả</option>
+            </select>
+        </div>
+    </section>
+    
+    <!-- Grid Data -->
+    <section class="admin-card">
+        <div class="panel-head p-3" style="border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
+            <h3 style="margin: 0; font-size: 15px; font-weight: 700;">Danh sách tin tức</h3>
+            <span id="count" style="font-size: 13px; color: var(--admin-subtle);">Đang tải...</span>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Ảnh</th>
+                        <th><span class="sort-header" data-sort="title">Bài viết <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 140px;"><span class="sort-header" data-sort="author">Tác giả <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 120px;"><span class="sort-header" data-sort="active">Trạng thái <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 120px;"><span class="sort-header" data-sort="createdAt">Ngày tạo <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 120px;"><span class="sort-header" data-sort="updatedAt">Cập nhật <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 180px; text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="body">
+                    <tr>
+                        <td colspan="7"><div class="empty-state"><span>Đang tải tin tức...</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span id="pageInfo">Trang 1</span>
+            <div class="page-buttons">
+                <button class="admin-btn admin-btn-secondary" id="prev" type="button">Trước</button>
+                <button class="admin-btn admin-btn-secondary" id="next" type="button">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal Form -->
+<div class="admin-modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="admin-modal-panel" style="width: min(840px, 100%);">
+        <div class="admin-modal-header">
+            <h3 id="modalTitle">Thêm bài viết</h3>
+            <button class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" id="closeModal" type="button" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <form id="form">
+            <input type="hidden" id="docId" />
+            <div class="admin-modal-body">
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="title">Tiêu đề *</label>
+                        <input class="admin-control" id="title" required placeholder="Nhập tiêu đề bài viết" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="author">Tác giả</label>
+                        <input class="admin-control" id="author" placeholder="Tên tác giả hiển thị" />
+                    </div>
+                    <div class="admin-field full">
+                        <label for="summary">Tóm tắt *</label>
+                        <textarea class="admin-control" style="min-height: 60px; resize: vertical;" id="summary" required placeholder="Nhập tóm tắt ngắn cho bài viết"></textarea>
+                    </div>
+                    <div class="admin-field full">
+                        <label for="imageUrl">Image URL</label>
+                        <input class="admin-control" id="imageUrl" placeholder="Nhập đường dẫn ảnh đại diện" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="active">Trạng thái hiển thị</label>
+                        <select class="admin-control" id="active">
+                            <option value="true">Hiển thị</option>
+                            <option value="false">Đang ẩn</option>
+                        </select>
+                    </div>
+                    <div class="editor-wrap">
+                        <label>Nội dung bài viết *</label>
+                        <div id="editor" class="editor"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <div style="margin-right: auto;">
+                    <button class="admin-btn admin-btn-secondary" type="button" id="previewBtn"><i class="fas fa-eye"></i> Xem trước</button>
+                </div>
+                <button class="admin-btn admin-btn-secondary" type="button" id="cancelModal">Hủy</button>
+                <button class="admin-btn admin-btn-primary" type="submit">Lưu bài viết</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Preview Modal -->
+<div class="admin-modal" id="previewModal" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+    <div class="admin-modal-panel" style="width: min(800px, 100%);">
+        <div class="admin-modal-header">
+            <h3 id="previewTitle">Xem trước bài viết</h3>
+            <button class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" id="closePreview" type="button" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body" style="padding: 0;">
+            <div class="preview-article">
+                <article class="article-card">
+                    <img id="pImage" alt="" onerror="this.src='https://placehold.co/800x400/1e293b/f8fafc?text=AERO+Cinema'" />
+                    <div class="article-content">
+                        <h2 id="pTitle">Tiêu đề bài viết</h2>
+                        <p id="pSummary" style="font-weight: 600; font-size: 14px; margin-bottom: 20px;"></p>
+                        <div id="pContent" style="color: var(--admin-text); line-height: 1.7; font-size: 14px;"></div>
+                    </div>
+                </article>
+            </div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="admin-btn admin-btn-secondary" type="button" id="closePreviewFoot">Đóng</button>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+<script type="module">
+import {collection,doc,onSnapshot,addDoc,updateDoc,deleteDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+const db=window.AeroAdmin?.db||window.db, toast=window.AeroAdmin?.toast||((t,a,b)=>alert(`${a}: ${b}`));
+const state={items:[],filtered:[],page:1,size:8,sortKey:"createdAt",sortDirection:"desc",unsub:null,editor:null};
+const $=id=>document.getElementById(id), el={q:$("q"),active:$("activeFilter"),author:$("authorFilter"),body:$("body"),count:$("count"),page:$("pageInfo"),prev:$("prev"),next:$("next"),modal:$("modal"),preview:$("previewModal"),form:$("form")};
+const norm=v=>String(v||"").trim().toLowerCase(), safe=(v,f="-")=>v===undefined||v===null||v===""?f:v, toDate=v=>v?.toDate?v.toDate():(v?new Date(v):null), fmt=v=>{const d=toDate(v);return d&&!isNaN(d)?d.toLocaleDateString("vi-VN"):"-"}, strip=h=>String(h||"").replace(/<[^>]*>/g,"").trim(), load=s=>window.AeroAdmin?.showLoader?.(s,"Đang xử lý...");
+
+function initEditor(){
+    if(state.editor)return;
+    state.editor=new Quill("#editor",{
+        theme:"snow",
+        placeholder:"Nhập nội dung bài viết...",
+        modules:{
+            toolbar:[
+                ["bold","italic","underline"],
+                [{header:[2,3,false]}],
+                [{list:"ordered"},{list:"bullet"}],
+                ["link","blockquote"],
+                ["clean"]
+            ]
+        }
+    });
+}
+function stats(){
+    const a=state.items;
+    setTextElement("sTotal",a.length);
+    setTextElement("sActive",a.filter(x=>x.active===true).length);
+    setTextElement("sHidden",a.filter(x=>x.active!==true).length);
+    setTextElement("sAuthor",new Set(a.map(x=>safe(x.author,"AERO Cinema"))).size);
+    
+    const authors=[...new Set(a.map(x=>safe(x.author,"AERO Cinema")).filter(Boolean))].sort();
+    const cur=el.author.value;
+    el.author.innerHTML='<option value="">Tất cả tác giả</option>'+authors.map(x=>`<option value="${x}">${x}</option>`).join("");
+    el.author.value=authors.includes(cur)?cur:"";
+}
+function setTextElement(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerText = value;
+        el.classList.remove("skeleton");
+    }
+}
+
+function sortData() {
+    const key = state.sortKey;
+    const dir = state.sortDirection === "asc" ? 1 : -1;
+    state.filtered.sort((a, b) => {
+        let valA = a[key];
+        let valB = b[key];
+        if (key === "createdAt" || key === "updatedAt") {
+            valA = toDate(valA)?.getTime() || 0;
+            valB = toDate(valB)?.getTime() || 0;
+        } else if (typeof valA === "string") {
+            valA = valA.toLowerCase();
+            valB = String(valB || "").toLowerCase();
+        } else {
+            valA = Number(valA || 0);
+            valB = Number(valB || 0);
+        }
+        if (valA < valB) return -1 * dir;
+        if (valA > valB) return 1 * dir;
+        return 0;
+    });
+}
+
+function filter(){
+    const q=norm(el.q.value);
+    state.filtered=state.items.filter(x=>{
+        const text=norm([x.title,x.summary,x.author,strip(x.content)].join(" "));
+        return(!q||text.includes(q))&&
+              (!el.active.value||String(x.active)===el.active.value)&&
+              (!el.author.value||x.author===el.author.value);
+    });
+    sortData();
+    const max=Math.max(1,Math.ceil(state.filtered.length/state.size));
+    if(state.page>max)state.page=max;
+    render();
+}
+function render(){
+    const start=(state.page-1)*state.size,items=state.filtered.slice(start,start+state.size),max=Math.max(1,Math.ceil(state.filtered.length/state.size));
+    el.count.innerText=`Hiển thị ${start + 1}-${Math.min(start + state.size, state.filtered.length)} trên ${state.filtered.length} bài viết`;
+    el.page.innerText=`Trang ${state.page}/${max}`;
+    el.prev.disabled=state.page<=1;
+    el.next.disabled=state.page>=max;
+    if(!items.length){
+        el.body.innerHTML='<tr><td colspan="7"><div class="empty-state"><span>Không có bài viết phù hợp.</span></div></td></tr>';
+        return;
+    }
+    el.body.innerHTML=items.map(x=>{
+        const fallbackImg = "https://placehold.co/170x115/1e293b/f8fafc?text=AERO+Cinema";
+        return `<tr>
+            <td data-label="Ảnh"><img class="thumb" src="${safe(x.imageUrl, "")}" alt="${safe(x.title)}" onerror="this.src='${fallbackImg}'"></td>
+            <td data-label="Bài viết">
+                <div class="main">
+                    <strong>${safe(x.title)}</strong>
+                    <span style="font-size:12px;color:var(--admin-subtle);">${safe(x.summary,"Không có tóm tắt")}</span>
+                </div>
+            </td>
+            <td data-label="Tác giả">${safe(x.author,"AERO Cinema")}</td>
+            <td data-label="Trạng thái"><span class="admin-badge ${x.active===true?"success":"secondary"}">${x.active===true?"Hiển thị":"Ẩn"}</span></td>
+            <td data-label="Ngày tạo">${fmt(x.createdAt)}</td>
+            <td data-label="Cập nhật">${fmt(x.updatedAt)}</td>
+            <td data-label="Hành động" class="action-col">
+                <div class="admin-actions">
+                    <button class="admin-icon-btn view btn-preview-article" type="button" data-id="${x.id}" title="Xem trước"><i class="fas fa-eye"></i></button>
+                    <button class="admin-icon-btn approve btn-toggle" type="button" data-id="${x.id}" title="Bật/tắt trạng thái" style="color:var(--admin-success);"><i class="fas fa-power-off"></i></button>
+                    <button class="admin-icon-btn btn-edit" type="button" data-id="${x.id}" title="Sửa" style="color:var(--admin-warning);"><i class="fas fa-pen"></i></button>
+                    <button class="admin-icon-btn reject btn-delete" type="button" data-id="${x.id}" title="Xóa"><i class="fas fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join("");
+
+    // Bind action events
+    el.body.querySelectorAll(".btn-preview-article").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = state.items.find(x => x.id === btn.dataset.id);
+            if (item) showPreview(item);
+        });
+    });
+    el.body.querySelectorAll(".btn-toggle").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = state.items.find(x => x.id === btn.dataset.id);
+            if (item) toggle(item);
+        });
+    });
+    el.body.querySelectorAll(".btn-edit").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = state.items.find(x => x.id === btn.dataset.id);
+            if (item) openForm(item);
+        });
+    });
+    el.body.querySelectorAll(".btn-delete").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = state.items.find(x => x.id === btn.dataset.id);
+            if (item) remove(item);
+        });
+    });
+}
+
+function openForm(item){
+    initEditor();
+    el.form.reset();
+    $("docId").value=item?.id||"";
+    $("modalTitle").innerText=item?"Sửa bài viết":"Thêm bài viết";
+    $("title").value=item?.title||"";
+    $("summary").value=item?.summary||"";
+    $("imageUrl").value=item?.imageUrl||"";
+    $("author").value=item?.author||window.AeroAdmin?.state?.admin?.email||"AERO Cinema";
+    $("active").value=String(item?.active??true);
+    state.editor.root.innerHTML=item?.content||"";
+    openModal("modal");
+}
+function openModal(id) {
+    const m = $(id);
+    m.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+function closeModal(id){
+    const m = $(id);
+    m.classList.remove("show");
+    document.body.style.overflow = "";
+}
+function data(){
+    return {
+        title:$("title").value.trim(),
+        summary:$("summary").value.trim(),
+        content:state.editor?.root.innerHTML||"",
+        imageUrl:$("imageUrl").value.trim(),
+        author:$("author").value.trim()||"AERO Cinema",
+        active:$("active").value==="true",
+        updatedAt:serverTimestamp()
+    };
+}
+function validate(v){
+    if(!v.title)return"Tiêu đề bắt buộc.";
+    if(!v.summary)return"Tóm tắt bắt buộc.";
+    if(!strip(v.content))return"Nội dung bài viết bắt buộc.";
+    return "";
+}
+function showPreview(item){
+    const v=item||data();
+    $("pImage").src=v.imageUrl||"https://placehold.co/800x400/1e293b/f8fafc?text=AERO+Cinema";
+    $("pTitle").innerText=v.title||"Tiêu đề bài viết";
+    $("pSummary").innerText=v.summary||"";
+    $("pContent").innerHTML=v.content||"";
+    openModal("previewModal");
+}
+async function save(e){
+    e.preventDefault();
+    const id=$("docId").value,v=data(),err=validate(v);
+    if(err){
+        toast("error","Dữ liệu chưa hợp lệ",err);
+        return;
+    }
+    load(true);
+    try{
+        if(id){
+            const old=state.items.find(x=>x.id===id);
+            await updateDoc(doc(db,"news",id),v);
+            await window.AeroAdmin?.logActivity?.("update_news","news",id,old,v);
+        }else{
+            v.createdAt=serverTimestamp();
+            const ref=await addDoc(collection(db,"news"),v);
+            await window.AeroAdmin?.logActivity?.("create_news","news",ref.id,null,v);
+        }
+        closeModal("modal");
+        toast("success","Đã lưu bài viết","Tin tức đã được cập nhật thành công.");
+    }catch(e){
+        toast("error","Không thể lưu bài viết",e.message);
+    }finally{
+        load(false);
+    }
+}
+async function remove(item){
+    const result = await Swal.fire({
+        title: "Xóa bài viết?",
+        text: `Bạn có chắc chắn muốn xóa bài viết "${item.title || item.id}"? Hành động này không thể hoàn tác.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#475569",
+        confirmButtonText: "Xóa",
+        cancelButtonText: "Hủy"
+    });
+    if (!result.isConfirmed) return;
+    load(true);
+    try{
+        await deleteDoc(doc(db,"news",item.id));
+        await window.AeroAdmin?.logActivity?.("delete_news","news",item.id,item,null);
+        toast("success","Đã xóa bài viết","Tin tức đã được xóa thành công khỏi hệ thống.");
+    }catch(e){
+        toast("error","Không thể xóa",e.message);
+    }finally{
+        load(false);
+    }
+}
+async function toggle(item){
+    const targetState = !item.active;
+    const actionText = targetState ? "hiển thị" : "ẩn";
+    const result = await Swal.fire({
+        title: `${targetState ? "Hiển thị" : "Ẩn"} bài viết?`,
+        text: `Bạn có chắc chắn muốn ${actionText} bài viết "${item.title || item.id}"?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#f97316",
+        cancelButtonColor: "#475569",
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Hủy"
+    });
+    if (!result.isConfirmed) return;
+
+    load(true);
+    try{
+        await updateDoc(doc(db,"news",item.id),{active:targetState,updatedAt:serverTimestamp()});
+        await window.AeroAdmin?.logActivity?.("update_news","news",item.id,item,{active:targetState});
+        toast("success","Đã cập nhật trạng thái",`Bài viết đã được chuyển sang trạng thái ${actionText}.`);
+    }catch(e){
+        toast("error","Không thể cập nhật",e.message);
+    }finally{
+        load(false);
+    }
+}
+
+function handleSorting(event) {
+    const header = event.target.closest(".sort-header");
+    if (!header) return;
+    const key = header.dataset.sort;
+    if (state.sortKey === key) {
+        state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+    } else {
+        state.sortKey = key;
+        state.sortDirection = "asc";
+    }
+    document.querySelectorAll(".sort-header i").forEach(icon => {
+        icon.className = "fas fa-sort";
+    });
+    const activeIcon = header.querySelector("i");
+    if (activeIcon) {
+        activeIcon.className = state.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+    }
+    filter();
+}
+
+function bind(){
+    initEditor();
+    $("btnAdd").onclick=()=>openForm(null);
+    $("closeModal").onclick=()=>closeModal("modal");
+    $("cancelModal").onclick=()=>closeModal("modal");
+    $("previewBtn").onclick=()=>showPreview(null);
+    $("closePreview").onclick=()=>closeModal("previewModal");
+    $("closePreviewFoot").onclick=()=>closeModal("previewModal");
+    el.form.addEventListener("submit",save);
+    
+    document.querySelectorAll(".sort-header").forEach(header => {
+        header.addEventListener("click", handleSorting);
+    });
+
+    [el.q,el.active,el.author].forEach(x=>{
+        x.addEventListener("input",()=>{state.page=1;filter()});
+        x.addEventListener("change",()=>{state.page=1;filter()})
+    });
+    el.prev.onclick=()=>{if(state.page>1){state.page--;render()}};
+    el.next.onclick=()=>{const max=Math.max(1,Math.ceil(state.filtered.length/state.size));if(state.page<max){state.page++;render()}};
+    
+    // Close modal on escape key
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            document.querySelectorAll(".admin-modal.show").forEach(m => closeModal(m.id));
+        }
+    });
+
+    // Close modal on click outside modal panel
+    document.querySelectorAll(".admin-modal").forEach(m => {
+        m.addEventListener("click", (e) => {
+            if (e.target === m) {
+                closeModal(m.id);
+            }
+        });
+    });
+}
+function attach(){
+    state.unsub?.();
+    state.unsub=onSnapshot(collection(db,"news"),s=>{
+        state.items=s.docs.map(d=>({id:d.id,...d.data()}));
+        stats();
+        filter();
+    },e=>toast("error","Không thể tải news",e.message));
+}
+bind();
+window.addEventListener("aero-admin-ready",attach,{once:true});
+if(window.AeroAdmin?.state?.ready)attach();
+window.addEventListener("beforeunload",()=>state.unsub?.());
+</script>
+}

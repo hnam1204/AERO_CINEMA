@@ -1,0 +1,570 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý phòng chiếu";
+}
+
+<style>
+    .room-admin { display: flex; flex-direction: column; gap: 22px; }
+    .room-name strong, .room-name span { display: block; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .room-name strong { color: var(--admin-text); font-weight: 700; }
+    .room-name span { color: var(--admin-muted); font-size: 11px; margin-top: 4px; }
+    
+    .room-form-layout { display: grid; grid-template-columns: minmax(0,1fr) minmax(340px,.8fr); gap: 18px; }
+    
+    .seat-preview-card { border: 1px solid var(--admin-border); border-radius: var(--aero-admin-radius); background: var(--admin-surface-2); padding: 16px; min-width: 0; }
+    .seat-preview-card h4 { margin: 0 0 10px; color: var(--admin-text); font-size: 14px; font-weight: 700; }
+    .seat-total { margin-bottom: 12px; color: var(--admin-muted); font-size: 12px; font-weight: 800; }
+    .seat-map-preview { display: flex; flex-direction: column; gap: 7px; max-height: 360px; overflow: auto; padding: 10px; border-radius: 12px; background: var(--admin-card); border: 1px solid var(--admin-border); }
+    .seat-row { display: flex; align-items: center; gap: 5px; min-width: max-content; }
+    .seat-row-label { width: 22px; color: var(--admin-muted); font-size: 11px; font-weight: 800; }
+    .seat-chip { width: 30px; height: 26px; display: inline-flex; align-items: center; justify-content: center; border-radius: 6px; color: #fff; font-size: 9px; font-weight: 700; }
+    .seat-chip.standard { background: #9ca3af; }
+    .seat-chip.vip { background: var(--aero-admin-blue); }
+    .seat-chip.couple { background: #ec4899; }
+    .seat-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; color: var(--admin-muted); font-size: 11px; font-weight: 700; }
+    .legend-color { width: 12px; height: 12px; border-radius: 4px; }
+    .legend-color.standard { background: #9ca3af; }
+    .legend-color.vip { background: var(--aero-admin-blue); }
+    .legend-color.couple { background: #ec4899; }
+
+    @@media (max-width: 1180px) { .room-form-layout { grid-template-columns: 1fr; } }
+</style>
+
+<div class="room-admin">
+    <section class="dashboard-hero">
+        <div>
+            <h1>Quản lý phòng chiếu</h1>
+            <p>Thiết lập và cấu hình số hàng, số cột, loại phòng chiếu và sơ đồ ghế. Hệ thống tự động kiểm tra lịch chiếu trước khi cho phép xóa phòng.</p>
+        </div>
+        <button type="button" class="admin-btn admin-btn-primary" id="btnOpenCreate"><i class="fas fa-plus"></i> Thêm phòng</button>
+    </section>
+
+    <div class="section-title">
+        <h2>Thống kê tổng quan</h2>
+        <span>Realtime room metrics</span>
+    </div>
+
+    <section class="admin-stats-grid">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-door-open"></i></span>
+            <span class="stat-label">Tổng phòng</span>
+            <div class="stat-value skeleton" id="statRooms">0</div>
+            <div class="stat-note">Phòng chiếu đã thiết lập</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-chair"></i></span>
+            <span class="stat-label">Tổng ghế</span>
+            <div class="stat-value skeleton" id="statSeats">0</div>
+            <div class="stat-note">Sức chứa toàn hệ thống</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-gem"></i></span>
+            <span class="stat-label">Tổng ghế VIP</span>
+            <div class="stat-value skeleton" id="statVipSeats">0</div>
+            <div class="stat-note">Ghế VIP có phụ thu</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-heart"></i></span>
+            <span class="stat-label">Tổng ghế Couple</span>
+            <div class="stat-value skeleton" id="statCoupleSeats">0</div>
+            <div class="stat-note">Ghế đôi đôi tình nhân</div>
+        </div>
+    </section>
+
+    <section class="admin-toolbar">
+        <div class="admin-field search-input">
+            <label for="searchInput">Tìm kiếm phòng</label>
+            <input type="search" class="admin-control" id="searchInput" placeholder="Tìm theo tên phòng, tên rạp..." aria-label="Tìm kiếm phòng" />
+        </div>
+        <div class="admin-field">
+            <label for="cinemaFilter">Rạp chiếu</label>
+            <select class="admin-control" id="cinemaFilter" aria-label="Lọc theo rạp"><option value="">Tất cả rạp</option></select>
+        </div>
+        <div class="admin-field">
+            <label for="typeFilter">Loại phòng</label>
+            <select class="admin-control" id="typeFilter" aria-label="Lọc loại phòng"><option value="">Tất cả loại phòng</option></select>
+        </div>
+        <div class="admin-field">
+            <label for="statusFilter">Trạng thái</label>
+            <select class="admin-control" id="statusFilter" aria-label="Lọc trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active">Hoạt động</option>
+                <option value="inactive">Tạm ẩn</option>
+                <option value="maintenance">Bảo trì</option>
+            </select>
+        </div>
+    </section>
+
+    <section class="admin-card">
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Tên phòng</th>
+                        <th>Rạp</th>
+                        <th>Loại phòng</th>
+                        <th>Số hàng</th>
+                        <th>Số cột</th>
+                        <th>Tổng ghế</th>
+                        <th>Trạng thái</th>
+                        <th style="width: 120px; text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="roomsTableBody">
+                    <tr><td colspan="8"><div class="empty-state">Đang tải dữ liệu phòng...</div></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="panel-footer d-flex justify-content-between align-items-center p-3" style="border-top: 1px solid var(--admin-border);">
+            <span id="tableCount" style="font-size: 13px; color: var(--admin-muted);">0 phòng</span>
+            <div class="admin-btn-group d-flex gap-2">
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnPrevPage">Trước</button>
+                <span id="pageInfo" class="align-self-center" style="font-size: 13px; font-weight: 600;">Trang 1</span>
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnNextPage">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Form Modal -->
+<div class="admin-modal" id="roomFormModal" role="dialog" aria-modal="true" aria-labelledby="roomFormTitle">
+    <div class="admin-modal-panel" style="width: min(1000px, 100%);">
+        <div class="admin-modal-header">
+            <h3 id="roomFormTitle">Thêm phòng</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="roomFormModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <form id="roomForm">
+            <div class="admin-modal-body">
+                <input type="hidden" id="roomId" />
+                <div class="room-form-layout">
+                    <div class="admin-form-grid">
+                        <div class="admin-field full"><label for="cinemaId">Rạp *</label><select class="admin-control" id="cinemaId" required></select></div>
+                        <div class="admin-field"><label for="name">Tên phòng *</label><input class="admin-control" id="name" required /></div>
+                        <div class="admin-field"><label for="type">Loại phòng</label><select class="admin-control" id="type"><option value="2D">2D</option><option value="3D">3D</option><option value="IMAX">IMAX</option><option value="4DX">4DX</option><option value="VIP">VIP</option></select></div>
+                        <div class="admin-field"><label for="seatRows">Số hàng ghế (Max 26) *</label><input class="admin-control" id="seatRows" type="number" min="1" max="26" value="8" required /></div>
+                        <div class="admin-field"><label for="seatColumns">Số cột ghế (Max 30) *</label><input class="admin-control" id="seatColumns" type="number" min="1" max="30" value="10" required /></div>
+                        <div class="admin-field"><label for="vipRows">Hàng VIP (Ví dụ: E,F)</label><input class="admin-control" id="vipRows" placeholder="E,F" /></div>
+                        <div class="admin-field"><label for="coupleRows">Hàng Couple (Ví dụ: G,H)</label><input class="admin-control" id="coupleRows" placeholder="G,H" /></div>
+                        <div class="admin-field full"><label for="status">Trạng thái</label><select class="admin-control" id="status"><option value="active">Hoạt động</option><option value="inactive">Tạm ẩn</option><option value="maintenance">Bảo trì</option></select></div>
+                    </div>
+                    <div class="seat-preview-card">
+                        <h4>Sơ đồ ghế preview</h4>
+                        <div class="seat-total" id="seatTotalText">80 ghế</div>
+                        <div class="seat-map-preview" id="seatMapPreview"></div>
+                        <div class="seat-legend">
+                            <span class="legend-item"><span class="legend-color standard"></span>Thường</span>
+                            <span class="legend-item"><span class="legend-color vip"></span>VIP</span>
+                            <span class="legend-item"><span class="legend-color couple"></span>Couple</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="roomFormModal">Hủy</button>
+                <button type="submit" class="admin-btn admin-btn-primary">Lưu phòng</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="admin-modal" id="roomDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailRoomTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="detailRoomTitle">Sơ đồ ghế</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="roomDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body">
+            <div class="seat-preview-card">
+                <div class="seat-total" id="detailRoomMeta"></div>
+                <div class="seat-map-preview" id="detailSeatMap"></div>
+            </div>
+        </div>
+        <div class="admin-modal-footer"><button type="button" class="admin-btn admin-btn-secondary" data-close-modal="roomDetailModal">Đóng</button></div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import { collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, query, where, getDocs, limit, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.AeroAdmin?.db || window.db;
+        const toast = window.AeroAdmin?.toast || ((type, title, message) => alert(`${title}: ${message}`));
+        const state = { rooms: [], cinemas: [], showtimes: [], filtered: [], page: 1, pageSize: 10, unsubs: [] };
+        
+        const els = {
+            search: document.getElementById("searchInput"), 
+            cinemaFilter: document.getElementById("cinemaFilter"), 
+            typeFilter: document.getElementById("typeFilter"), 
+            statusFilter: document.getElementById("statusFilter"),
+            body: document.getElementById("roomsTableBody"), 
+            count: document.getElementById("tableCount"), 
+            pageInfo: document.getElementById("pageInfo"), 
+            prev: document.getElementById("btnPrevPage"), 
+            next: document.getElementById("btnNextPage"),
+            form: document.getElementById("roomForm"), 
+            cinemaId: document.getElementById("cinemaId")
+        };
+        const rowLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+        
+        const safe = (v, f = "-") => v === undefined || v === null || v === "" ? f : v;
+        const normalize = v => String(v || "").trim().toLowerCase();
+        const num = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
+        const rowsArray = count => rowLetters.slice(0, Math.max(0, Math.min(26, num(count))));
+        const splitRows = value => Array.isArray(value)
+            ? value.map(x => String(x).trim().toUpperCase()).filter(Boolean)
+            : String(value || "").split(",").map(x => x.trim().toUpperCase()).filter(Boolean);
+        const roomCapacity = r => num(r.seatRows) * num(r.seatColumns);
+        const cinemaNameById = id => state.cinemas.find(c => c.id === id)?.name || "";
+        const showLoading = show => window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
+        const statusText = s => ({ active: "Hoạt động", inactive: "Tạm ẩn", maintenance: "Bảo trì" }[s] || safe(s));
+
+        function countTypeSeats(room, type) {
+            const rows = rowsArray(room.seatRows);
+            const target = type === "vip" ? splitRows(room.vipRows) : splitRows(room.coupleRows);
+            return rows.filter(r => target.includes(r)).length * num(room.seatColumns);
+        }
+
+        function updateStats() {
+            setText("statRooms", state.rooms.length);
+            setText("statSeats", state.rooms.reduce((s, r) => s + roomCapacity(r), 0).toLocaleString("vi-VN"));
+            setText("statVipSeats", state.rooms.reduce((s, r) => s + countTypeSeats(r, "vip"), 0).toLocaleString("vi-VN"));
+            setText("statCoupleSeats", state.rooms.reduce((s, r) => s + countTypeSeats(r, "couple"), 0).toLocaleString("vi-VN"));
+        }
+
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if (!el) {
+                console.warn(`[Rooms] Missing element #${id}`);
+                return;
+            }
+            el.textContent = value ?? "0";
+            el.classList.remove("skeleton");
+        }
+
+        function setOptions() {
+            const currentCinema = els.cinemaFilter.value;
+            const currentType = els.typeFilter.value;
+            els.cinemaFilter.innerHTML = '<option value="">Tất cả rạp</option>' + state.cinemas.map(c => `<option value="${c.id}">${safe(c.name)}</option>`).join("");
+            els.cinemaFilter.value = currentCinema;
+            const types = [...new Set(state.rooms.map(r => r.type).filter(Boolean))].sort();
+            els.typeFilter.innerHTML = '<option value="">Tất cả loại phòng</option>' + types.map(t => `<option value="${t}">${t}</option>`).join("");
+            els.typeFilter.value = currentType;
+            els.cinemaId.innerHTML = '<option value="">Chọn rạp</option>' + state.cinemas.map(c => `<option value="${c.id}">${safe(c.name)}</option>`).join("");
+        }
+
+        function filterData() {
+            const keyword = normalize(els.search.value);
+            state.filtered = state.rooms.filter(r => {
+                const text = normalize([r.name, r.cinemaName, cinemaNameById(r.cinemaId)].join(" "));
+                return (!keyword || text.includes(keyword)) &&
+                    (!els.cinemaFilter.value || r.cinemaId === els.cinemaFilter.value) &&
+                    (!els.typeFilter.value || r.type === els.typeFilter.value) &&
+                    (!els.statusFilter.value || r.status === els.statusFilter.value);
+            });
+            const max = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+            if (state.page > max) state.page = max;
+            renderTable();
+        }
+
+        function renderTable() {
+            const start = (state.page - 1) * state.pageSize;
+            const items = state.filtered.slice(start, start + state.pageSize);
+            const totalPages = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+            els.count.innerText = `Hiển thị ${start + 1}-${Math.min(start + state.pageSize, state.filtered.length)} trên ${state.filtered.length} phòng`;
+            els.pageInfo.innerText = `Trang ${state.page} / ${totalPages}`;
+            els.prev.disabled = state.page <= 1;
+            els.next.disabled = state.page >= totalPages;
+            if (!items.length) {
+                els.body.innerHTML = '<tr><td colspan="8"><div class="empty-state">Không tìm thấy phòng phù hợp.</div></td></tr>';
+                return;
+            }
+            els.body.innerHTML = items.map(r => {
+                const statusVal = normalize(r.status);
+                const badgeClass = statusVal === 'active' ? 'success' : statusVal === 'inactive' ? 'secondary' : 'warning';
+                return `
+                    <tr>
+                        <td>
+                            <div class="room-name">
+                                <strong>${safe(r.name)}</strong>
+                                <span>${num(r.seatRows)} hàng x ${num(r.seatColumns)} cột</span>
+                            </div>
+                        </td>
+                        <td>${safe(r.cinemaName || cinemaNameById(r.cinemaId))}</td>
+                        <td>${safe(r.type)}</td>
+                        <td>${num(r.seatRows)}</td>
+                        <td>${num(r.seatColumns)}</td>
+                        <td>${roomCapacity(r).toLocaleString("vi-VN")}</td>
+                        <td><span class="admin-badge ${badgeClass}">${statusText(r.status)}</span></td>
+                        <td style="text-align: right;">
+                            <div class="d-flex justify-content-end gap-1">
+                                <button type="button" class="admin-btn admin-btn-secondary btn-view p-2" style="min-height: auto; min-width: auto;" data-id="${r.id}" title="Sơ đồ ghế">
+                                    <i class="fas fa-chair"></i>
+                                </button>
+                                <button type="button" class="admin-btn admin-btn-secondary btn-edit p-2" style="min-height: auto; min-width: auto;" data-id="${r.id}" title="Sửa">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <button type="button" class="admin-btn admin-btn-danger btn-delete p-2" style="min-height: auto; min-width: auto;" data-id="${r.id}" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`;
+            }).join("");
+
+            // Bind events to dynamically generated buttons
+            els.body.querySelectorAll(".btn-view").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const r = state.rooms.find(item => item.id === btn.dataset.id);
+                    if (r) openDetail(r);
+                });
+            });
+
+            els.body.querySelectorAll(".btn-edit").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const r = state.rooms.find(item => item.id === btn.dataset.id);
+                    if (r) openEdit(r);
+                });
+            });
+
+            els.body.querySelectorAll(".btn-delete").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const r = state.rooms.find(item => item.id === btn.dataset.id);
+                    if (r) deleteRoom(r);
+                });
+            });
+        }
+
+        function renderSeatMap(targetId, roomLike) {
+            const target = document.getElementById(targetId);
+            if (!target) {
+                console.warn(`[Rooms] Missing element #${targetId}`);
+                return;
+            }
+            const rows = rowsArray(roomLike.seatRows);
+            const cols = Math.max(0, Math.min(30, num(roomLike.seatColumns)));
+            const vip = splitRows(roomLike.vipRows);
+            const couple = splitRows(roomLike.coupleRows);
+            if (!rows.length || cols <= 0) {
+                target.innerHTML = '<div class="empty-state">Chưa đủ cấu hình ghế.</div>';
+                return;
+            }
+            target.innerHTML = rows.map(row => {
+                const type = couple.includes(row) ? "couple" : vip.includes(row) ? "vip" : "standard";
+                let seats = `<span class="seat-row-label">${row}</span>`;
+                for (let col = 1; col <= cols; col++) seats += `<span class="seat-chip ${type}">${row}${col}</span>`;
+                return `<div class="seat-row">${seats}</div>`;
+            }).join("");
+        }
+
+        function formRoomLike() {
+            return {
+                seatRows: document.getElementById("seatRows").value,
+                seatColumns: document.getElementById("seatColumns").value,
+                vipRows: document.getElementById("vipRows").value,
+                coupleRows: document.getElementById("coupleRows").value
+            };
+        }
+
+        function updatePreview() {
+            const r = formRoomLike();
+            const total = num(r.seatRows) * num(r.seatColumns);
+            setText("seatTotalText", `${total.toLocaleString("vi-VN")} ghế`);
+            renderSeatMap("seatMapPreview", r);
+        }
+
+        function getFormData() {
+            const cinemaId = els.cinemaId.value;
+            const cinema = state.cinemas.find(c => c.id === cinemaId);
+            return {
+                cinemaId,
+                cinemaName: cinema?.name || "",
+                name: document.getElementById("name").value.trim(),
+                type: document.getElementById("type").value,
+                seatRows: num(document.getElementById("seatRows").value),
+                seatColumns: num(document.getElementById("seatColumns").value),
+                vipRows: document.getElementById("vipRows").value.trim(),
+                coupleRows: document.getElementById("coupleRows").value.trim(),
+                status: document.getElementById("status").value || "active"
+            };
+        }
+
+        function validate(data) {
+            if (!data.cinemaId) return "Rạp là bắt buộc.";
+            if (!data.name) return "Tên phòng là bắt buộc.";
+            if (data.seatRows <= 0) return "Số hàng ghế phải lớn hơn 0.";
+            if (data.seatColumns <= 0) return "Số cột ghế phải lớn hơn 0.";
+            return "";
+        }
+
+        function openModal(id) {
+            const m = document.getElementById(id);
+            m.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+        
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            m.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+        
+        function resetForm() {
+            els.form.reset();
+            document.getElementById("roomId").value = "";
+            document.getElementById("seatRows").value = 8;
+            document.getElementById("seatColumns").value = 10;
+            document.getElementById("vipRows").value = "E,F";
+            document.getElementById("coupleRows").value = "G,H";
+            document.getElementById("status").value = "active";
+            updatePreview();
+        }
+        
+        function openCreate() {
+            resetForm();
+            document.getElementById("roomFormTitle").innerText = "Thêm phòng";
+            openModal("roomFormModal");
+        }
+        
+        function openEdit(r) {
+            resetForm();
+            document.getElementById("roomFormTitle").innerText = "Sửa phòng";
+            document.getElementById("roomId").value = r.id;
+            ["cinemaId", "name", "type", "seatRows", "seatColumns", "vipRows", "coupleRows", "status"].forEach(f => document.getElementById(f).value = r[f] ?? "");
+            updatePreview();
+            openModal("roomFormModal");
+        }
+        
+        function openDetail(r) {
+            setText("detailRoomTitle", `${safe(r.name)} · ${safe(r.cinemaName || cinemaNameById(r.cinemaId))}`);
+            setText("detailRoomMeta", `${safe(r.type)} · ${num(r.seatRows)} hàng x ${num(r.seatColumns)} cột · ${roomCapacity(r).toLocaleString("vi-VN")} ghế`);
+            renderSeatMap("detailSeatMap", r);
+            openModal("roomDetailModal");
+        }
+
+        async function saveRoom(e) {
+            e.preventDefault();
+            const id = document.getElementById("roomId").value;
+            const data = getFormData();
+            const error = validate(data);
+            if (error) { toast("warning", "Dữ liệu chưa hợp lệ", error); return; }
+            showLoading(true);
+            try {
+                if (id) {
+                    const oldData = state.rooms.find(r => r.id === id) || null;
+                    await updateDoc(doc(db, "rooms", id), { ...data, updatedAt: serverTimestamp() });
+                    await window.AeroAdmin?.logActivity?.("update", "rooms", id, oldData, data);
+                    toast("success", "Đã cập nhật", "Thông tin phòng đã được lưu.");
+                } else {
+                    const ref = await addDoc(collection(db, "rooms"), { ...data, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+                    await window.AeroAdmin?.logActivity?.("create", "rooms", ref.id, null, data);
+                    toast("success", "Đã thêm phòng", "Phòng chiếu mới đã được tạo.");
+                }
+                closeModal("roomFormModal");
+            } catch (err) {
+                console.error("Save room error:", err);
+                toast("error", "Không thể lưu phòng", err.message || "Vui lòng thử lại.");
+            } finally { showLoading(false); }
+        }
+
+        async function canDelete(id) {
+            if (state.showtimes.some(s => s.roomId === id)) return false;
+            const snap = await getDocs(query(collection(db, "showtimes"), where("roomId", "==", id), limit(1)));
+            return snap.empty;
+        }
+
+        async function deleteRoom(r) {
+            const hasShowtimes = !(await canDelete(r.id));
+            if (hasShowtimes) {
+                await Swal.fire({
+                    icon: "error",
+                    title: "Không thể xóa phòng",
+                    text: `Phòng "${r.name || r.id}" đang có suất chiếu được lên lịch. Vui lòng xóa các suất chiếu trước.`,
+                    confirmButtonColor: "#dc2626"
+                });
+                return;
+            }
+
+            const res = await Swal.fire({
+                title: "Xóa phòng chiếu?",
+                text: `Bạn có chắc muốn xóa phòng "${r.name || r.id}"? Thao tác này không thể phục hồi.`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dc2626",
+                cancelButtonColor: "#475569",
+                confirmButtonText: "Đồng ý xóa",
+                cancelButtonText: "Hủy"
+            });
+
+            if (res.isConfirmed) {
+                showLoading(true);
+                try {
+                    await deleteDoc(doc(db, "rooms", r.id));
+                    await window.AeroAdmin?.logActivity?.("delete", "rooms", r.id, r, null);
+                    toast("success", "Đã xóa phòng", "Phòng đã được xóa khỏi Firestore.");
+                } catch (err) {
+                    console.error("Delete room error:", err);
+                    toast("error", "Không thể xóa phòng", err.message || "Vui lòng thử lại.");
+                } finally { showLoading(false); }
+            }
+        }
+
+        function bindEvents() {
+            document.getElementById("btnOpenCreate").addEventListener("click", openCreate);
+            els.form.addEventListener("submit", saveRoom);
+            ["seatRows", "seatColumns", "vipRows", "coupleRows"].forEach(id => document.getElementById(id).addEventListener("input", updatePreview));
+            [els.search, els.cinemaFilter, els.typeFilter, els.statusFilter].forEach(el => {
+                el.addEventListener("input", () => { state.page = 1; filterData(); });
+                el.addEventListener("change", () => { state.page = 1; filterData(); });
+            });
+            els.prev.addEventListener("click", () => { if (state.page > 1) { state.page--; renderTable(); } });
+            els.next.addEventListener("click", () => {
+                const total = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+                if (state.page < total) { state.page++; renderTable(); }
+            });
+
+            // Close modals click handlers
+            document.querySelectorAll("[data-close-modal]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    closeModal(btn.dataset.closeModal);
+                });
+            });
+
+            // Modal overlay click to close
+            document.querySelectorAll(".admin-modal").forEach(modal => {
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+
+            // ESC key to close modals
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    document.querySelectorAll(".admin-modal.show").forEach(m => closeModal(m.id));
+                }
+            });
+        }
+
+        function attachRealtime() {
+            state.unsubs.forEach(unsub => unsub());
+            state.unsubs = [
+                onSnapshot(collection(db, "cinemas"), snap => { state.cinemas = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "vi")); setOptions(); renderTable(); }, err => { console.error(err); toast("error", "Không thể tải rạp", err.message || "Kiểm tra Firestore Rules."); }),
+                onSnapshot(collection(db, "rooms"), snap => {
+                    state.rooms = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "vi"));
+                    setOptions(); updateStats(); filterData();
+                    if (document.getElementById("lastUpdated")) setText("lastUpdated", new Date().toLocaleTimeString("vi-VN"));
+                }, err => { console.error(err); toast("error", "Không thể tải phòng", err.message || "Kiểm tra Firestore Rules."); }),
+                onSnapshot(collection(db, "showtimes"), snap => { state.showtimes = snap.docs.map(d => ({ id: d.id, ...d.data() })); }, err => console.warn(err))
+            ];
+        }
+
+        bindEvents();
+        resetForm();
+        window.addEventListener("aero-admin-ready", attachRealtime, { once: true });
+        if (window.AeroAdmin?.state?.ready) attachRealtime();
+        window.addEventListener("beforeunload", () => state.unsubs.forEach(unsub => unsub()));
+    </script>
+}

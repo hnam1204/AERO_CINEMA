@@ -1,0 +1,563 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Cấu hình hệ thống";
+}
+
+<div class="settings-admin">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="heroTitle">
+        <div>
+            <h1 id="heroTitle">Cấu hình hệ thống</h1>
+            <p>Quản lý thông tin website, mạng xã hội, thanh toán QR, giá vé mặc định, hạng thành viên, quy đổi điểm và chế độ bảo trì.</p>
+        </div>
+        <div class="hero-actions">
+            <button class="admin-btn admin-btn-secondary" id="resetBtn" type="button"><i class="fas fa-undo"></i> Khôi phục mặc định</button>
+            <button class="admin-btn admin-btn-primary" id="saveTopBtn" type="button"><i class="fas fa-save"></i> Lưu cấu hình</button>
+        </div>
+    </section>
+
+    <!-- Preview Overview -->
+    <section class="summary">
+        <div class="admin-card preview-card">
+            <div class="preview-title">
+                <h2>Xem trước website</h2>
+                <span class="status-pill" id="maintenanceBadge">Đang hoạt động</span>
+            </div>
+            <div class="preview-grid">
+                <div class="preview-logo" id="logoBox"><span class="empty-img">Logo preview</span></div>
+                <div class="preview-info">
+                    <strong id="previewSiteName">AERO Cinema</strong>
+                    <span id="previewContact">Hotline - Email</span>
+                    <span id="previewAddress">Địa chỉ hệ thống</span>
+                    <div class="favicon-row">
+                        <div class="favicon-box" id="faviconBox"><span class="empty-img">F</span></div>
+                        <span>Favicon preview</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-card preview-card">
+            <div class="preview-title">
+                <h2>Xem trước thanh toán</h2>
+                <span class="status-pill" id="bankBadge">QR Banking</span>
+            </div>
+            <div class="preview-qr" id="qrBox"><span class="empty-img">QR ngân hàng</span></div>
+            <div class="preview-info" style="margin-top:14px">
+                <strong id="previewBank">MB Bank</strong>
+                <span id="previewBankAccount">195989 - NGUYEN HAI NAM</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Price Overview Card -->
+    <section class="admin-card preview-card">
+        <div class="preview-title">
+            <h2>Giá vé mặc định</h2>
+            <span id="updatedAtText" style="font-size: 13px; color: var(--admin-subtle);">Đang tải...</span>
+        </div>
+        <div class="price-grid">
+            <div class="price-chip"><span>Ghế thường</span><strong id="pStandard">0đ</strong></div>
+            <div class="price-chip"><span>Ghế VIP</span><strong id="pVip">0đ</strong></div>
+            <div class="price-chip"><span>Ghế Couple</span><strong id="pCouple">0đ</strong></div>
+        </div>
+    </section>
+
+    <!-- Settings Controls Form -->
+    <section class="panel">
+        <nav class="tabs" aria-label="Settings tabs">
+            <button class="tab active" data-tab="website" type="button"><i class="fas fa-globe"></i> Website</button>
+            <button class="tab" data-tab="social" type="button"><i class="fas fa-share-alt"></i> Mạng xã hội</button>
+            <button class="tab" data-tab="payment" type="button"><i class="fas fa-credit-card"></i> Thanh toán</button>
+            <button class="tab" data-tab="prices" type="button"><i class="fas fa-ticket-alt"></i> Giá vé & Đặt vé</button>
+            <button class="tab" data-tab="membership" type="button"><i class="fas fa-gem"></i> Thành viên & Điểm</button>
+            <button class="tab" data-tab="support" type="button"><i class="fas fa-headset"></i> Kênh hỗ trợ</button>
+            <button class="tab" data-tab="theme" type="button"><i class="fas fa-circle-half-stroke"></i> Giao diện</button>
+            <button class="tab" data-tab="maintenance" type="button"><i class="fas fa-tools"></i> Bảo trì</button>
+        </nav>
+
+        <form class="admin-card form-card" id="settingsForm">
+            <div class="section-head">
+                <h2 id="sectionTitle">Website</h2>
+                <p id="sectionDesc">Thông tin nhận diện chính của AERO Cinema.</p>
+            </div>
+
+            <!-- Panel: Website -->
+            <div class="tab-panel active" data-panel="website">
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="siteName">Tên website *</label>
+                        <input class="admin-control" id="siteName" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="hotline">Hotline *</label>
+                        <input class="admin-control" id="hotline" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="email">Email liên hệ *</label>
+                        <input class="admin-control" id="email" type="email" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="siteLogo">Logo URL</label>
+                        <input class="admin-control" id="siteLogo" placeholder="https://..." />
+                    </div>
+                    <div class="admin-field">
+                        <label for="favicon">Favicon URL</label>
+                        <input class="admin-control" id="favicon" placeholder="https://..." />
+                    </div>
+                    <div class="admin-field full">
+                        <label for="address">Địa chỉ trụ sở chính</label>
+                        <textarea class="admin-control" id="address" style="min-height: 60px; resize: vertical;"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Social Links -->
+            <div class="tab-panel" data-panel="social">
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="facebookUrl">Facebook Fanpage</label>
+                        <input class="admin-control" id="facebookUrl" placeholder="https://facebook.com/..." />
+                    </div>
+                    <div class="admin-field">
+                        <label for="youtubeUrl">Kênh YouTube</label>
+                        <input class="admin-control" id="youtubeUrl" placeholder="https://youtube.com/..." />
+                    </div>
+                    <div class="admin-field">
+                        <label for="instagramUrl">Instagram URL</label>
+                        <input class="admin-control" id="instagramUrl" placeholder="https://instagram.com/..." />
+                    </div>
+                    <div class="admin-field">
+                        <label for="tiktokUrl">TikTok URL</label>
+                        <input class="admin-control" id="tiktokUrl" placeholder="https://tiktok.com/..." />
+                    </div>
+                    <div class="admin-field full">
+                        <label for="zaloUrl">Zalo Official Account</label>
+                        <input class="admin-control" id="zaloUrl" placeholder="https://zalo.me/..." />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Payment -->
+            <div class="tab-panel" data-panel="payment">
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="bankName">Tên ngân hàng</label>
+                        <input class="admin-control" id="bankName" placeholder="MB Bank, Momo, VNPay..." />
+                    </div>
+                    <div class="admin-field">
+                        <label for="bankAccount">Số tài khoản nhận tiền *</label>
+                        <input class="admin-control" id="bankAccount" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="bankOwner">Chủ tài khoản nhận tiền</label>
+                        <input class="admin-control" id="bankOwner" placeholder="NGUYEN VAN A" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="bankQrUrl">QR ngân hàng (VietQR URL)</label>
+                        <input class="admin-control" id="bankQrUrl" placeholder="https://img.vietqr.io/..." />
+                    </div>
+                    <div class="admin-field full">
+                        <div class="hint">Link QR dùng cho demo thanh toán. Nếu nhập URL ảnh VietQR hợp lệ, hệ thống sẽ tự động tạo QR Code chuyển khoản.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Ticket Default Prices & Booking Rules -->
+            <div class="tab-panel" data-panel="prices">
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="defaultStandardPrice">Giá ghế thường (VNĐ) *</label>
+                        <input class="admin-control" id="defaultStandardPrice" type="number" min="1" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="defaultVipPrice">Giá ghế VIP (VNĐ) *</label>
+                        <input class="admin-control" id="defaultVipPrice" type="number" min="1" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="defaultCouplePrice">Giá ghế Couple (VNĐ) *</label>
+                        <input class="admin-control" id="defaultCouplePrice" type="number" min="1" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="bookingTimeout">Thời gian giữ ghế đặt (Phút) *</label>
+                        <input class="admin-control" id="bookingTimeout" type="number" min="1" required />
+                    </div>
+                    <div class="admin-field full">
+                        <div class="hint">Các ghế được giữ tạm thời khi khách hàng đặt vé. Sau khoảng thời gian này, các booking ở trạng thái chưa thanh toán sẽ tự động bị hủy và giải phóng ghế.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Membership Settings & Point Formulas -->
+            <div class="tab-panel" data-panel="membership">
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="pointConversionRate">Tỷ lệ tích điểm (Điểm / 100k VND) *</label>
+                        <input class="admin-control" id="pointConversionRate" type="number" min="1" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="minPointRedeem">Điểm tối thiểu để đổi quà/vé *</label>
+                        <input class="admin-control" id="minPointRedeem" type="number" min="0" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="membershipSilverThreshold">Chi tiêu tối thiểu hạng Bạc (VND) *</label>
+                        <input class="admin-control" id="membershipSilverThreshold" type="number" min="0" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="membershipGoldThreshold">Chi tiêu tối thiểu hạng Vàng (VND) *</label>
+                        <input class="admin-control" id="membershipGoldThreshold" type="number" min="0" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="membershipDiamondThreshold">Chi tiêu tối thiểu hạng Kim cương (VND) *</label>
+                        <input class="admin-control" id="membershipDiamondThreshold" type="number" min="0" required />
+                    </div>
+                    <div class="admin-field full">
+                        <div class="hint">Cấu hình điểm tích lũy của khách hàng dựa trên hóa đơn thanh toán và các mốc chi tiêu tích lũy (Cumulative Spent) để thăng hạng tài khoản.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Customer Support -->
+            <div class="tab-panel" data-panel="support">
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="supportEmail">Email hỗ trợ khách hàng</label>
+                        <input class="admin-control" id="supportEmail" type="email" placeholder="support@aerocinema.vn" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="supportPhone">Số điện thoại hỗ trợ</label>
+                        <input class="admin-control" id="supportPhone" placeholder="1900 9999" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Theme Options -->
+            <div class="tab-panel" data-panel="theme">
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="defaultTheme">Theme hệ thống mặc định</label>
+                        <select class="admin-control" id="defaultTheme">
+                            <option value="dark">Chế độ tối (Dark Mode)</option>
+                            <option value="light">Chế độ sáng (Light Mode)</option>
+                        </select>
+                        <div class="hint">Chỉ áp dụng khi tài khoản admin chưa chọn theme thủ công bằng nút chuyển đổi trên thanh điều hướng.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel: Maintenance Mode -->
+            <div class="tab-panel" data-panel="maintenance">
+                <div class="admin-form-grid">
+                    <div class="admin-field full">
+                        <div class="switch-row">
+                            <div>
+                                <strong>Bật chế độ bảo trì</strong>
+                                <span>Khi bật, trang khách hàng sẽ hiển thị thông báo bảo trì. Nhân viên và Admin vẫn truy cập bình thường.</span>
+                            </div>
+                            <label class="switch"><input id="maintenanceMode" type="checkbox" /><span class="slider"></span></label>
+                        </div>
+                    </div>
+                    <div class="admin-field full">
+                        <label for="maintenanceMessage">Thông điệp bảo trì</label>
+                        <textarea class="admin-control" id="maintenanceMessage" style="min-height: 80px; resize: vertical;"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sticky Bottom Actions Savebar -->
+            <div class="savebar">
+                <span id="saveHint">Cấu hình hệ thống được đồng bộ thời gian thực tại app_settings/system.</span>
+                <div class="hero-actions">
+                    <button class="admin-btn admin-btn-secondary me-2" id="resetBottomBtn" type="button">Khôi phục mặc định</button>
+                    <button class="admin-btn admin-btn-primary" type="submit">Lưu cấu hình</button>
+                </div>
+            </div>
+        </form>
+    </section>
+</div>
+
+@section scripts{
+<script type="module">
+import {doc,onSnapshot,setDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+const db=window.AeroAdmin?.db||window.db;
+const toast=window.AeroAdmin?.toast||((type,title,message)=>alert(`${title}: ${message}`));
+const ref=doc(db,"app_settings","system");
+
+const fields=[
+    "siteName","siteLogo","favicon","hotline","email","address",
+    "facebookUrl","youtubeUrl","instagramUrl","tiktokUrl","zaloUrl",
+    "bankName","bankAccount","bankOwner","bankQrUrl",
+    "defaultStandardPrice","defaultVipPrice","defaultCouplePrice","bookingTimeout",
+    "pointConversionRate","minPointRedeem","membershipSilverThreshold","membershipGoldThreshold","membershipDiamondThreshold",
+    "maintenanceMessage","supportEmail","supportPhone","defaultTheme"
+];
+
+const tabMeta={
+    website:["Website","Thông tin nhận diện chính của AERO Cinema."],
+    social:["Mạng xã hội","Cấu hình các kênh liên hệ và truyền thông."],
+    payment:["Thanh toán","Thông tin tài khoản nhận chuyển khoản QR ngân hàng."],
+    prices:["Giá vé & Đặt vé","Cấu hình giá vé và giới hạn thời gian giữ ghế khi đặt vé."],
+    membership:["Hạng thành viên & Điểm","Quy đổi điểm thưởng và các hạn mức tích lũy để thăng hạng thành viên."],
+    support:["Hỗ trợ","Kênh liên hệ hỗ trợ khách hàng."],
+    theme:["Giao diện","Cấu hình Dark Mode / Light Mode mặc định cho Admin."],
+    maintenance:["Bảo trì","Bật/tắt chế độ bảo trì hệ thống cho user thường."]
+};
+
+const defaults={
+    siteName:"AERO Cinema",
+    siteLogo:"",
+    favicon:"",
+    hotline:"1900 9999",
+    email:"support@aerocinema.vn",
+    address:"AERO Cinema Việt Nam",
+    facebookUrl:"",
+    youtubeUrl:"",
+    instagramUrl:"",
+    tiktokUrl:"",
+    zaloUrl:"",
+    bankName:"MB Bank",
+    bankAccount:"195989",
+    bankOwner:"NGUYEN HAI NAM",
+    bankQrUrl:"https://img.vietqr.io/image/mbbank-195989-compact2.jpg?accountName=NGUYEN%20HAI%20NAM",
+    defaultStandardPrice:95000,
+    defaultVipPrice:110000,
+    defaultCouplePrice:135000,
+    bookingTimeout:10,
+    pointConversionRate:5,
+    minPointRedeem:50,
+    membershipSilverThreshold:2000000,
+    membershipGoldThreshold:5000000,
+    membershipDiamondThreshold:10000000,
+    maintenanceMode:false,
+    maintenanceMessage:"Hệ thống đang bảo trì. Vui lòng quay lại sau.",
+    supportEmail:"support@aerocinema.vn",
+    supportPhone:"1900 9999",
+    defaultTheme:"dark"
+};
+
+const state={current:null,unsub:null,creating:false};
+const $=id=>document.getElementById(id);
+const safe=(v,f="")=>v===undefined||v===null?v:f?String(v||f):v;
+const money=v=>Number(v||0).toLocaleString("vi-VN")+"đ";
+const toDate=v=>v?.toDate?v.toDate():(v?new Date(v):null);
+const fmt=v=>{const d=toDate(v);return d&&!isNaN(d)?d.toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"Chưa cập nhật"};
+const load=s=>window.AeroAdmin?.showLoader?.(s,"Đang xử lý...");
+const hasUserTheme=()=>{try{return ["dark","light"].includes(localStorage.getItem("admin_theme"))}catch(error){return false}};
+
+function syncDefaultTheme(theme){
+    const next=theme==="light"?"light":"dark";
+    try{localStorage.setItem("admin_theme_default",next)}catch(error){}
+    if(!hasUserTheme())window.AeroAdmin?.applyTheme?.(next,{persist:false});
+}
+
+function cleanForLog(value){
+    if(value?.toDate)return value.toDate().toISOString();
+    if(Array.isArray(value))return value.map(cleanForLog);
+    if(value&&typeof value==="object"){
+        const output={};
+        Object.keys(value).forEach(key=>output[key]=cleanForLog(value[key]));
+        return output;
+    }
+    return value;
+}
+
+function validUrl(value){
+    if(!value)return true;
+    try{
+        const url=new URL(value);
+        return url.protocol==="http:"||url.protocol==="https:";
+    }catch(error){
+        return false;
+    }
+}
+
+function validEmail(value){
+    if(!value)return true;
+    const at=String.fromCharCode(64);
+    return value.includes(at)&&value.includes(".")&&value.indexOf(at)>0;
+}
+
+function readForm(){
+    const data={};
+    fields.forEach(id=>{
+        const input=$(id);
+        if(!input)return;
+        data[id]=input.type==="number"?Number(input.value||0):input.value.trim();
+    });
+    data.maintenanceMode=$("maintenanceMode").checked;
+    return data;
+}
+
+function fillForm(data){
+    const merged={...defaults,...(data||{})};
+    fields.forEach(id=>{
+        const input=$(id);
+        if(input)input.value=merged[id]??"";
+    });
+    $("maintenanceMode").checked=merged.maintenanceMode===true;
+    updatePreview();
+}
+
+function validate(data){
+    if(!data.siteName)return"Tên website bắt buộc.";
+    if(!data.hotline)return"Hotline bắt buộc.";
+    if(!data.email||!validEmail(data.email))return"Email website chưa đúng định dạng.";
+    if(data.supportEmail&&!validEmail(data.supportEmail))return"Email hỗ trợ chưa đúng định dạng.";
+    if(!data.bankAccount)return"Số tài khoản nhận tiền bắt buộc.";
+    if(Number(data.defaultStandardPrice)<=0)return"Giá thường phải lớn hơn 0.";
+    if(Number(data.defaultVipPrice)<=0)return"Giá VIP phải lớn hơn 0.";
+    if(Number(data.defaultCouplePrice)<=0)return"Giá Couple phải lớn hơn 0.";
+    if(Number(data.bookingTimeout)<=0)return"Thời gian giữ ghế phải lớn hơn 0.";
+    if(Number(data.pointConversionRate)<=0)return"Tỷ lệ tích điểm phải lớn hơn 0.";
+    if(Number(data.minPointRedeem)<0)return"Số điểm đổi quà tối thiểu không được âm.";
+    if(Number(data.membershipSilverThreshold)<0)return"Chi tiêu tối thiểu hạng Bạc không được âm.";
+    if(Number(data.membershipGoldThreshold)<0)return"Chi tiêu tối thiểu hạng Vàng không được âm.";
+    if(Number(data.membershipDiamondThreshold)<0)return"Chi tiêu tối thiểu hạng Kim Cương không được âm.";
+    if(!["dark","light"].includes(data.defaultTheme))return"Theme mặc định phải là dark hoặc light.";
+    const urlFields=["siteLogo","favicon","facebookUrl","youtubeUrl","instagramUrl","tiktokUrl","zaloUrl","bankQrUrl"];
+    const bad=urlFields.find(id=>!validUrl(data[id]));
+    if(bad)return`URL ${bad} chưa hợp lệ.`;
+    return"";
+}
+
+function imageBox(boxId,url,alt){
+    const box=$(boxId);
+    if(!url){
+        box.innerHTML=`<span class="empty-img">${alt}</span>`;
+        return;
+    }
+    box.innerHTML=`<img src="${escapeAttr(url)}" alt="${alt}" onerror="this.parentElement.innerHTML='<span class=&quot;empty-img&quot;>Không tải được ảnh</span>'" />`;
+}
+
+function updatePreview(){
+    const data=readForm();
+    $("previewSiteName").innerText=data.siteName||"AERO Cinema";
+    $("previewContact").innerText=`${data.hotline||"Hotline"} - ${data.email||"Email"}`;
+    $("previewAddress").innerText=data.address||"Địa chỉ hệ thống";
+    $("previewBank").innerText=data.bankName||"Ngân hàng";
+    $("previewBankAccount").innerText=`${data.bankAccount||"Số tài khoản"} - ${data.bankOwner||"Chủ tài khoản"}`;
+    $("pStandard").innerText=money(data.defaultStandardPrice);
+    $("pVip").innerText=money(data.defaultVipPrice);
+    $("pCouple").innerText=money(data.defaultCouplePrice);
+    const badge=$("maintenanceBadge");
+    badge.classList.toggle("on",data.maintenanceMode===true);
+    badge.innerText=data.maintenanceMode?"Đang bảo trì":"Đang hoạt động";
+    imageBox("logoBox",data.siteLogo,"Logo preview");
+    imageBox("faviconBox",data.favicon,"F");
+    imageBox("qrBox",data.bankQrUrl,"QR ngân hàng");
+}
+
+function escapeAttr(value){
+    return String(value||"").replaceAll("&","&amp;").replaceAll('"',"&quot;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+
+async function ensureDefault(){
+    if(state.creating)return;
+    state.creating=true;
+    try{
+        await setDoc(ref,{...defaults,updatedAt:serverTimestamp()});
+        toast("success","Đã tạo cấu hình mặc định","Document app_settings/system đã được khởi tạo.");
+    }catch(error){
+        console.error(error);
+        toast("error","Không thể tạo cấu hình mặc định",error.message);
+    }finally{
+        state.creating=false;
+    }
+}
+
+async function saveSettings(nextData,actionText){
+    const err=validate(nextData);
+    if(err){
+        toast("error","Dữ liệu chưa hợp lệ",err);
+        return;
+    }
+    load(true);
+    const oldData=state.current?cleanForLog(state.current):null;
+    try{
+        const payload={...nextData,updatedAt:serverTimestamp()};
+        await setDoc(ref,payload,{merge:true});
+        syncDefaultTheme(nextData.defaultTheme);
+        await window.AeroAdmin?.logActivity?.("settings_update","app_settings","system",oldData,cleanForLog(nextData));
+        toast("success",actionText||"Đã lưu cấu hình","Cấu hình app_settings/system đã được cập nhật thành công.");
+    }catch(error){
+        console.error(error);
+        toast("error","Không thể lưu cấu hình",error.message);
+    }finally{
+        load(false);
+    }
+}
+
+async function resetDefault(){
+    const result = await Swal.fire({
+        title: "Khôi phục cấu hình mặc định?",
+        text: "Dữ liệu cấu hình hiện tại tại app_settings/system sẽ bị ghi đè bởi cấu hình mặc định. Hành động này không thể hoàn tác.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#475569",
+        confirmButtonText: "Khôi phục",
+        cancelButtonText: "Hủy"
+    });
+    if (!result.isConfirmed) return;
+    
+    fillForm(defaults);
+    await saveSettings({...defaults},"Đã khôi phục mặc định");
+}
+
+function bindTabs(){
+    document.querySelectorAll(".tab").forEach(tab=>{
+        tab.addEventListener("click",()=>{
+            const key=tab.dataset.tab;
+            document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===tab));
+            document.querySelectorAll(".tab-panel").forEach(x=>x.classList.toggle("active",x.dataset.panel===key));
+            $("sectionTitle").innerText=tabMeta[key][0];
+            $("sectionDesc").innerText=tabMeta[key][1];
+        });
+    });
+}
+
+function bind(){
+    bindTabs();
+    fields.forEach(id=>{
+        const input=$(id);
+        if(input)input.addEventListener("input",updatePreview);
+    });
+    $("maintenanceMode").addEventListener("change",updatePreview);
+    $("settingsForm").addEventListener("submit",event=>{
+        event.preventDefault();
+        saveSettings(readForm());
+    });
+    $("saveTopBtn").onclick=()=>saveSettings(readForm());
+    $("resetBtn").onclick=resetDefault;
+    $("resetBottomBtn").onclick=resetDefault;
+}
+
+function attach(){
+    state.unsub?.();
+    load(true);
+    state.unsub=onSnapshot(ref,snap=>{
+        load(false);
+        if(!snap.exists()){
+            ensureDefault();
+            fillForm(defaults);
+            state.current=null;
+            $("updatedAtText").innerText="Document chưa có, đang tạo mặc định...";
+            return;
+        }
+        state.current=snap.data();
+        fillForm(state.current);
+        syncDefaultTheme(state.current.defaultTheme||defaults.defaultTheme);
+        $("updatedAtText").innerText=`Cập nhật: ${fmt(state.current.updatedAt)}`;
+    },error=>{
+        load(false);
+        console.error(error);
+        toast("error","Không thể tải app_settings/system",error.message);
+    });
+}
+
+bind();
+window.addEventListener("aero-admin-ready",attach,{once:true});
+if(window.AeroAdmin?.state?.ready)attach();
+window.addEventListener("beforeunload",()=>state.unsub?.());
+</script>
+}

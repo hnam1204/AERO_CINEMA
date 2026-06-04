@@ -1,0 +1,572 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Báo cáo & Thống kê";
+}
+
+<div class="page">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="reportHeroTitle">
+        <div>
+            <h1 id="reportHeroTitle">Báo cáo & Thống kê doanh nghiệp</h1>
+            <p>Trích xuất dữ liệu doanh thu, thông tin booking, thanh toán, hồ sơ người dùng và hiệu suất phòng vé. Xuất file báo cáo đa định dạng.</p>
+        </div>
+    </section>
+
+    <!-- Stats Overview -->
+    <section class="admin-stats-grid">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-ticket-alt"></i></span>
+            <span class="stat-label">Tổng vé bán</span>
+            <strong class="stat-value skeleton" id="sTickets">0</strong>
+            <span class="stat-note">Vé đã phát hành</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-receipt"></i></span>
+            <span class="stat-label">Tổng booking</span>
+            <strong class="stat-value skeleton" id="sBookings">0</strong>
+            <span class="stat-note">Đơn hàng phát sinh</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-users"></i></span>
+            <span class="stat-label">Tổng người dùng</span>
+            <strong class="stat-value skeleton" id="sUsers">0</strong>
+            <span class="stat-note">Khách hàng đã đăng ký</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-wallet"></i></span>
+            <span class="stat-label">Tổng doanh thu</span>
+            <strong class="stat-value skeleton" id="sRevenue">0đ</strong>
+            <span class="stat-note">Doanh số thực tế tích lũy</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-ban"></i></span>
+            <span class="stat-label">Tỷ lệ hủy vé</span>
+            <strong class="stat-value skeleton" id="sCancelRate">0%</strong>
+            <span class="stat-note">Tỉ lệ hoàn trả ghế</span>
+        </div>
+    </section>
+
+    <!-- Toolbar Filters & Report Generation -->
+    <section class="admin-toolbar" aria-label="Cấu hình báo cáo" style="grid-template-columns: repeat(4, 1fr) auto;">
+        <div class="admin-field">
+            <label for="reportType">Loại báo cáo</label>
+            <select class="admin-control" id="reportType" aria-label="Loại báo cáo">
+                <option value="revenue">Báo cáo doanh thu (Revenue)</option>
+                <option value="booking">Báo cáo đặt vé (Booking)</option>
+                <option value="payment">Báo cáo giao dịch (Payment)</option>
+                <option value="user">Báo cáo người dùng (User)</option>
+                <option value="movie">Báo cáo doanh số phim (Movie)</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="reportFromDate">Từ ngày</label>
+            <input class="admin-control" type="date" id="reportFromDate" aria-label="Từ ngày" />
+        </div>
+        <div class="admin-field">
+            <label for="reportToDate">Đến ngày</label>
+            <input class="admin-control" type="date" id="reportToDate" aria-label="Đến ngày" />
+        </div>
+        <div class="admin-field" style="justify-content: flex-end;">
+            <button type="button" class="admin-btn admin-btn-primary w-100" id="btnGenerateReport">
+                <i class="fas fa-sync-alt"></i> Tạo báo cáo
+            </button>
+        </div>
+        <div class="admin-field" style="justify-content: flex-end; flex-direction: row; gap: 8px;">
+            <button class="admin-btn admin-btn-secondary" id="exportCsv" title="Xuất CSV" aria-label="Xuất CSV"><i class="fas fa-file-csv"></i> CSV</button>
+            <button class="admin-btn admin-btn-secondary" id="exportExcel" title="Xuất Excel" aria-label="Xuất Excel"><i class="fas fa-file-excel"></i> Excel</button>
+            <button class="admin-btn admin-btn-secondary" id="exportPdf" title="Xuất PDF" aria-label="Xuất PDF"><i class="fas fa-file-pdf"></i> PDF</button>
+        </div>
+    </section>
+
+    <!-- Report Preview Grid -->
+    <section class="admin-card">
+        <div class="section-head" style="padding: 16px 20px; border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
+            <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--admin-text);" id="reportTableTitle">Bản xem trước báo cáo</h3>
+            <span id="reportCount" class="badge bg-primary">0 kết quả</span>
+        </div>
+        <div class="admin-table-wrap m-0">
+            <table class="admin-table" id="reportPreviewTable">
+                <thead>
+                    <tr id="reportTableHeader">
+                        <th>Dữ liệu</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody">
+                    <tr>
+                        <td><div class="empty-state"><span>Vui lòng chọn bộ lọc và nhấn "Tạo báo cáo".</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Bottom Charts Grid -->
+    <div class="section-title mt-4">
+        <h2>Phân tích trực quan</h2>
+        <span>Visual charts</span>
+    </div>
+    <section class="admin-stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+        <div class="admin-card">
+            <div class="section-head" style="padding: 16px 20px; border-bottom: 1px solid var(--admin-border);">
+                <h3 style="margin: 0; font-size: 14px; font-weight: 800; color: var(--admin-text);">Doanh thu 30 ngày gần nhất</h3>
+            </div>
+            <div style="padding: 20px; height: 300px;"><canvas id="revenue30Chart"></canvas></div>
+        </div>
+        <div class="admin-card">
+            <div class="section-head" style="padding: 16px 20px; border-bottom: 1px solid var(--admin-border);">
+                <h3 style="margin: 0; font-size: 14px; font-weight: 800; color: var(--admin-text);">Doanh thu rạp chiếu</h3>
+            </div>
+            <div style="padding: 20px; height: 300px;"><canvas id="cinemaRevenueChart"></canvas></div>
+        </div>
+    </section>
+</div>
+
+<!-- Print Container (Hidden on Screen via CSS, displayed in Print media) -->
+<div id="printReportArea" style="display: none;"></div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script type="module">
+        import {
+            collection,
+            onSnapshot
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.AeroAdmin?.db || window.db;
+        const toast = window.AeroAdmin?.toast || ((type, t, m) => alert(`${t}: ${m}`));
+
+        const state = {
+            bookings: [],
+            tickets: [],
+            payments: [],
+            users: [],
+            movies: [],
+            cinemas: [],
+            charts: {},
+            reportData: [],
+            unsubs: []
+        };
+
+        const formatMoney = v => Number(v || 0).toLocaleString("vi-VN") + "đ";
+        const normalize = v => String(v || "").trim().toLowerCase();
+        const toDateObject = v => v?.toDate ? v.toDate() : (v ? new Date(v) : null);
+        const formatShortDate = x => x.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" });
+        const formatFullDateTime = v => {
+            const d = toDateObject(v);
+            return d ? d.toLocaleString("vi-VN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }) : "-";
+        };
+        const countSeats = s => Array.isArray(s) ? s.length : (s ? String(s).split(",").filter(Boolean).length : 0);
+
+        const getPaidPayments = () => state.payments.filter(p => ["paid", "success", "completed"].includes(normalize(p.status)));
+        const getPaidBookings = () => state.bookings.filter(b => ["paid", "completed", "success"].includes(normalize(b.status)));
+
+        // Statistics aggregator
+        function calculateOverviewStats() {
+            const paid = getPaidPayments();
+            const totalRevenue = paid.reduce((sum, p) => sum + Number(p.amount || p.totalPrice || 0), 0);
+            const activeTickets = state.tickets.filter(t => normalize(t.status) !== "cancelled" && normalize(t.status) !== "canceled");
+            const cancelledTickets = state.tickets.filter(t => normalize(t.status) === "cancelled" || normalize(t.status) === "canceled");
+            const cancelRate = state.tickets.length ? Math.round((cancelledTickets.length / state.tickets.length) * 100) + "%" : "0%";
+
+            setTextElement("sTickets", activeTickets.length.toLocaleString("vi-VN"));
+            setTextElement("sBookings", state.bookings.length.toLocaleString("vi-VN"));
+            setTextElement("sUsers", state.users.length.toLocaleString("vi-VN"));
+            setTextElement("sRevenue", formatMoney(totalRevenue));
+            setTextElement("sCancelRate", cancelRate);
+        }
+
+        function setTextElement(id, value) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerText = value;
+                el.classList.remove("skeleton");
+            }
+        }
+
+        // Charts configuration
+        function renderVisualCharts() {
+            // 1. Revenue 30 days
+            const days = [];
+            for (let i = 29; i >= 0; i--) {
+                const x = new Date();
+                x.setDate(x.getDate() - i);
+                x.setHours(0, 0, 0, 0);
+                days.push({
+                    date: x,
+                    label: formatShortDate(x),
+                    revenue: 0
+                });
+            }
+            getPaidPayments().forEach(p => {
+                const pd = toDateObject(p.createdAt || p.updatedAt);
+                if (!pd) return;
+                const match = days.find(d => d.date.getDate() === pd.getDate() && d.date.getMonth() === pd.getMonth() && d.date.getFullYear() === pd.getFullYear());
+                if (match) match.revenue += Number(p.amount || p.totalPrice || 0);
+            });
+
+            createChart("revenue30Chart", "line", days.map(d => d.label), days.map(d => d.revenue), "Doanh thu ngày", "rgba(249, 115, 22, 0.15)");
+
+            // 2. Revenue by Cinema
+            const cinemaMap = {};
+            getPaidBookings().forEach(b => {
+                const name = b.cinemaName || "Khác";
+                cinemaMap[name] = (cinemaMap[name] || 0) + Number(b.totalPrice || 0);
+            });
+            const cinemasSorted = Object.entries(cinemaMap).map(([name, rev]) => ({ name, rev })).sort((a, b) => b.rev - a.rev);
+
+            createChart("cinemaRevenueChart", "bar", cinemasSorted.map(c => c.name), cinemasSorted.map(c => c.rev), "Doanh thu rạp", "#8b5cf6");
+        }
+
+        function createChart(id, type, labels, data, label, bg) {
+            const canvas = document.getElementById(id);
+            if (!canvas || !window.Chart) return;
+
+            if (state.charts[id]) {
+                state.charts[id].data.labels = labels;
+                state.charts[id].data.datasets[0].data = data;
+                window.AeroAdmin?.applyChartTheme?.(state.charts[id]);
+                state.charts[id].update("none");
+                return;
+            }
+
+            state.charts[id] = new Chart(canvas, {
+                type: type,
+                data: {
+                    labels,
+                    datasets: [{
+                        label,
+                        data,
+                        backgroundColor: bg || "rgba(249, 115, 22, 0.15)",
+                        borderColor: "#f97316",
+                        fill: type === "line",
+                        tension: 0.35,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: (ctx) => formatMoney(ctx.raw) } }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: "rgba(148, 163, 184, 0.1)" },
+                            ticks: { callback: (value) => Number(value).toLocaleString("vi-VN") }
+                        },
+                        x: {
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+            window.AeroAdmin?.applyChartTheme?.(state.charts[id]);
+            state.charts[id].update("none");
+        }
+
+        // Report Generation Engine
+        function generateSelectedReport() {
+            const type = document.getElementById("reportType").value;
+            const fromStr = document.getElementById("reportFromDate").value;
+            const toStr = document.getElementById("reportToDate").value;
+
+            const fromDate = fromStr ? new Date(fromStr) : null;
+            const toDate = toStr ? new Date(toStr) : null;
+            if (toDate) toDate.setHours(23, 59, 59, 999); // include entire end day
+
+            const dateFilter = (itemTime) => {
+                if (!itemTime) return false;
+                if (fromDate && itemTime < fromDate.getTime()) return false;
+                if (toDate && itemTime > toDate.getTime()) return false;
+                return true;
+            };
+
+            const headerEl = document.getElementById("reportTableHeader");
+            const bodyEl = document.getElementById("reportTableBody");
+            const titleEl = document.getElementById("reportTableTitle");
+            const countEl = document.getElementById("reportCount");
+
+            let headers = [];
+            let rows = [];
+
+            if (type === "revenue") {
+                titleEl.innerText = "Báo cáo doanh thu";
+                headers = ["Thời gian", "Mã Giao dịch", "Khách hàng", "Phương thức", "Số tiền", "Trạng thái"];
+                
+                const filteredPayments = state.payments.filter(p => {
+                    const t = toDateObject(p.createdAt || p.updatedAt)?.getTime();
+                    return dateFilter(t);
+                });
+
+                rows = filteredPayments.map(p => ({
+                    date: formatFullDateTime(p.createdAt),
+                    id: p.transactionCode || p.id,
+                    customer: p.userId || "-",
+                    method: p.method || "-",
+                    amount: formatMoney(p.amount),
+                    status: p.status || "pending"
+                }));
+            } 
+            else if (type === "booking") {
+                titleEl.innerText = "Báo cáo đặt vé";
+                headers = ["Mã đơn đặt", "Khách hàng", "Tên phim", "Rạp chiếu", "Ghế ngồi", "Tổng tiền", "Trạng thái", "Thời gian"];
+                
+                const filteredBookings = state.bookings.filter(b => {
+                    const t = toDateObject(b.createdAt)?.getTime();
+                    return dateFilter(t);
+                });
+
+                rows = filteredBookings.map(b => ({
+                    id: b.id,
+                    customer: b.userEmail || "-",
+                    movie: b.movieTitle || "-",
+                    cinema: b.cinemaName || "-",
+                    seats: Array.isArray(b.seats) ? b.seats.join(", ") : String(b.seats || ""),
+                    total: formatMoney(b.totalPrice),
+                    status: b.status || "pending",
+                    date: formatFullDateTime(b.createdAt)
+                }));
+            } 
+            else if (type === "payment") {
+                titleEl.innerText = "Báo cáo giao dịch thanh toán";
+                headers = ["Mã thanh toán", "Mã booking", "Khách hàng", "Số tiền", "Phương thức", "Trạng thái", "Thời gian"];
+
+                const filteredPayments = state.payments.filter(p => {
+                    const t = toDateObject(p.createdAt || p.updatedAt)?.getTime();
+                    return dateFilter(t);
+                });
+
+                rows = filteredPayments.map(p => ({
+                    id: p.id,
+                    bookingId: p.bookingId || "-",
+                    customer: p.userId || "-",
+                    amount: formatMoney(p.amount),
+                    method: p.method || "-",
+                    status: p.status || "pending",
+                    date: formatFullDateTime(p.createdAt)
+                }));
+            } 
+            else if (type === "user") {
+                titleEl.innerText = "Báo cáo hoạt động người dùng";
+                headers = ["Họ tên", "Email", "Hạng thành viên", "Điểm tích lũy", "Trạng thái", "Ngày đăng ký"];
+
+                const filteredUsers = state.users.filter(u => {
+                    const t = toDateObject(u.createdAt)?.getTime();
+                    return dateFilter(t);
+                });
+
+                rows = filteredUsers.map(u => ({
+                    name: u.fullName || u.displayName || "-",
+                    email: u.email || "-",
+                    rank: u.memberRank || "Member",
+                    points: Number(u.points || 0).toLocaleString("vi-VN"),
+                    status: u.status || "active",
+                    date: formatFullDateTime(u.createdAt)
+                }));
+            } 
+            else if (type === "movie") {
+                titleEl.innerText = "Báo cáo doanh số bán vé phim";
+                headers = ["Tên phim", "Thể loại", "Thời lượng", "Định dạng", "Ngày khởi chiếu", "Lượt đặt", "Vé bán ra", "Doanh thu"];
+
+                const moviesMap = {};
+                state.movies.forEach(m => {
+                    moviesMap[m.id] = {
+                        title: m.title,
+                        genre: m.genre || "-",
+                        duration: m.duration ? m.duration + " phút" : "-",
+                        format: m.format || "2D",
+                        release: formatDate(m.releaseDate),
+                        bookings: 0,
+                        seats: 0,
+                        revenue: 0,
+                        createdAt: toDateObject(m.createdAt)?.getTime() || 0
+                    };
+                });
+
+                // Aggregate from completed bookings
+                getPaidBookings().forEach(b => {
+                    const mId = b.movieId || "";
+                    const title = b.movieTitle || "";
+                    let target = moviesMap[mId];
+                    if (!target) {
+                        // find by title
+                        target = Object.values(moviesMap).find(m => m.title === title);
+                    }
+                    if (target) {
+                        target.bookings++;
+                        const sc = countSeats(b.seats);
+                        target.seats += sc;
+                        target.revenue += Number(b.totalPrice || 0);
+                    }
+                });
+
+                const filteredMovies = Object.values(moviesMap).filter(m => dateFilter(m.createdAt));
+                rows = filteredMovies.map(m => ({
+                    title: m.title,
+                    genre: m.genre,
+                    duration: m.duration,
+                    format: m.format,
+                    release: m.release,
+                    bookings: m.bookings,
+                    seats: m.seats,
+                    revenue: formatMoney(m.revenue)
+                }));
+            }
+
+            state.reportData = rows;
+            countEl.innerText = `${rows.length} kết quả`;
+
+            // Draw preview table headers
+            headerEl.innerHTML = headers.map(h => `<th>${h}</th>`).join("");
+
+            // Draw preview table body
+            if (!rows.length) {
+                bodyEl.innerHTML = `<tr><td colspan="${headers.length}"><div class="empty-state"><span>Không tìm thấy dữ liệu báo cáo trong khoảng thời gian này.</span></div></td></tr>`;
+                return;
+            }
+
+            bodyEl.innerHTML = rows.map(r => `
+                <tr>
+                    ${Object.values(r).map((val, idx) => `
+                        <td data-label="${headers[idx]}">${safe(val)}</td>
+                    `).join("")}
+                </tr>
+            `).join("");
+        }
+
+        // Export Engines
+        function downloadReportFile(filename, mime, content) {
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(new Blob([content], { type: mime }));
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        async function triggerReportExport(format) {
+            const data = state.reportData;
+            if (!data || !data.length) {
+                toast("warning", "Xuất báo cáo thất bại", "Chưa có dữ liệu báo cáo để trích xuất. Hãy nhấn Tạo báo cáo trước.");
+                return;
+            }
+
+            const type = document.getElementById("reportType").value;
+            const filename = `aero-cinema-${type}-report-${new Date().toISOString().slice(0,10)}`;
+
+            if (format === "csv") {
+                const headers = Object.keys(data[0]);
+                const csvContent = "\ufeff" + [
+                    headers.join(","),
+                    ...data.map(row => headers.map(h => `"${String(row[h] ?? "").replace(/"/g, '""')}"`).join(","))
+                ].join("\n");
+                downloadReportFile(`${filename}.csv`, "text/csv;charset=utf-8", csvContent);
+            } 
+            else if (format === "excel") {
+                const headers = Object.keys(data[0]);
+                const excelContent = `
+                    <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+                    <head><meta charset="UTF-8"></head>
+                    <body>
+                        <table border="1">
+                            <tr style="background-color:#f48220; color:#ffffff; font-weight:bold;">
+                                ${headers.map(h => `<th>${h}</th>`).join("")}
+                            </tr>
+                            ${data.map(r => `
+                                <tr>
+                                    ${headers.map(h => `<td>${r[h] ?? ""}</td>`).join("")}
+                                </tr>
+                            `).join("")}
+                        </table>
+                    </body>
+                    </html>
+                `;
+                downloadReportFile(`${filename}.xls`, "application/vnd.ms-excel;charset=utf-8", excelContent);
+            } 
+            else if (format === "pdf") {
+                const headers = Object.keys(data[0]);
+                const reportTitle = document.getElementById("reportTableTitle").innerText;
+                const printArea = document.getElementById("printReportArea");
+
+                printArea.innerHTML = `
+                    <div class="print-header">
+                        <h1>AERO CINEMA - BÁO CÁO DOANH NGHIỆP</h1>
+                        <p>${reportTitle.toUpperCase()} · Thời gian kết xuất: ${new Date().toLocaleString("vi-VN")}</p>
+                    </div>
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                ${headers.map(h => `<th>${h.toUpperCase()}</th>`).join("")}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.map(r => `
+                                <tr>
+                                    ${headers.map(h => `<td>${safe(r[h])}</td>`).join("")}
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                    <div class="print-summary">
+                        Tổng số bản ghi kết xuất: ${data.length} hàng
+                    </div>
+                `;
+
+                window.print();
+            }
+
+            await window.AeroAdmin?.logActivity?.("export_report", "reports", type, null, { format, rowsCount: data.length });
+            toast("success", "Đã xuất báo cáo", `Định dạng ${format.toUpperCase()} đã tải xuống thành công.`);
+        }
+
+        // Initialize listeners
+        function attachRealtimeListeners() {
+            state.unsubs.forEach(unsub => unsub());
+            state.unsubs = [];
+
+            const collectionsList = ["bookings", "tickets", "payments", "users", "movies", "cinemas"];
+            collectionsList.forEach(coll => {
+                const unsub = onSnapshot(collection(db, coll), (snap) => {
+                    state[coll] = snap.docs.map(docSnap => ({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    }));
+                    calculateOverviewStats();
+                    renderVisualCharts();
+                }, (error) => {
+                    console.error(`Reports load error on ${coll}:`, error);
+                });
+                state.unsubs.push(unsub);
+            });
+        }
+
+        function bindEvents() {
+            document.getElementById("btnGenerateReport").addEventListener("click", generateSelectedReport);
+            document.getElementById("exportCsv").addEventListener("click", () => triggerReportExport("csv"));
+            document.getElementById("exportExcel").addEventListener("click", () => triggerReportExport("excel"));
+            document.getElementById("exportPdf").addEventListener("click", () => triggerReportExport("pdf"));
+
+            // Default dates setting (start of month to today)
+            const today = new Date();
+            const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+            
+            const toStr = today.toISOString().slice(0, 10);
+            const fromStr = startOfMonth.toISOString().slice(0, 10);
+            
+            document.getElementById("reportFromDate").value = fromStr;
+            document.getElementById("reportToDate").value = toStr;
+        }
+
+        bindEvents();
+        window.addEventListener("aero-admin-ready", attachRealtimeListeners, { once: true });
+        if (window.AeroAdmin?.state?.ready) attachRealtimeListeners();
+        window.addEventListener("beforeunload", () => state.unsubs.forEach(unsub => unsub()));
+    </script>
+}

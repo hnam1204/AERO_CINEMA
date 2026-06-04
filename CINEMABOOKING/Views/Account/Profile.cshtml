@@ -557,7 +557,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module">
         import { onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const auth = window.auth;
         const db = window.db;
@@ -581,21 +581,25 @@
                 
                 let userData = {};
 
-                if (userSnap.exists()) {
-                    userData = userSnap.data();
-                } else {
-                    // Document doesn't exist, create it with defaults
-                    userData = {
-                        fullName: currentUser.displayName || "",
-                        phone: "",
+                if (!userSnap.exists()) {
+                    console.error("AERO PROFILE DEBUG - Missing Firestore user document:", {
+                        uid: currentUser.uid,
                         email: currentUser.email,
-                        role: "customer",
-                        rank: "Standard",
-                        points: 0,
-                        createdAt: serverTimestamp()
-                    };
-                    await setDoc(userDocRef, userData);
+                        expectedPath: `users/${currentUser.uid}`
+                    });
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Thiếu hồ sơ tài khoản',
+                        text: `Không tìm thấy document users/${currentUser.uid}. Vui lòng kiểm tra Firestore document ID phải trùng Firebase Auth UID.`,
+                        background: '#ffffff',
+                        color: '#1f2937',
+                        confirmButtonColor: '#f58220'
+                    });
+                    return;
                 }
+
+                userData = userSnap.data();
 
                 // Fill form fields
                 document.getElementById("profName").value = userData.fullName || "";

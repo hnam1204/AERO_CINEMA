@@ -1,0 +1,846 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý phim";
+}
+
+<div class="movies-admin">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="heroTitle">
+        <div>
+            <h1 id="heroTitle">Quản lý phim</h1>
+            <p>Thêm, sửa, xóa và theo dõi danh sách phim chiếu rạp. Dữ liệu được đồng bộ trực tuyến thời gian thực với Firestore.</p>
+        </div>
+        <button type="button" class="admin-btn admin-btn-primary" id="btnOpenCreate" aria-label="Thêm phim mới">
+            <i class="fas fa-plus"></i>
+            Thêm phim
+        </button>
+    </section>
+
+    <!-- Stats Overview -->
+    <section class="admin-stats-grid" aria-label="Thống kê phim">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-film"></i></span>
+            <span class="stat-label">Tổng phim</span>
+            <strong class="stat-value skeleton" id="statTotalMovies">0</strong>
+            <span class="stat-note">Trong danh mục hệ thống</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-play"></i></span>
+            <span class="stat-label">Đang chiếu</span>
+            <strong class="stat-value skeleton" id="statNowShowing">0</strong>
+            <span class="stat-note">Trạng thái now_showing</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-calendar-plus"></i></span>
+            <span class="stat-label">Sắp chiếu</span>
+            <strong class="stat-value skeleton" id="statComingSoon">0</strong>
+            <span class="stat-note">Trạng thái coming_soon</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-eye-slash"></i></span>
+            <span class="stat-label">Đang ẩn</span>
+            <strong class="stat-value skeleton" id="statInactive">0</strong>
+            <span class="stat-note">Trạng thái inactive</span>
+        </div>
+    </section>
+
+    <!-- Toolbar Filters -->
+    <section class="admin-toolbar" aria-label="Bộ lọc phim">
+        <div class="admin-field search-input">
+            <label for="searchInput">Tìm kiếm phim</label>
+            <input type="search" class="admin-control" id="searchInput" placeholder="Tìm theo tên, thể loại, đạo diễn, diễn viên..." aria-label="Tìm kiếm phim" />
+        </div>
+        <div class="admin-field">
+            <label for="statusFilter">Trạng thái</label>
+            <select class="admin-control" id="statusFilter" aria-label="Lọc theo trạng thái">
+                <option value="">Tất cả trạng thái</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="genreFilter">Thể loại</label>
+            <select class="admin-control" id="genreFilter" aria-label="Lọc theo thể loại">
+                <option value="">Tất cả thể loại</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="formatFilter">Định dạng</label>
+            <select class="admin-control" id="formatFilter" aria-label="Lọc theo định dạng">
+                <option value="">Tất cả định dạng</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="languageFilter">Ngôn ngữ</label>
+            <select class="admin-control" id="languageFilter" aria-label="Lọc theo ngôn ngữ">
+                <option value="">Tất cả ngôn ngữ</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- Data Grid -->
+    <section class="admin-card">
+        <div class="movies-table-head" style="display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid var(--admin-border);">
+            <h2 style="margin:0; font-size:15px; font-weight:800;">Danh sách phim</h2>
+            <div class="movies-table-meta" style="display: flex; align-items: center; gap: 10px; color: var(--admin-subtle); font-size: 12px; font-weight: 800;">
+                <span id="tableCount">Đang tải...</span>
+                <span class="realtime-chip" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 9px; border: 1px solid var(--admin-border); border-radius: 999px; background: var(--admin-surface-2);"><i class="fas fa-signal"></i> Realtime</span>
+            </div>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Poster</th>
+                        <th><span class="sort-header" data-sort="title">Tên phim <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="genre">Thể loại <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="duration">Thời lượng <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="format">Định dạng <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="language">Ngôn ngữ <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="releaseDate">Khởi chiếu <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="status">Trạng thái <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="voteAverage">Đánh giá <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="voteCount">Lượt đánh giá <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="createdAt">Ngày tạo <i class="fas fa-sort"></i></span></th>
+                        <th class="action-col" style="text-align: right; width: 140px;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="moviesTableBody">
+                    <tr>
+                        <td colspan="12"><div class="empty-state"><span>Đang tải dữ liệu phim...</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span id="pageInfo">Trang 1 / 1</span>
+            <div class="page-buttons">
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnPrevPage">Trước</button>
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnNextPage">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Movie Form Modal -->
+<div class="admin-modal" id="movieFormModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="movieFormTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="movieFormTitle">Thêm phim</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="movieFormModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <form id="movieForm">
+            <div class="admin-modal-body">
+                <input type="hidden" id="movieId" />
+                <div class="admin-form-grid">
+                    <section class="movie-fieldset" aria-label="Thông tin chính">
+                        <h4 class="movie-fieldset-title">Thông tin chính</h4>
+                        <div class="admin-field">
+                            <label for="title">Tên phim *</label>
+                            <input class="admin-control" id="title" required />
+                        </div>
+                        <div class="admin-field">
+                            <label for="duration">Thời lượng phút *</label>
+                            <input class="admin-control" id="duration" type="number" min="1" required />
+                        </div>
+                        <div class="admin-field">
+                            <label for="releaseDate">Ngày khởi chiếu *</label>
+                            <input class="admin-control" id="releaseDate" type="date" required />
+                        </div>
+                        <div class="admin-field">
+                            <label for="status">Trạng thái *</label>
+                            <select class="admin-control" id="status" required>
+                                <option value="now_showing">Đang chiếu</option>
+                                <option value="coming_soon">Sắp chiếu</option>
+                                <option value="inactive">Đang ẩn</option>
+                            </select>
+                        </div>
+                        <div class="admin-field full">
+                            <label for="description">Mô tả</label>
+                            <textarea class="admin-control" id="description"></textarea>
+                        </div>
+                    </section>
+
+                    <section class="movie-fieldset" aria-label="Hình ảnh">
+                        <h4 class="movie-fieldset-title">Hình ảnh</h4>
+                        <div class="admin-field">
+                            <label for="posterUrl">Poster URL *</label>
+                            <input class="admin-control" id="posterUrl" type="url" required />
+                        </div>
+                        <div class="admin-field">
+                            <label for="bannerUrl">Banner URL</label>
+                            <input class="admin-control" id="bannerUrl" type="url" />
+                        </div>
+                        <div class="preview-grid">
+                            <div class="preview-box">
+                                <img class="poster-preview" id="posterPreview" alt="Poster preview" />
+                            </div>
+                            <div class="preview-box">
+                                <img class="banner-preview" id="bannerPreview" alt="Banner preview" />
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="movie-fieldset" aria-label="Phân loại">
+                        <h4 class="movie-fieldset-title">Phân loại</h4>
+                        <div class="admin-field">
+                            <label for="rating">Rating</label>
+                            <input class="admin-control" id="rating" placeholder="P, T13, T16, T18..." />
+                        </div>
+                        <div class="admin-field">
+                            <label for="genre">Thể loại</label>
+                            <input class="admin-control" id="genre" placeholder="Hành động, Phiêu lưu..." />
+                        </div>
+                        <div class="admin-field">
+                            <label for="format">Định dạng</label>
+                            <input class="admin-control" id="format" placeholder="2D, 3D, IMAX..." />
+                        </div>
+                        <div class="admin-field">
+                            <label for="language">Ngôn ngữ</label>
+                            <input class="admin-control" id="language" placeholder="Phụ đề, Lồng tiếng..." />
+                        </div>
+                    </section>
+
+                    <section class="movie-fieldset" aria-label="Thông tin sản xuất">
+                        <h4 class="movie-fieldset-title">Thông tin sản xuất</h4>
+                        <div class="admin-field">
+                            <label for="director">Đạo diễn</label>
+                            <input class="admin-control" id="director" />
+                        </div>
+                        <div class="admin-field">
+                            <label for="country">Quốc gia</label>
+                            <input class="admin-control" id="country" />
+                        </div>
+                        <div class="admin-field">
+                            <label for="trailerUrl">Trailer URL</label>
+                            <input class="admin-control" id="trailerUrl" type="url" />
+                        </div>
+                        <div class="admin-field">
+                            <label for="actors">Diễn viên</label>
+                            <input class="admin-control" id="actors" />
+                        </div>
+                    </section>
+
+                    <section class="movie-fieldset" aria-label="Đánh giá">
+                        <h4 class="movie-fieldset-title">Đánh giá ban đầu</h4>
+                        <div class="admin-field">
+                            <label for="voteAverage">Điểm đánh giá (0-10)</label>
+                            <input class="admin-control" id="voteAverage" type="number" min="0" max="10" step="0.1" value="0" />
+                        </div>
+                        <div class="admin-field">
+                            <label for="voteCount">Số lượt đánh giá</label>
+                            <input class="admin-control" id="voteCount" type="number" min="0" value="0" />
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="movieFormModal">Hủy</button>
+                <button type="submit" class="admin-btn admin-btn-primary" id="btnSaveMovie">Lưu phim</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Movie Detail Modal -->
+<div class="admin-modal" id="movieDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="movieDetailTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="movieDetailTitle">Chi tiết phim</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="movieDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body" id="movieDetailBody"></div>
+        <div class="admin-modal-footer">
+            <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="movieDetailModal">Đóng</button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import {
+            collection,
+            doc,
+            onSnapshot,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            query,
+            where,
+            getDocs,
+            limit,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const pageState = {
+            movies: [],
+            showtimes: [],
+            filtered: [],
+            page: 1,
+            pageSize: 10,
+            sortKey: "createdAt",
+            sortDirection: "desc",
+            unsubscribeMovies: null,
+            unsubscribeShowtimes: null
+        };
+
+        const db = window.AeroAdmin?.db || window.db;
+        const toast = window.AeroAdmin?.toast || ((type, title, message) => alert(`${title}: ${message}`));
+
+        const els = {
+            searchInput: document.getElementById("searchInput"),
+            statusFilter: document.getElementById("statusFilter"),
+            genreFilter: document.getElementById("genreFilter"),
+            formatFilter: document.getElementById("formatFilter"),
+            languageFilter: document.getElementById("languageFilter"),
+            tableBody: document.getElementById("moviesTableBody"),
+            tableCount: document.getElementById("tableCount"),
+            pageInfo: document.getElementById("pageInfo"),
+            btnPrevPage: document.getElementById("btnPrevPage"),
+            btnNextPage: document.getElementById("btnNextPage"),
+            formModal: document.getElementById("movieFormModal"),
+            detailModal: document.getElementById("movieDetailModal"),
+            form: document.getElementById("movieForm")
+        };
+
+        const fields = [
+            "title", "posterUrl", "bannerUrl", "duration", "rating", "genre", "description",
+            "releaseDate", "status", "format", "director", "actors", "country", "language",
+            "trailerUrl", "voteAverage", "voteCount"
+        ];
+
+        function showLoading(show) {
+            window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
+        }
+
+        function safe(value, fallback = "-") {
+            return value === undefined || value === null || value === "" ? fallback : value;
+        }
+
+        function normalize(value) {
+            return String(value || "").trim().toLowerCase();
+        }
+
+        function toNumber(value, fallback = 0) {
+            const number = Number(value);
+            return Number.isFinite(number) ? number : fallback;
+        }
+
+        function toDate(value) {
+            if (!value) return null;
+            if (value.toDate) return value.toDate();
+            const parsed = new Date(value);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        }
+
+        function formatDate(value) {
+            const date = toDate(value);
+            return date ? date.toLocaleDateString("vi-VN") : "Đang cập nhật";
+        }
+
+        function dateToInputValue(date) {
+            if (!date || Number.isNaN(date.getTime())) return "";
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            return `${year}-${month}-${day}`;
+        }
+
+        function formatDateInput(value) {
+            if (!value) return "";
+            if (value.toDate) {
+                const date = value.toDate();
+                return dateToInputValue(date);
+            }
+
+            const raw = String(value).trim();
+            if (/^\d{4}-\d{2}-\d{2}/.test(raw)) return raw.slice(0, 10);
+
+            const match = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            if (match) {
+                const [, day, month, year] = match;
+                return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+            }
+
+            const date = toDate(raw);
+            return dateToInputValue(date);
+        }
+
+        function statusText(status) {
+            const map = {
+                now_showing: "Đang chiếu",
+                coming_soon: "Sắp chiếu",
+                inactive: "Đang ẩn",
+                active: "Hoạt động",
+                hidden: "Đang ẩn"
+            };
+            return map[status] || safe(status);
+        }
+
+        function getFormData() {
+            const data = {};
+            fields.forEach(field => {
+                const el = document.getElementById(field);
+                data[field] = el ? el.value.trim() : "";
+            });
+
+            data.duration = toNumber(data.duration);
+            data.voteAverage = toNumber(data.voteAverage);
+            data.voteCount = toNumber(data.voteCount);
+            return data;
+        }
+
+        function validateMovie(data) {
+            if (!data.title) return "Tên phim là bắt buộc.";
+            if (!data.posterUrl) return "Poster URL là bắt buộc.";
+            if (!data.duration || data.duration <= 0) return "Thời lượng phải lớn hơn 0.";
+            if (!data.releaseDate) return "Ngày khởi chiếu là bắt buộc.";
+            if (!data.status) return "Trạng thái là bắt buộc.";
+            if (data.voteAverage < 0 || data.voteAverage > 10) return "Vote Average phải từ 0 đến 10.";
+            if (data.voteCount < 0) return "Vote Count phải lớn hơn hoặc bằng 0.";
+            return "";
+        }
+
+        function setSelectOptions(select, values, defaultText) {
+            const current = select.value;
+            select.innerHTML = `<option value="">${defaultText}</option>`;
+            values.forEach(value => {
+                if (!value) return;
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = value;
+                select.appendChild(option);
+            });
+            select.value = current;
+        }
+
+        function updateFilters() {
+            const statuses = [...new Set(pageState.movies.map(movie => movie.status).filter(Boolean))].sort();
+            const genres = [...new Set(pageState.movies.map(movie => movie.genre).filter(Boolean))].sort();
+            const formats = [...new Set(pageState.movies.map(movie => movie.format).filter(Boolean))].sort();
+            const languages = [...new Set(pageState.movies.map(movie => movie.language).filter(Boolean))].sort();
+
+            setSelectOptions(els.statusFilter, statuses, "Tất cả trạng thái");
+            setSelectOptions(els.genreFilter, genres, "Tất cả thể loại");
+            setSelectOptions(els.formatFilter, formats, "Tất cả định dạng");
+            setSelectOptions(els.languageFilter, languages, "Tất cả ngôn ngữ");
+        }
+
+        function updateStats() {
+            setTextElement("statTotalMovies", pageState.movies.length);
+            setTextElement("statNowShowing", pageState.movies.filter(m => normalize(m.status) === "now_showing" || normalize(m.status) === "active").length);
+            setTextElement("statComingSoon", pageState.movies.filter(m => normalize(m.status) === "coming_soon").length);
+            setTextElement("statInactive", pageState.movies.filter(m => ["inactive", "hidden"].includes(normalize(m.status))).length);
+        }
+
+        function setTextElement(id, value) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerText = value;
+                el.classList.remove("skeleton");
+            }
+        }
+
+        function sortFilteredMovies() {
+            const key = pageState.sortKey;
+            const dir = pageState.sortDirection === "asc" ? 1 : -1;
+
+            pageState.filtered.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                if (key === "releaseDate" || key === "createdAt" || key === "updatedAt") {
+                    valA = toDate(valA)?.getTime() || 0;
+                    valB = toDate(valB)?.getTime() || 0;
+                } else if (typeof valA === "string") {
+                    valA = valA.toLowerCase();
+                    valB = String(valB || "").toLowerCase();
+                } else {
+                    valA = Number(valA || 0);
+                    valB = Number(valB || 0);
+                }
+
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+        }
+
+        function filterMovies() {
+            const keyword = normalize(els.searchInput.value);
+            const status = els.statusFilter.value;
+            const genre = els.genreFilter.value;
+            const format = els.formatFilter.value;
+            const language = els.languageFilter.value;
+
+            pageState.filtered = pageState.movies.filter(movie => {
+                const searchText = normalize([
+                    movie.title,
+                    movie.genre,
+                    movie.director,
+                    movie.actors,
+                    movie.country
+                ].join(" "));
+
+                return (!keyword || searchText.includes(keyword)) &&
+                    (!status || movie.status === status) &&
+                    (!genre || movie.genre === genre) &&
+                    (!format || movie.format === format) &&
+                    (!language || movie.language === language);
+            });
+
+            sortFilteredMovies();
+
+            const maxPage = Math.max(1, Math.ceil(pageState.filtered.length / pageState.pageSize));
+            if (pageState.page > maxPage) pageState.page = maxPage;
+            renderTable();
+        }
+
+        function renderTable() {
+            const start = (pageState.page - 1) * pageState.pageSize;
+            const pageItems = pageState.filtered.slice(start, start + pageState.pageSize);
+            const totalPages = Math.max(1, Math.ceil(pageState.filtered.length / pageState.pageSize));
+
+            els.tableCount.innerText = `${pageState.filtered.length} phim`;
+            els.pageInfo.innerText = `Trang ${pageState.page}/${totalPages}`;
+            els.btnPrevPage.disabled = pageState.page <= 1;
+            els.btnNextPage.disabled = pageState.page >= totalPages;
+
+            if (!pageItems.length) {
+                els.tableBody.innerHTML = `<tr><td colspan="12"><div class="empty-state"><span>Không tìm thấy phim phù hợp.</span></div></td></tr>`;
+                return;
+            }
+
+            els.tableBody.innerHTML = pageItems.map(movie => `
+                <tr>
+                    <td data-label="Poster"><img class="movie-poster" src="${movie.posterUrl || ""}" alt="${safe(movie.title, "Poster")}" onerror="this.style.display='none';" /></td>
+                    <td data-label="Tên phim">
+                        <div class="movie-title-cell">
+                            <strong>${safe(movie.title, "AERO Cinema")}</strong>
+                            <span>${safe(movie.director, "Chưa có đạo diễn")}</span>
+                        </div>
+                    </td>
+                    <td data-label="Thể loại">${safe(movie.genre, "-")}</td>
+                    <td data-label="Thời lượng">${toNumber(movie.duration)} phút</td>
+                    <td data-label="Định dạng">${safe(movie.format, "-")}</td>
+                    <td data-label="Ngôn ngữ">${safe(movie.language, "-")}</td>
+                    <td data-label="Khởi chiếu">${formatDate(movie.releaseDate)}</td>
+                    <td data-label="Trạng thái"><span class="admin-badge ${movie.status === 'now_showing' || movie.status === 'active' ? 'success' : movie.status === 'coming_soon' ? 'warning' : 'secondary'}">${statusText(movie.status)}</span></td>
+                    <td data-label="Đánh giá"><span class="rating-chip"><i class="fas fa-star"></i>${toNumber(movie.voteAverage).toFixed(1)}</span></td>
+                    <td data-label="Lượt đánh giá">${toNumber(movie.voteCount).toLocaleString("vi-VN")}</td>
+                    <td data-label="Ngày tạo">${formatDate(movie.createdAt)}</td>
+                    <td data-label="Hành động" class="action-col">
+                        <div class="admin-actions">
+                            <button type="button" class="admin-icon-btn view"
+                                    title="Xem chi tiết" aria-label="Xem chi tiết phim"
+                                    data-action="view" data-id="${movie.id}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button type="button" class="admin-icon-btn approve" style="color:var(--admin-warning);"
+                                    title="Chỉnh sửa" aria-label="Chỉnh sửa phim"
+                                    data-action="edit" data-id="${movie.id}">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button type="button" class="admin-icon-btn reject"
+                                    title="Xóa phim" aria-label="Xóa phim"
+                                    data-action="delete" data-id="${movie.id}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+
+        function resetForm() {
+            els.form.reset();
+            document.getElementById("movieId").value = "";
+            document.getElementById("voteAverage").value = "0";
+            document.getElementById("voteCount").value = "0";
+            document.getElementById("status").value = "now_showing";
+            document.getElementById("posterPreview").removeAttribute("src");
+            document.getElementById("bannerPreview").removeAttribute("src");
+        }
+
+        function openCreateForm() {
+            resetForm();
+            document.getElementById("movieFormTitle").innerText = "Thêm phim";
+            openModal("movieFormModal");
+        }
+
+        function openEditForm(movie) {
+            resetForm();
+            document.getElementById("movieFormTitle").innerText = "Sửa phim";
+            document.getElementById("movieId").value = movie.id;
+            fields.forEach(field => {
+                const el = document.getElementById(field);
+                if (el) el.value = field === "releaseDate" ? formatDateInput(movie[field]) : (movie[field] ?? "");
+            });
+            updatePreview();
+            openModal("movieFormModal");
+        }
+
+        function renderDetail(movie) {
+            document.getElementById("movieDetailBody").innerHTML = `
+                <div class="detail-layout">
+                    <img class="detail-poster" src="${movie.posterUrl || ""}" alt="${safe(movie.title, "Poster")}" />
+                    <div class="detail-info">
+                        <img class="detail-banner" src="${movie.bannerUrl || movie.posterUrl || ""}" alt="${safe(movie.title, "Banner")}" />
+                        <h2>${safe(movie.title, "AERO Cinema")}</h2>
+                        <p>${safe(movie.description, "Chưa có mô tả.")}</p>
+                        <div class="detail-meta">
+                            <div><span>Thể loại</span><strong>${safe(movie.genre, "-")}</strong></div>
+                            <div><span>Đạo diễn</span><strong>${safe(movie.director, "-")}</strong></div>
+                            <div><span>Diễn viên</span><strong>${safe(movie.actors, "-")}</strong></div>
+                            <div><span>Quốc gia</span><strong>${safe(movie.country, "-")}</strong></div>
+                            <div><span>Ngôn ngữ</span><strong>${safe(movie.language, "-")}</strong></div>
+                            <div><span>Trailer</span><strong>${movie.trailerUrl ? `<a href="${movie.trailerUrl}" target="_blank" rel="noopener">Mở trailer</a>` : "Chưa có"}</strong></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            openModal("movieDetailModal");
+        }
+
+        function updatePreview() {
+            const poster = document.getElementById("posterUrl").value.trim();
+            const banner = document.getElementById("bannerUrl").value.trim();
+            const posterPreview = document.getElementById("posterPreview");
+            const bannerPreview = document.getElementById("bannerPreview");
+            if (poster) posterPreview.src = poster; else posterPreview.removeAttribute("src");
+            if (banner) bannerPreview.src = banner; else bannerPreview.removeAttribute("src");
+        }
+
+        async function handleSaveMovie(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("movieId").value;
+            const data = getFormData();
+            const error = validateMovie(data);
+
+            if (error) {
+                toast("warning", "Dữ liệu chưa hợp lệ", error);
+                return;
+            }
+
+            showLoading(true);
+            try {
+                if (id) {
+                    const oldMovie = pageState.movies.find(movie => movie.id === id);
+                    await updateDoc(doc(db, "movies", id), {
+                        ...data,
+                        updatedAt: serverTimestamp()
+                    });
+                    await window.AeroAdmin?.logActivity?.("update", "movies", id, oldMovie || null, data);
+                    toast("success", "Đã cập nhật", "Thông tin phim đã được lưu.");
+                } else {
+                    const docRef = await addDoc(collection(db, "movies"), {
+                        ...data,
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                    await window.AeroAdmin?.logActivity?.("create", "movies", docRef.id, null, data);
+                    toast("success", "Đã thêm phim", "Phim mới đã được tạo trong Firestore.");
+                }
+
+                closeModal("movieFormModal");
+            } catch (errorSave) {
+                console.error("Save movie error:", errorSave);
+                toast("error", "Không thể lưu phim", errorSave.message || "Vui lòng thử lại.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function canDeleteMovie(movieId) {
+            const localCount = pageState.showtimes.filter(showtime => showtime.movieId === movieId).length;
+            if (localCount > 0) return false;
+
+            const showtimeQuery = query(collection(db, "showtimes"), where("movieId", "==", movieId), limit(1));
+            const snap = await getDocs(showtimeQuery);
+            return snap.empty;
+        }
+
+        async function handleDeleteMovie(movie) {
+            const result = await Swal.fire({
+                title: "Xác nhận xóa?",
+                text: `Bạn có chắc chắn muốn xóa phim "${movie.title || movie.id}"? Thao tác này không thể phục hồi.`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "var(--admin-danger)",
+                cancelButtonColor: "var(--admin-subtle)",
+                confirmButtonText: "Đồng ý xóa",
+                cancelButtonText: "Hủy"
+            });
+
+            if (!result.isConfirmed) return;
+
+            showLoading(true);
+            try {
+                const allowed = await canDeleteMovie(movie.id);
+                if (!allowed) {
+                    await Swal.fire({
+                        icon: "error",
+                        title: "Không thể xóa phim",
+                        text: `Phim này đang có lịch chiếu. Hãy xóa lịch chiếu của phim trước.`,
+                        confirmButtonColor: "#dc2626"
+                    });
+                    return;
+                }
+
+                await deleteDoc(doc(db, "movies", movie.id));
+                await window.AeroAdmin?.logActivity?.("delete", "movies", movie.id, movie, null);
+                toast("success", "Đã xóa phim", "Phim đã được xóa khỏi Firestore.");
+            } catch (errorDelete) {
+                console.error("Delete movie error:", errorDelete);
+                toast("error", "Không thể xóa phim", errorDelete.message || "Vui lòng thử lại.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Sorting trigger
+        function handleSorting(event) {
+            const header = event.target.closest(".sort-header");
+            if (!header) return;
+
+            const key = header.dataset.sort;
+            if (pageState.sortKey === key) {
+                pageState.sortDirection = pageState.sortDirection === "asc" ? "desc" : "asc";
+            } else {
+                pageState.sortKey = key;
+                pageState.sortDirection = "asc";
+            }
+
+            // Update all sorting icons
+            document.querySelectorAll(".sort-header i").forEach(icon => {
+                icon.className = "fas fa-sort";
+            });
+            const activeIcon = header.querySelector("i");
+            if (activeIcon) {
+                activeIcon.className = pageState.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+            }
+
+            filterMovies();
+        }
+
+        function bindEvents() {
+            document.getElementById("btnOpenCreate").addEventListener("click", openCreateForm);
+            els.form.addEventListener("submit", handleSaveMovie);
+            document.getElementById("posterUrl").addEventListener("input", updatePreview);
+            document.getElementById("bannerUrl").addEventListener("input", updatePreview);
+
+            // Table headers sorting
+            document.querySelectorAll(".sort-header").forEach(header => {
+                header.addEventListener("click", handleSorting);
+            });
+
+            [els.searchInput, els.statusFilter, els.genreFilter, els.formatFilter, els.languageFilter].forEach(el => {
+                el.addEventListener("input", () => {
+                    pageState.page = 1;
+                    filterMovies();
+                });
+                el.addEventListener("change", () => {
+                    pageState.page = 1;
+                    filterMovies();
+                });
+            });
+
+            els.btnPrevPage.addEventListener("click", () => {
+                if (pageState.page > 1) {
+                    pageState.page--;
+                    renderTable();
+                }
+            });
+
+            els.btnNextPage.addEventListener("click", () => {
+                const totalPages = Math.max(1, Math.ceil(pageState.filtered.length / pageState.pageSize));
+                if (pageState.page < totalPages) {
+                    pageState.page++;
+                    renderTable();
+                }
+            });
+
+            document.addEventListener("click", (event) => {
+                const closeBtn = event.target.closest("[data-close-modal]");
+                if (closeBtn) {
+                    closeModal(closeBtn.dataset.closeModal);
+                    return;
+                }
+
+                const actionBtn = event.target.closest("[data-action]");
+                if (!actionBtn) return;
+
+                const movie = pageState.movies.find(item => item.id === actionBtn.dataset.id);
+                if (!movie) return;
+
+                if (actionBtn.dataset.action === "view") renderDetail(movie);
+                if (actionBtn.dataset.action === "edit") openEditForm(movie);
+                if (actionBtn.dataset.action === "delete") handleDeleteMovie(movie);
+            });
+
+            // Modal overlay click to close
+            document.querySelectorAll(".admin-modal").forEach(modal => {
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+
+            // ESC key to close modals
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    document.querySelectorAll(".admin-modal.show").forEach(m => closeModal(m.id));
+                }
+            });
+        }
+
+        function attachRealtime() {
+            if (!db) {
+                toast("error", "Firebase chưa sẵn sàng", "Không thể kết nối Firestore.");
+                return;
+            }
+
+            pageState.unsubscribeMovies?.();
+            pageState.unsubscribeShowtimes?.();
+
+            pageState.unsubscribeMovies = onSnapshot(collection(db, "movies"), (snapshot) => {
+                pageState.movies = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }))
+                    .sort((a, b) => String(a.title || "").localeCompare(String(b.title || ""), "vi"));
+                updateFilters();
+                updateStats();
+                filterMovies();
+            }, (error) => {
+                console.error("Movies realtime error:", error);
+                toast("error", "Không thể tải phim", error.message || "Kiểm tra Firestore Rules.");
+            });
+
+            pageState.unsubscribeShowtimes = onSnapshot(collection(db, "showtimes"), (snapshot) => {
+                pageState.showtimes = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+            }, (error) => {
+                console.warn("Showtimes realtime error:", error);
+            });
+        }
+
+        bindEvents();
+
+        window.addEventListener("aero-admin-ready", attachRealtime, { once: true });
+        if (window.AeroAdmin?.state?.ready) attachRealtime();
+
+        window.addEventListener("beforeunload", () => {
+            pageState.unsubscribeMovies?.();
+            pageState.unsubscribeShowtimes?.();
+        });
+    </script>
+}

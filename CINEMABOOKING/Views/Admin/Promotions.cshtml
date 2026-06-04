@@ -1,0 +1,514 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý khuyến mãi";
+}
+
+<div class="promo-admin">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="heroTitle">
+        <div>
+            <h1 id="heroTitle">Quản lý khuyến mãi</h1>
+            <p>Tạo mã giảm giá, kiểm soát hiệu lực và tự động tắt khuyến mãi đã hết hạn.</p>
+        </div>
+        <button class="admin-btn admin-btn-primary" id="btnAdd"><i class="fas fa-plus"></i> Tạo khuyến mãi</button>
+    </section>
+    
+    <!-- Stats Overview -->
+    <div class="section-title">
+        <h2>Thống kê khuyến mãi</h2>
+        <span>Realtime statistics</span>
+    </div>
+    <section class="admin-stats-grid" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-tags"></i></span>
+            <span class="stat-label">Tổng mã</span>
+            <div class="stat-value skeleton" id="sTotal">0</div>
+            <div class="stat-note">Tổng số khuyến mãi</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+            <span class="stat-label">Đang bật</span>
+            <div class="stat-value skeleton" id="sActive">0</div>
+            <div class="stat-note">Khuyến mãi đang active</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-history"></i></span>
+            <span class="stat-label">Hết hạn</span>
+            <div class="stat-value skeleton" id="sExpired">0</div>
+            <div class="stat-note">Khuyến mãi đã quá hạn</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-percent"></i></span>
+            <span class="stat-label">Discount TB</span>
+            <div class="stat-value skeleton" id="sAvg">0%</div>
+            <div class="stat-note">Mức giảm trung bình</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-fire"></i></span>
+            <span class="stat-label">Cao nhất</span>
+            <div class="stat-value skeleton" id="sMax">0%</div>
+            <div class="stat-note">Giảm giá tối đa</div>
+        </div>
+    </section>
+    
+    <!-- Toolbar Filters -->
+    <section class="admin-toolbar" aria-label="Bộ lọc khuyến mãi" style="grid-template-columns: minmax(260px, 1.2fr) repeat(3, 1fr);">
+        <div class="admin-field search-input">
+            <label for="q">Tìm kiếm</label>
+            <input class="admin-control" id="q" type="search" placeholder="Tìm tiêu đề, mã coupon..." aria-label="Tìm kiếm khuyến mãi" />
+        </div>
+        <div class="admin-field">
+            <label for="activeFilter">Trạng thái hoạt động</label>
+            <select class="admin-control" id="activeFilter" aria-label="Lọc theo trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option value="true">Đang bật</option>
+                <option value="false">Đang tắt</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="dateFilter">Trạng thái hiệu lực</label>
+            <select class="admin-control" id="dateFilter" aria-label="Lọc theo hiệu lực">
+                <option value="">Tất cả hiệu lực</option>
+                <option value="running">Đang chạy</option>
+                <option value="future">Sắp chạy</option>
+                <option value="expired">Hết hạn</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="discountFilter">Mức giảm giá</label>
+            <select class="admin-control" id="discountFilter" aria-label="Lọc theo mức giảm">
+                <option value="">Tất cả mức giảm</option>
+                <option value="small">1-20%</option>
+                <option value="medium">21-50%</option>
+                <option value="large">51-100%</option>
+            </select>
+        </div>
+    </section>
+    
+    <!-- Grid Data -->
+    <section class="admin-card">
+        <div class="panel-head p-3" style="border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
+            <h3 style="margin: 0; font-size: 15px; font-weight: 700;">Danh sách khuyến mãi</h3>
+            <span id="count" style="font-size: 13px; color: var(--admin-subtle);">Đang tải...</span>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Ảnh</th>
+                        <th><span class="sort-header" data-sort="title">Khuyến mãi <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 140px;"><span class="sort-header" data-sort="couponCode">Mã coupon <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 100px;"><span class="sort-header" data-sort="discount">Giảm <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 220px;"><span class="sort-header" data-sort="startDate">Hiệu lực <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 120px;"><span class="sort-header" data-sort="active">Trạng thái <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 120px;"><span class="sort-header" data-sort="createdAt">Ngày tạo <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 140px; text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="body">
+                    <tr>
+                        <td colspan="8"><div class="empty-state"><span>Đang tải khuyến mãi...</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span id="pageInfo">Trang 1</span>
+            <div class="page-buttons">
+                <button class="admin-btn admin-btn-secondary" id="prev" type="button" aria-label="Trang trước">Trước</button>
+                <button class="admin-btn admin-btn-secondary" id="next" type="button" aria-label="Trang sau">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modal Form -->
+<div class="admin-modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="modalTitle">Tạo khuyến mãi</h3>
+            <button class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" id="closeModal" type="button" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <form id="form">
+            <input type="hidden" id="docId" />
+            <div class="admin-modal-body">
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="title">Tiêu đề *</label>
+                        <input class="admin-control" id="title" required placeholder="Nhập tiêu đề khuyến mãi" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="couponCode">Mã coupon *</label>
+                        <input class="admin-control" id="couponCode" required placeholder="Ví dụ: GALAXY50" style="text-transform: uppercase;" />
+                    </div>
+                    <div class="admin-field full">
+                        <label for="description">Mô tả</label>
+                        <textarea class="admin-control" style="min-height: 80px; resize: vertical;" id="description" placeholder="Nhập mô tả khuyến mãi"></textarea>
+                    </div>
+                    <div class="admin-field full">
+                        <label for="imageUrl">Image URL</label>
+                        <input class="admin-control" id="imageUrl" placeholder="Nhập link hình ảnh" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="discount">Discount (%) *</label>
+                        <input class="admin-control" id="discount" type="number" min="0" max="100" value="10" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="active">Trạng thái ban đầu</label>
+                        <select class="admin-control" id="active">
+                            <option value="true">Đang bật</option>
+                            <option value="false">Đang tắt</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="startDate">Ngày bắt đầu</label>
+                        <input class="admin-control" id="startDate" type="date" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="endDate">Ngày kết thúc</label>
+                        <input class="admin-control" id="endDate" type="date" />
+                    </div>
+                </div>
+                <div class="preview" style="margin-top: 18px; padding: 0;">
+                    <div class="section-title" style="margin-bottom: 8px;">
+                        <h4 style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--admin-subtle);">Xem trước thẻ khuyến mãi</h4>
+                    </div>
+                    <div class="promo-preview">
+                        <img id="previewImg" src="" alt="" onerror="this.src='https://placehold.co/170x115/1e293b/f8fafc?text=AERO+Cinema'" />
+                        <div>
+                            <h4 id="previewTitle">Tên khuyến mãi</h4>
+                            <p id="previewDesc">Mô tả khuyến mãi</p>
+                            <span class="coupon" id="previewCode">AERO10</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="admin-btn admin-btn-secondary" type="button" id="cancelModal">Hủy</button>
+                <button class="admin-btn admin-btn-primary" type="submit">Lưu khuyến mãi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section scripts{
+<script type="module">
+import {collection,doc,onSnapshot,addDoc,updateDoc,deleteDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+const db=window.AeroAdmin?.db||window.db, toast=window.AeroAdmin?.toast||((t,a,b)=>alert(`${a}: ${b}`));
+const state={items:[],filtered:[],page:1,size:8,sortKey:"createdAt",sortDirection:"desc",expired:new Set(),unsub:null};
+const $=id=>document.getElementById(id), el={q:$("q"),active:$("activeFilter"),date:$("dateFilter"),discount:$("discountFilter"),body:$("body"),count:$("count"),page:$("pageInfo"),prev:$("prev"),next:$("next"),modal:$("modal"),form:$("form")};
+const norm=v=>String(v||"").trim().toLowerCase(), safe=(v,f="-")=>v===undefined||v===null||v===""?f:v, toDate=v=>v?.toDate?v.toDate():(v?new Date(v):null), fmt=v=>{const d=toDate(v);return d&&!isNaN(d)?d.toLocaleDateString("vi-VN"):"-"}, today=()=>new Date(new Date().toDateString()), load=s=>window.AeroAdmin?.showLoader?.(s,"Đang xử lý...");
+function period(x){const n=today(),s=toDate(x.startDate),e=toDate(x.endDate);if(s&&s>n)return"future";if(e&&e<n)return"expired";return"running"}
+function band(v){v=Number(v||0);if(v<=20)return"small";if(v<=50)return"medium";return"large"}
+async function autoExpire(){for(const x of state.items){if(x.active===true&&period(x)==="expired"&&!state.expired.has(x.id)){state.expired.add(x.id);try{await updateDoc(doc(db,"promotions",x.id),{active:false,updatedAt:serverTimestamp()})}catch(e){console.warn("auto inactive failed",e)}}}}
+function stats(){
+    const a=state.items, ds=a.map(x=>Number(x.discount||0));
+    setTextElement("sTotal",a.length);
+    setTextElement("sActive",a.filter(x=>x.active===true).length);
+    setTextElement("sExpired",a.filter(x=>period(x)==="expired").length);
+    setTextElement("sAvg",(a.length?Math.round(ds.reduce((s,v)=>s+v,0)/a.length):0)+"%");
+    setTextElement("sMax",(Math.max(0,...ds))+"%");
+}
+function setTextElement(id, value) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.innerText = value;
+        el.classList.remove("skeleton");
+    }
+}
+
+function sortData() {
+    const key = state.sortKey;
+    const dir = state.sortDirection === "asc" ? 1 : -1;
+    state.filtered.sort((a, b) => {
+        let valA = a[key];
+        let valB = b[key];
+        if (key === "createdAt" || key === "updatedAt" || key === "startDate" || key === "endDate") {
+            valA = toDate(valA)?.getTime() || 0;
+            valB = toDate(valB)?.getTime() || 0;
+        } else if (typeof valA === "string") {
+            valA = valA.toLowerCase();
+            valB = String(valB || "").toLowerCase();
+        } else {
+            valA = Number(valA || 0);
+            valB = Number(valB || 0);
+        }
+        if (valA < valB) return -1 * dir;
+        if (valA > valB) return 1 * dir;
+        return 0;
+    });
+}
+
+function filter(){
+    const q=norm(el.q.value);
+    state.filtered=state.items.filter(x=>{
+        const text=norm([x.title,x.description,x.couponCode].join(" "));
+        return(!q||text.includes(q))&&
+              (!el.active.value||String(x.active)===el.active.value)&&
+              (!el.date.value||period(x)===el.date.value)&&
+              (!el.discount.value||band(x.discount)===el.discount.value);
+    });
+    sortData();
+    const max=Math.max(1,Math.ceil(state.filtered.length/state.size));
+    if(state.page>max)state.page=max;
+    render();
+}
+function render(){
+    const start=(state.page-1)*state.size,items=state.filtered.slice(start,start+state.size),max=Math.max(1,Math.ceil(state.filtered.length/state.size));
+    el.count.innerText=`Hiển thị ${start + 1}-${Math.min(start + state.size, state.filtered.length)} trên ${state.filtered.length} khuyến mãi`;
+    el.page.innerText=`Trang ${state.page}/${max}`;
+    el.prev.disabled=state.page<=1;
+    el.next.disabled=state.page>=max;
+    if(!items.length){
+        el.body.innerHTML='<tr><td colspan="8"><div class="empty-state"><span>Không có khuyến mãi phù hợp.</span></div></td></tr>';
+        return;
+    }
+    el.body.innerHTML=items.map(x=>{
+        let badgeClass = "warning";
+        let statusText = "Tắt";
+        if (period(x) === "expired") {
+            badgeClass = "danger";
+            statusText = "Hết hạn";
+        } else if (x.active === true) {
+            badgeClass = "success";
+            statusText = "Bật";
+        }
+        const imgUrl = safe(x.imageUrl, "");
+        const fallbackImg = "https://placehold.co/170x115/1e293b/f8fafc?text=AERO+Cinema";
+        return `<tr>
+            <td data-label="Ảnh"><img class="thumb" src="${imgUrl}" alt="${safe(x.title)}" onerror="this.src='${fallbackImg}'"></td>
+            <td data-label="Khuyến mãi">
+                <div class="main">
+                    <strong>${safe(x.title)}</strong>
+                    <span style="font-size:12px;color:var(--admin-subtle);">${safe(x.description,"Không có mô tả")}</span>
+                </div>
+            </td>
+            <td data-label="Mã coupon"><span class="coupon">${safe(x.couponCode)}</span></td>
+            <td data-label="Giảm"><strong>${Number(x.discount||0)}%</strong></td>
+            <td data-label="Hiệu lực">${fmt(x.startDate)} - ${fmt(x.endDate)}</td>
+            <td data-label="Trạng thái"><span class="admin-badge ${badgeClass}">${statusText}</span></td>
+            <td data-label="Ngày tạo">${fmt(x.createdAt)}</td>
+            <td data-label="Hành động" class="action-col">
+                <div class="admin-actions">
+                    <button type="button" class="admin-icon-btn approve btn-toggle" data-id="${x.id}" title="Bật/tắt hoạt động" style="color:var(--admin-success);"><i class="fas fa-power-off"></i></button>
+                    <button type="button" class="admin-icon-btn btn-edit" data-id="${x.id}" title="Sửa" style="color:var(--admin-warning);"><i class="fas fa-pen"></i></button>
+                    <button type="button" class="admin-icon-btn reject btn-delete" data-id="${x.id}" title="Xóa"><i class="fas fa-trash"></i></button>
+                </div>
+            </td>
+        </tr>`;
+    }).join("");
+
+    // Bind action events
+    el.body.querySelectorAll(".btn-toggle").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = state.items.find(x => x.id === btn.dataset.id);
+            if (item) toggle(item);
+        });
+    });
+    el.body.querySelectorAll(".btn-edit").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = state.items.find(x => x.id === btn.dataset.id);
+            if (item) openForm(item);
+        });
+    });
+    el.body.querySelectorAll(".btn-delete").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = state.items.find(x => x.id === btn.dataset.id);
+            if (item) remove(item);
+        });
+    });
+}
+function preview(){
+    const url = $("imageUrl").value.trim();
+    $("previewImg").src = url || "https://placehold.co/170x115/1e293b/f8fafc?text=AERO+Cinema";
+    $("previewTitle").innerText=$("title").value.trim()||"Tên khuyến mãi";
+    $("previewDesc").innerText=$("description").value.trim()||"Mô tả khuyến mãi";
+    $("previewCode").innerText=$("couponCode").value.trim().toUpperCase()||"AERO10";
+}
+function openForm(item){
+    el.form.reset();
+    $("docId").value=item?.id||"";
+    $("modalTitle").innerText=item?"Sửa khuyến mãi":"Tạo khuyến mãi";
+    $("title").value=item?.title||"";
+    $("description").value=item?.description||"";
+    $("imageUrl").value=item?.imageUrl||"";
+    $("discount").value=item?.discount??10;
+    $("couponCode").value=item?.couponCode||"";
+    $("active").value=String(item?.active??true);
+    $("startDate").value=item?.startDate||"";
+    $("endDate").value=item?.endDate||"";
+    preview();
+    openModal();
+}
+function openModal() {
+    el.modal.classList.add("show");
+    document.body.style.overflow = "hidden";
+}
+function closeModal(){
+    el.modal.classList.remove("show");
+    document.body.style.overflow = "";
+}
+function data(){
+    return {
+        title:$("title").value.trim(),
+        description:$("description").value.trim(),
+        imageUrl:$("imageUrl").value.trim(),
+        discount:Number($("discount").value||0),
+        couponCode:$("couponCode").value.trim().toUpperCase(),
+        active:$("active").value==="true",
+        startDate:$("startDate").value,
+        endDate:$("endDate").value,
+        updatedAt:serverTimestamp()
+    };
+}
+function validate(v,id){
+    if(!v.title)return"Tiêu đề bắt buộc.";
+    if(!v.couponCode)return"Mã coupon bắt buộc.";
+    if(v.discount<0||v.discount>100)return"Discount phải từ 0 đến 100.";
+    if(v.startDate&&v.endDate&&new Date(v.startDate)>new Date(v.endDate))return"Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.";
+    if(state.items.some(x=>x.id!==id&&norm(x.couponCode)===norm(v.couponCode)))return"Mã coupon không được trùng lặp.";
+    return "";
+}
+async function save(e){
+    e.preventDefault();
+    const id=$("docId").value,v=data(),err=validate(v,id);
+    if(err){
+        toast("error","Dữ liệu chưa hợp lệ",err);
+        return;
+    }
+    load(true);
+    try{
+        if(id){
+            const old=state.items.find(x=>x.id===id);
+            await updateDoc(doc(db,"promotions",id),v);
+            await window.AeroAdmin?.logActivity?.("update_promotion","promotions",id,old,v);
+        }else{
+            v.createdAt=serverTimestamp();
+            const ref=await addDoc(collection(db,"promotions"),v);
+            await window.AeroAdmin?.logActivity?.("create_promotion","promotions",ref.id,null,v);
+        }
+        closeModal();
+        toast("success","Đã lưu khuyến mãi","Mã giảm giá đã được cập nhật thành công.");
+    }catch(e){
+        toast("error","Không thể lưu khuyến mãi",e.message);
+    }finally{
+        load(false);
+    }
+}
+async function remove(item){
+    const result = await Swal.fire({
+        title: "Xóa khuyến mãi?",
+        text: `Bạn có chắc chắn muốn xóa khuyến mãi "${item.title || item.id}"? Hành động này không thể hoàn tác.`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#ef4444",
+        cancelButtonColor: "#475569",
+        confirmButtonText: "Xóa",
+        cancelButtonText: "Hủy"
+    });
+    if (!result.isConfirmed) return;
+    load(true);
+    try{
+        await deleteDoc(doc(db,"promotions",item.id));
+        await window.AeroAdmin?.logActivity?.("delete_promotion","promotions",item.id,item,null);
+        toast("success","Đã xóa khuyến mãi","Dữ liệu đã được xóa khỏi hệ thống.");
+    }catch(e){
+        toast("error","Không thể xóa",e.message);
+    }finally{
+        load(false);
+    }
+}
+async function toggle(item){
+    const targetState = !item.active;
+    const actionText = targetState ? "bật" : "tắt";
+    const result = await Swal.fire({
+        title: `${targetState ? "Bật" : "Tắt"} khuyến mãi?`,
+        text: `Bạn có chắc chắn muốn ${actionText} khuyến mãi "${item.title || item.id}"?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#f97316",
+        cancelButtonColor: "#475569",
+        confirmButtonText: "Đồng ý",
+        cancelButtonText: "Hủy"
+    });
+    if (!result.isConfirmed) return;
+
+    load(true);
+    try{
+        await updateDoc(doc(db,"promotions",item.id),{active:targetState,updatedAt:serverTimestamp()});
+        await window.AeroAdmin?.logActivity?.("update_promotion","promotions",item.id,item,{active:targetState});
+        toast("success","Đã cập nhật trạng thái",`Khuyến mãi đã được ${actionText} thành công.`);
+    }catch(e){
+        toast("error","Không thể cập nhật",e.message);
+    }finally{
+        load(false);
+    }
+}
+
+function handleSorting(event) {
+    const header = event.target.closest(".sort-header");
+    if (!header) return;
+    const key = header.dataset.sort;
+    if (state.sortKey === key) {
+        state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+    } else {
+        state.sortKey = key;
+        state.sortDirection = "asc";
+    }
+    document.querySelectorAll(".sort-header i").forEach(icon => {
+        icon.className = "fas fa-sort";
+    });
+    const activeIcon = header.querySelector("i");
+    if (activeIcon) {
+        activeIcon.className = state.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+    }
+    filter();
+}
+
+function bind(){
+    ["title","description","imageUrl","couponCode"].forEach(id=>$(id).addEventListener("input",preview));
+    $("btnAdd").onclick=()=>openForm(null);
+    $("closeModal").onclick=closeModal;
+    $("cancelModal").onclick=closeModal;
+    el.form.addEventListener("submit",save);
+    
+    document.querySelectorAll(".sort-header").forEach(header => {
+        header.addEventListener("click", handleSorting);
+    });
+
+    [el.q,el.active,el.date,el.discount].forEach(x=>{
+        x.addEventListener("input",()=>{state.page=1;filter()});
+        x.addEventListener("change",()=>{state.page=1;filter()})
+    });
+    el.prev.onclick=()=>{if(state.page>1){state.page--;render()}};
+    el.next.onclick=()=>{const max=Math.max(1,Math.ceil(state.filtered.length/state.size));if(state.page<max){state.page++;render()}};
+    
+    // Close modal on escape key
+    window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            closeModal();
+        }
+    });
+
+    // Close modal on click outside modal panel
+    el.modal.addEventListener("click", (e) => {
+        if (e.target === el.modal) {
+            closeModal();
+        }
+    });
+}
+function attach(){
+    state.unsub?.();
+    state.unsub=onSnapshot(collection(db,"promotions"),async s=>{
+        state.items=s.docs.map(d=>({id:d.id,...d.data()}));
+        await autoExpire();
+        stats();
+        filter();
+    },e=>toast("error","Không thể tải promotions",e.message));
+}
+bind();
+window.addEventListener("aero-admin-ready",attach,{once:true});
+if(window.AeroAdmin?.state?.ready)attach();
+window.addEventListener("beforeunload",()=>state.unsub?.());
+</script>
+}

@@ -1,0 +1,549 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý thanh toán";
+}
+
+<div class="pay-page">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="payHeroTitle">
+        <div>
+            <h1 id="payHeroTitle">Quản lý thanh toán</h1>
+            <p>Kiểm tra hóa đơn giao dịch, duyệt thanh toán cho các hóa đơn chờ xử lý, hoặc từ chối giao dịch để giải phóng ghế đặt vé.</p>
+        </div>
+    </section>
+
+    <!-- Stats Overview -->
+    <section class="admin-stats-grid" aria-label="Thống kê thanh toán">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-receipt"></i></span>
+            <span class="stat-label">Tổng giao dịch</span>
+            <strong class="stat-value skeleton" id="sTotal">0</strong>
+            <span class="stat-note">Đã được ghi nhận</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-coins"></i></span>
+            <span class="stat-label">Tổng doanh thu</span>
+            <strong class="stat-value skeleton" id="sRevenue">0đ</strong>
+            <span class="stat-note">Thực thu thành công</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-clock"></i></span>
+            <span class="stat-label">Chờ xử lý</span>
+            <strong class="stat-value skeleton" id="sPending">0</strong>
+            <span class="stat-note">Giao dịch pending</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+            <span class="stat-label">Thành công</span>
+            <strong class="stat-value skeleton" id="sPaid">0</strong>
+            <span class="stat-note">Giao dịch paid</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-times-circle"></i></span>
+            <span class="stat-label">Đã từ chối</span>
+            <strong class="stat-value skeleton" id="sRejected">0</strong>
+            <span class="stat-note">Giao dịch rejected</span>
+        </div>
+    </section>
+
+    <!-- Toolbar Filters -->
+    <section class="admin-toolbar" aria-label="Bộ lọc thanh toán">
+        <div class="admin-field search-input" style="grid-column: span 2;">
+            <label for="paySearch">Tìm kiếm giao dịch</label>
+            <input type="search" class="admin-control" id="paySearch" placeholder="Tìm theo mã giao dịch, mã booking, khách hàng..." aria-label="Tìm kiếm thanh toán" />
+        </div>
+        <div class="admin-field">
+            <label for="payMethod">Phương thức</label>
+            <select class="admin-control" id="payMethod" aria-label="Lọc theo phương thức">
+                <option value="">Tất cả phương thức</option>
+                <option>MB Bank</option>
+                <option>Momo</option>
+                <option>VNPay</option>
+                <option>Cash</option>
+                <option value="qr">qr</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="payStatus">Trạng thái</label>
+            <select class="admin-control" id="payStatus" aria-label="Lọc theo trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option>pending</option>
+                <option>paid</option>
+                <option>rejected</option>
+                <option>success</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- Data Grid -->
+    <section class="admin-card">
+        <div class="section-head" style="padding:16px 20px; border-bottom:1px solid var(--admin-border); display:flex; align-items:center; justify-content:space-between;">
+            <h2 style="margin:0; font-size:15px; font-weight:800; color:var(--admin-text);">Danh sách thanh toán</h2>
+            <span id="payCount" style="font-size:12px; color:var(--admin-subtle); font-weight:600;">Đang tải...</span>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th><span class="sort-header" data-sort="transactionCode">Mã giao dịch <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="bookingId">Mã booking <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="userId">Khách hàng <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="amount">Số tiền <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="method">Phương thức <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="status">Trạng thái <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="createdAt">Ngày tạo <i class="fas fa-sort"></i></span></th>
+                        <th class="action-col" style="text-align: right; width: 140px;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="payBody">
+                    <tr>
+                        <td colspan="8"><div class="empty-state"><span>Đang tải thanh toán...</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span id="payPageInfo">Trang 1 / 1</span>
+            <div class="page-buttons">
+                <button class="admin-btn admin-btn-secondary" id="payPrev" type="button">Trước</button>
+                <button class="admin-btn admin-btn-secondary" id="payNext" type="button">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Details Modal -->
+<div class="admin-modal" id="payDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="payModalTitle">Chi tiết giao dịch thanh toán</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="payDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body" id="payDetailBody"></div>
+        <div class="admin-modal-footer">
+            <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="payDetailModal">Đóng</button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import {
+            collection,
+            doc,
+            onSnapshot,
+            updateDoc,
+            runTransaction,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.AeroAdmin?.db || window.db;
+        const toast = window.AeroAdmin?.toast || ((type, title, msg) => alert(`${title}: ${msg}`));
+
+        const state = {
+            payments: [],
+            bookings: [],
+            tickets: [],
+            filtered: [],
+            page: 1,
+            size: 10,
+            sortKey: "createdAt",
+            sortDirection: "desc",
+            unsubs: []
+        };
+
+        const el = {
+            search: document.getElementById("paySearch"),
+            method: document.getElementById("payMethod"),
+            status: document.getElementById("payStatus"),
+            body: document.getElementById("payBody"),
+            count: document.getElementById("payCount"),
+            pageInfo: document.getElementById("payPageInfo"),
+            prev: document.getElementById("payPrev"),
+            next: document.getElementById("payNext"),
+            detailModal: document.getElementById("payDetailModal"),
+            detailBody: document.getElementById("payDetailBody")
+        };
+
+        const norm = v => String(v || "").trim().toLowerCase();
+        const safe = (v, f = "-") => v === undefined || v === null || v === "" ? f : v;
+        const money = v => Number(v || 0).toLocaleString("vi-VN") + "đ";
+        const toDate = v => v?.toDate ? v.toDate() : (v ? new Date(v) : null);
+        const fmtDate = v => {
+            const x = toDate(v);
+            return x && !isNaN(x) ? x.toLocaleString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }) : "-";
+        };
+
+        function showLoading(show) {
+            window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
+        }
+
+        const booking = id => state.bookings.find(b => b.id === id);
+        const relatedTickets = id => state.tickets.filter(t => t.bookingId === id);
+
+        function updateStats() {
+            setTextElement("sTotal", state.payments.length);
+            setTextElement("sRevenue", money(state.payments.filter(p => norm(p.status) === "paid").reduce((s, p) => s + Number(p.amount || 0), 0)));
+            setTextElement("sPending", state.payments.filter(p => ["pending", ""].includes(norm(p.status))).length);
+            setTextElement("sPaid", state.payments.filter(p => norm(p.status) === "paid").length);
+            setTextElement("sRejected", state.payments.filter(p => ["rejected", "cancelled"].includes(norm(p.status))).length);
+        }
+
+        function setTextElement(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerText = value;
+                element.classList.remove("skeleton");
+            }
+        }
+
+        function sortFilteredPayments() {
+            const key = state.sortKey;
+            const dir = state.sortDirection === "asc" ? 1 : -1;
+
+            state.filtered.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                if (key === "createdAt" || key === "updatedAt") {
+                    valA = toDate(valA)?.getTime() || 0;
+                    valB = toDate(valB)?.getTime() || 0;
+                } else if (typeof valA === "string") {
+                    valA = valA.toLowerCase();
+                    valB = String(valB || "").toLowerCase();
+                } else {
+                    valA = Number(valA || 0);
+                    valB = Number(valB || 0);
+                }
+
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+        }
+
+        function filterData() {
+            const q = norm(el.search.value);
+            state.filtered = state.payments.filter(p => {
+                const text = norm([p.id, p.bookingId, p.userId, p.transactionCode].join(" "));
+                return (!q || text.includes(q))
+                    && (!el.method.value || norm(p.method) === norm(el.method.value))
+                    && (!el.status.value || norm(p.status) === norm(el.status.value));
+            });
+
+            sortFilteredPayments();
+
+            const max = Math.max(1, Math.ceil(state.filtered.length / state.size));
+            if (state.page > max) state.page = max;
+            renderTable();
+        }
+
+        function renderTable() {
+            const start = (state.page - 1) * state.size;
+            const items = state.filtered.slice(start, start + state.size);
+            const max = Math.max(1, Math.ceil(state.filtered.length / state.size));
+            el.count.innerText = `${state.filtered.length} giao dịch`;
+            el.pageInfo.innerText = `Trang ${state.page}/${max}`;
+            el.prev.disabled = state.page <= 1;
+            el.next.disabled = state.page >= max;
+
+            if (!items.length) {
+                el.body.innerHTML = '<tr><td colspan="8"><div class="empty-state"><span>Không tìm thấy giao dịch phù hợp.</span></div></td></tr>';
+                return;
+            }
+
+            el.body.innerHTML = items.map(p => {
+                const s = norm(p.status || "pending");
+                const isPending = s === "pending";
+                const isPaid = s === "paid";
+                const isRejected = s === "rejected" || s === "cancelled";
+
+                const approveDis = !isPending ? "disabled" : "";
+                const rejectDis = !isPending ? "disabled" : "";
+
+                const badgeClass = isPaid ? "success" : (isRejected ? "danger" : (isPending ? "warning" : "secondary"));
+                const bk = booking(p.bookingId);
+
+                return `<tr>
+                    <td data-label="Mã giao dịch"><div class="main"><strong>${safe(p.transactionCode, p.id.substring(0, 8) + '...')}</strong><span>${p.id}</span></div></td>
+                    <td data-label="Mã booking">${safe(p.bookingId)}</td>
+                    <td data-label="Khách hàng">${safe(p.userId || bk?.userEmail)}</td>
+                    <td data-label="Số tiền"><strong>${money(p.amount)}</strong></td>
+                    <td data-label="Phương thức">${safe(p.method)}</td>
+                    <td data-label="Trạng thái"><span class="admin-badge ${badgeClass}">${safe(p.status, "pending")}</span></td>
+                    <td data-label="Ngày tạo">${fmtDate(p.createdAt)}</td>
+                    <td data-label="Hành động" class="action-col">
+                        <div class="admin-actions">
+                            <button type="button" class="admin-icon-btn view" data-action="view" data-id="${p.id}" title="Xem chi tiết thanh toán" aria-label="Xem chi tiết thanh toán"><i class="fas fa-eye"></i></button>
+                            <button type="button" class="admin-icon-btn approve" data-action="approve" data-id="${p.id}" title="Xác nhận thanh toán" aria-label="Xác nhận thanh toán" ${approveDis}><i class="fas fa-check"></i></button>
+                            <button type="button" class="admin-icon-btn reject" data-action="reject" data-id="${p.id}" title="Từ chối thanh toán" aria-label="Từ chối thanh toán" ${rejectDis}><i class="fas fa-times"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join("");
+        }
+
+        function openModal(id) {
+            const m = document.getElementById(id);
+            m.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            m.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+
+        async function approvePayment(p) {
+            if (norm(p.status) !== "pending") {
+                toast("warning", "Không thể xử lý", "Giao dịch này đã được xử lý.");
+                return;
+            }
+
+            const res = await Swal.fire({
+                title: "Duyệt giao dịch thanh toán?",
+                text: "Booking và vé tương ứng sẽ tự động chuyển sang trạng thái sẵn sàng sử dụng.",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "var(--admin-primary)",
+                cancelButtonColor: "var(--admin-subtle)",
+                confirmButtonText: "Đồng ý",
+                cancelButtonText: "Hủy"
+            });
+
+            if (!res.isConfirmed) return;
+
+            showLoading(true);
+            try {
+                await runTransaction(db, async tx => {
+                    tx.update(doc(db, "payments", p.id), { status: "paid", updatedAt: serverTimestamp() });
+                    if (p.bookingId)
+                        tx.update(doc(db, "bookings", p.bookingId), { status: "paid", updatedAt: serverTimestamp() });
+                    relatedTickets(p.bookingId).forEach(t =>
+                        tx.update(doc(db, "tickets", t.id), { status: "unused", updatedAt: serverTimestamp() }));
+                });
+                await window.AeroAdmin?.logActivity?.("approve_payment", "payments", p.id, p, { status: "paid" });
+                toast("success", "Đã xác nhận", "Booking đã chuyển paid, ticket chuyển unused.");
+            } catch (e) {
+                console.error(e);
+                toast("error", "Không thể xác nhận", e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function rejectPayment(p) {
+            if (norm(p.status) !== "pending") {
+                toast("warning", "Không thể xử lý", "Giao dịch này đã được xử lý.");
+                return;
+            }
+
+            const res = await Swal.fire({
+                title: "Từ chối thanh toán?",
+                text: "Booking và vé xem phim tương ứng sẽ bị hủy. Các ghế ngồi đã chọn sẽ được trả lại trạng thái trống.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "var(--admin-danger)",
+                cancelButtonColor: "var(--admin-subtle)",
+                confirmButtonText: "Từ chối",
+                cancelButtonText: "Hủy"
+            });
+
+            if (!res.isConfirmed) return;
+
+            showLoading(true);
+            try {
+                const bk = booking(p.bookingId) || {};
+                const seatList = (Array.isArray(bk.seats) ? bk.seats
+                    : String(bk.seats || "").split(","))
+                    .map(x => String(x).trim().toUpperCase()).filter(Boolean);
+
+                await runTransaction(db, async tx => {
+                    if (bk.showtimeId) {
+                        const stRef = doc(db, "showtimes", bk.showtimeId);
+                        const stSnap = await tx.get(stRef);
+                        if (stSnap.exists()) {
+                            const sold = Array.isArray(stSnap.data().soldSeats)
+                                ? stSnap.data().soldSeats.map(s => String(s).toUpperCase()) : [];
+                            tx.update(stRef, { soldSeats: sold.filter(s => !seatList.includes(s)), updatedAt: serverTimestamp() });
+                        }
+                    }
+                    tx.update(doc(db, "payments", p.id), { status: "rejected", updatedAt: serverTimestamp() });
+                    if (p.bookingId)
+                        tx.update(doc(db, "bookings", p.bookingId), { status: "cancelled", updatedAt: serverTimestamp() });
+                    relatedTickets(p.bookingId).forEach(t =>
+                        tx.update(doc(db, "tickets", t.id), { status: "cancelled", updatedAt: serverTimestamp() }));
+                });
+                await window.AeroAdmin?.logActivity?.("reject_payment", "payments", p.id, p, { status: "rejected", returnedSeats: seatList });
+                toast("success", "Đã từ chối", "Booking và vé đã hủy, ghế trả về lịch chiếu.");
+            } catch (e) {
+                console.error(e);
+                toast("error", "Không thể từ chối", e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function viewDetail(p) {
+            const bk = booking(p.bookingId) || {};
+            const info = [
+                ["Mã tài liệu ID", p.id],
+                ["Mã Giao dịch", safe(p.transactionCode)],
+                ["Mã Đặt vé (Booking ID)", safe(p.bookingId)],
+                ["Tài khoản", safe(p.userId || bk.userEmail)],
+                ["Số tiền", money(p.amount)],
+                ["Phương thức", safe(p.method)],
+                ["Trạng thái", safe(p.status, "pending")],
+                ["Thời gian tạo", fmtDate(p.createdAt)],
+                ["Thời gian sửa", fmtDate(p.updatedAt)]
+            ];
+
+            el.detailBody.innerHTML = `
+                <div class="detail-grid">
+                    ${info.map(([k, v]) => `
+                        <div class="detail-item">
+                            <span>${k}</span>
+                            <strong>${v}</strong>
+                        </div>
+                    `).join("")}
+                </div>
+            `;
+            openModal("payDetailModal");
+        }
+
+        // Sorting trigger
+        function handleSorting(event) {
+            const header = event.target.closest(".sort-header");
+            if (!header) return;
+
+            const key = header.dataset.sort;
+            if (state.sortKey === key) {
+                state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+            } else {
+                state.sortKey = key;
+                state.sortDirection = "asc";
+            }
+
+            // Update all sorting icons
+            document.querySelectorAll(".sort-header i").forEach(icon => {
+                icon.className = "fas fa-sort";
+            });
+            const activeIcon = header.querySelector("i");
+            if (activeIcon) {
+                activeIcon.className = state.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+            }
+
+            filterData();
+        }
+
+        function bindEvents() {
+            // Table headers sorting
+            document.querySelectorAll(".sort-header").forEach(header => {
+                header.addEventListener("click", handleSorting);
+            });
+
+            [el.search, el.method, el.status].forEach(x => {
+                x.addEventListener("input", () => {
+                    state.page = 1;
+                    filterData();
+                });
+                x.addEventListener("change", () => {
+                    state.page = 1;
+                    filterData();
+                });
+            });
+
+            el.prev.addEventListener("click", () => {
+                if (state.page > 1) {
+                    state.page--;
+                    renderTable();
+                }
+            });
+
+            el.next.addEventListener("click", () => {
+                const max = Math.max(1, Math.ceil(state.filtered.length / state.size));
+                if (state.page < max) {
+                    state.page++;
+                    renderTable();
+                }
+            });
+
+            document.addEventListener("click", e => {
+                const close = e.target.closest("[data-close-modal]");
+                if (close) {
+                    closeModal(close.dataset.closeModal);
+                    return;
+                }
+                const btn = e.target.closest("[data-action]");
+                if (!btn || btn.disabled) return;
+                const p = state.payments.find(x => x.id === btn.dataset.id);
+                if (!p) return;
+
+                if (btn.dataset.action === "view") viewDetail(p);
+                if (btn.dataset.action === "approve") approvePayment(p);
+                if (btn.dataset.action === "reject") rejectPayment(p);
+            });
+
+            // Modal overlay click to close
+            document.querySelectorAll(".admin-modal").forEach(modal => {
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+
+            // ESC key to close modals
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    document.querySelectorAll(".admin-modal.show").forEach(m => closeModal(m.id));
+                }
+            });
+        }
+
+        function attachRealtime() {
+            state.unsubs.forEach(u => u());
+            state.unsubs = [
+                onSnapshot(collection(db, "payments"),
+                    s => {
+                        state.payments = s.docs.map(d => ({
+                            id: d.id,
+                            ...d.data()
+                        }));
+                        updateStats();
+                        filterData();
+                    },
+                    e => toast("error", "Không thể tải payments", e.message)),
+                onSnapshot(collection(db, "bookings"),
+                    s => {
+                        state.bookings = s.docs.map(d => ({
+                            id: d.id,
+                            ...d.data()
+                        }));
+                        renderTable();
+                    },
+                    e => console.warn(e)),
+                onSnapshot(collection(db, "tickets"),
+                    s => {
+                        state.tickets = s.docs.map(d => ({
+                            id: d.id,
+                            ...d.data()
+                        }));
+                    },
+                    e => console.warn(e))
+            ];
+        }
+
+        bindEvents();
+        window.addEventListener("aero-admin-ready", attachRealtime, { once: true });
+        if (window.AeroAdmin?.state?.ready) attachRealtime();
+        window.addEventListener("beforeunload", () => state.unsubs.forEach(u => u()));
+    </script>
+}

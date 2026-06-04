@@ -1,0 +1,467 @@
+﻿@{
+    Response.ContentEncoding = System.Text.Encoding.UTF8;
+    Response.Charset = "utf-8";
+
+    var pageTitle = ViewBag.Title != null ? ViewBag.Title.ToString() : "Quáº£n trá»‹";
+    var actionName = "";
+
+    if (ViewContext != null &&
+        ViewContext.RouteData != null &&
+        ViewContext.RouteData.Values["action"] != null)
+    {
+        actionName = ViewContext.RouteData.Values["action"].ToString();
+    }
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>@pageTitle - AERO Admin</title>
+    <script>
+        (function () {
+            var theme = "dark";
+            try {
+                var storedTheme = localStorage.getItem("admin_theme");
+                var storedDefault = localStorage.getItem("admin_theme_default");
+                if (storedTheme === "dark" || storedTheme === "light") {
+                    theme = storedTheme;
+                } else if (storedDefault === "dark" || storedDefault === "light") {
+                    theme = storedDefault;
+                }
+            } catch (error) { }
+
+            document.documentElement.setAttribute("data-admin-theme", theme);
+            doc
+        }
+
+        .aero-admin-content :where(.wrap, .admin-table-wrap, .movies-table-wrap, .cinema-table-wrap, .room-table-wrap, [class*="-table-wrap"]) {
+            max-width: 100%;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .aero-admin-content :where(th) {
+            background: var(--aero-admin-soft) !important;
+            color: var(--aero-admin-subtle) !important;
+            border-color: var(--aero-admin-border) !important;
+        }
+
+        .aero-admin-content :where(td) {
+            border-color: var(--aero-admin-border) !important;
+        }
+
+        .aero-admin-content :where(tbody tr:hover) {
+            background: var(--aero-admin-row-hover) !important;
+        }
+
+        .aero-admin-content :where(.actions, .hero-actions, .export-actions, .modal-actions, .movie-modal-foot, .admin-modal-foot, .modal-foot, .pager > div) {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .aero-admin-content :where(button, .btn, .btn-soft, .btn-primary-admin, .icon, .icon-btn) {
+            min-height: 40px;
+            touch-action: manipulation;
+        }
+
+        .aero-admin-content :where(img, canvas, video) {
+            max-width: 100%;
+        }
+
+        .aero-admin-content :where(img) {
+            object-fit: cover;
+        }
+
+        .aero-admin-content :where(.chart, .chart-box) {
+            min-height: 260px;
+            max-width: 100%;
+            overflow: hidden;
+            overflow: hidden;
+            color: var(--aero-admin-text);
+        }
+
+        .aero-admin-content :where(.chart canvas, .chart-box canvas) {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .aero-admin-content :where(.overlay, .modal, .modal-layer, .admin-modal, .movie-modal) {
+            padding: 16px !important;
+            background: var(--aero-admin-overlay) !important;
+        }
+
+        .aero-admin-content :where(.modal, .modal-layer, .admin-modal, .movie-modal).show,
+        .aero-admin-content :where(.overlay).show {
+            align-items: center;
+            justify-content: center;
+        }
+
+        .aero-admin-content :where(.modal > *, .modal-panel, .admin-modal-panel, .movie-modal-panel) {
+            max-width: min(1100px, 100%) !important;
+            max-height: min(90vh, 920px) !important;
+            overflow: hidden !important;
+        }
+
+        .aero-admin-content :where(.modal-head, .admin-modal-head, .movie-modal-head) {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            border-color: var(--aero-admin-border) !important;
+            background: var(--aero-admin-card) !important;
+        }
+
+        .aero-admin-content :where(.modal-foot, .admin-mod
+                    background: rgba(220, 38, 38, 0.14) !important;
+                    color: #b91c1c !important;
+                }
+
+                html[data-theme="dark"] .aero-admin-content :where(.status-pill.pending, .status-badge.pending, .status-pill.coming_soon, .status-badge.coming_soon) {
+                    color: #fbbf24 !important;
+                }
+
+                html[data-theme="dark"] .aero-admin-content :where(.status-pill.paid, .status-pill.completed, .status-pill.success, .status-pill.active, .status-pill.now_showing, .status-badge.paid, .status-badge.completed, .status-badge.success, .status-badge.active, .status-badge.now_showing) {
+                    color: #86efac !important;
+                }
+
+                html[data-theme="dark"] .aero-admin-content :where(.status-pill.cancelled, .status-pill.canceled, .status-pill.rejected, .status-pill.inactive, .status-pill.hidden, .status-badge.cancelled, .status-badge.canceled, .status-badge.rejected, .status-badge.inactive, .status-badge.hidden) {
+                    color: #fca5a5 !important;
+                }
+            </style>
+        </section>
+    </div>
+
+    <div id="adminToastHost" class="aero-admin-toast-host" aria-live="polite"></div>
+
+    <script src="@Url.Content("~/Scripts/firebase-config.js")"></script>
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            getDoc,
+            collection,
+            addDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const app = getApps().length ? getApp() : initializeApp(window.firebaseConfig);
+        const auth = window.auth || getAuth(app);
+        const db = window.db || getFirestore(app);
+
+        window.firebaseApp = app;
+        window.auth = auth;
+        window.db = db;
+
+        const adminState = {
+            currentUser: null,
+            adminProfile: null,
+            ready: false,
+            theme: window.__AERO_ADMIN_INITIAL_THEME__ || "dark"
+        };
+
+        const THEME_STORAGE_KEY = "admin_theme";
+        const DEFAULT_THEME_STORAGE_KEY = "admin_theme_default";
+        const activeToastTimers = new WeakMap();
+
+        function normalizeTheme(value) {
+            return value === "light" ? "light" : "dark";
+        }
+
+        function getStoredTheme() {
+            try {
+                const stored = localStorage.getItem(THEME_STORAGE_KEY);
+                return stored === "dark" || stored === "light" ? stored : "";
+            } catch (error) {
+                return "";
+            }
+        }
+                    dataset.backgroundColor = colors.primary;
+                    dataset.borderColor = colors.primary;
+                }
+            });
+
+            chart.update("none");
+        }
+
+        function applyAllChartThemes() {
+            if (!window.Chart?.instances) return;
+            Object.values(window.Chart.instances).forEach(applyChartTheme);
+        }
+
+        window.addEventListener("aero-admin-theme-change", applyAllChartThemes);
+
+        bindLayoutEvents();
+        applyTheme(adminState.theme, { persist: false });
+        showBoot(true);
+
+        onAuthStateChanged(auth, (user) => {
+            guardAdmin(user).catch((error) => {
+                console.error("Admin auth guard error:", error);
+                showBoot(false);
+                toast("error", "Lá»—i phÃ¢n quyá»n", error.message || "KhÃ´ng thá»ƒ kiá»ƒm tra quyá»n quáº£n trá»‹.");
+                window.setTimeout(() => {
+                    window.location.href = "/";
+                }, 1400);
+            });
+        });
+
+        window.AeroAdmin = {
+            app,
+            auth,
+            db,
+            state: adminState,
+            toast,
+            showBoot,
+            logActivity,
+            formatCurrency,
+            setTheme,
+            applyTheme,
+            getThemeColors,
+            loadDefaultTheme,
+            applyChartTheme,
+            applyAllChartThemes
+        };
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>
+
+@{
+    Response.ContentEncoding = System.Text.Encoding.UTF8;
+    Response.Charset = "utf-8";
+
+    var pageTitle = ViewBag.Title != null ? ViewBag.Title.ToString() : "Quáº£n trá»‹";
+    var actionName = "";
+
+    if (ViewContext != null &&
+        ViewContext.RouteData != null &&
+        ViewContext.RouteData.Values["action"] != null)
+    {
+        actionName = ViewContext.RouteData.Values["action"].ToString();
+    }
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>@pageTitle - AERO Admin</title>
+    <script>
+        (function () {
+            var theme = "dark";
+            try {
+                var storedTheme = localStorage.getItem("admin_theme");
+                var storedDefault = localStorage.getItem("admin_theme_default");
+                if (storedTheme === "dark" || storedTheme === "light") {
+                    theme = storedTheme;
+                } else if (storedDefault === "dark" || storedDefault === "light") {
+                    theme = storedDefault;
+                }
+            } catch (error) { }
+
+            document.documentElement.setAttribute("data-admin-theme", theme);
+            doc
+        }
+
+        .aero-admin-content :where(.wrap, .admin-table-wrap, .movies-table-wrap, .cinema-table-wrap, .room-table-wrap, [class*="-table-wrap"]) {
+            max-width: 100%;
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        .aero-admin-content :where(th) {
+            background: var(--aero-admin-soft) !important;
+            color: var(--aero-admin-subtle) !important;
+            border-color: var(--aero-admin-border) !important;
+        }
+
+        .aero-admin-content :where(td) {
+            border-color: var(--aero-admin-border) !important;
+        }
+
+        .aero-admin-content :where(tbody tr:hover) {
+            background: var(--aero-admin-row-hover) !important;
+        }
+
+        .aero-admin-content :where(.actions, .hero-actions, .export-actions, .modal-actions, .movie-modal-foot, .admin-modal-foot, .modal-foot, .pager > div) {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .aero-admin-content :where(button, .btn, .btn-soft, .btn-primary-admin, .icon, .icon-btn) {
+            min-height: 40px;
+            touch-action: manipulation;
+        }
+
+        .aero-admin-content :where(img, canvas, video) {
+            max-width: 100%;
+        }
+
+        .aero-admin-content :where(img) {
+            object-fit: cover;
+        }
+
+        .aero-admin-content :where(.chart, .chart-box) {
+            min-height: 260px;
+            max-width: 100%;
+            overflow: hidden;
+            overflow: hidden;
+            color: var(--aero-admin-text);
+        }
+
+        .aero-admin-content :where(.chart canvas, .chart-box canvas) {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .aero-admin-content :where(.overlay, .modal, .modal-layer, .admin-modal, .movie-modal) {
+            padding: 16px !important;
+            background: var(--aero-admin-overlay) !important;
+        }
+
+        .aero-admin-content :where(.modal, .modal-layer, .admin-modal, .movie-modal).show,
+        .aero-admin-content :where(.overlay).show {
+            align-items: center;
+            justify-content: center;
+        }
+
+        .aero-admin-content :where(.modal > *, .modal-panel, .admin-modal-panel, .movie-modal-panel) {
+            max-width: min(1100px, 100%) !important;
+            max-height: min(90vh, 920px) !important;
+            overflow: hidden !important;
+        }
+
+        .aero-admin-content :where(.modal-head, .admin-modal-head, .movie-modal-head) {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            border-color: var(--aero-admin-border) !important;
+            background: var(--aero-admin-card) !important;
+        }
+
+        .aero-admin-content :where(.modal-foot, .admin-mod
+                    background: rgba(220, 38, 38, 0.14) !important;
+                    color: #b91c1c !important;
+                }
+
+                html[data-theme="dark"] .aero-admin-content :where(.status-pill.pending, .status-badge.pending, .status-pill.coming_soon, .status-badge.coming_soon) {
+                    color: #fbbf24 !important;
+                }
+
+                html[data-theme="dark"] .aero-admin-content :where(.status-pill.paid, .status-pill.completed, .status-pill.success, .status-pill.active, .status-pill.now_showing, .status-badge.paid, .status-badge.completed, .status-badge.success, .status-badge.active, .status-badge.now_showing) {
+                    color: #86efac !important;
+                }
+
+                html[data-theme="dark"] .aero-admin-content :where(.status-pill.cancelled, .status-pill.canceled, .status-pill.rejected, .status-pill.inactive, .status-pill.hidden, .status-badge.cancelled, .status-badge.canceled, .status-badge.rejected, .status-badge.inactive, .status-badge.hidden) {
+                    color: #fca5a5 !important;
+                }
+            </style>
+        </section>
+    </div>
+
+    <div id="adminToastHost" class="aero-admin-toast-host" aria-live="polite"></div>
+
+    <script src="@Url.Content("~/Scripts/firebase-config.js")"></script>
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            getDoc,
+            collection,
+            addDoc,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const app = getApps().length ? getApp() : initializeApp(window.firebaseConfig);
+        const auth = window.auth || getAuth(app);
+        const db = window.db || getFirestore(app);
+
+        window.firebaseApp = app;
+        window.auth = auth;
+        window.db = db;
+
+        const adminState = {
+            currentUser: null,
+            adminProfile: null,
+            ready: false,
+            theme: window.__AERO_ADMIN_INITIAL_THEME__ || "dark"
+        };
+
+        const THEME_STORAGE_KEY = "admin_theme";
+        const DEFAULT_THEME_STORAGE_KEY = "admin_theme_default";
+        const activeToastTimers = new WeakMap();
+
+        function normalizeTheme(value) {
+            return value === "light" ? "light" : "dark";
+        }
+
+        function getStoredTheme() {
+            try {
+                const stored = localStorage.getItem(THEME_STORAGE_KEY);
+                return stored === "dark" || stored === "light" ? stored : "";
+            } catch (error) {
+                return "";
+            }
+        }
+                    dataset.backgroundColor = colors.primary;
+                    dataset.borderColor = colors.primary;
+                }
+            });
+
+            chart.update("none");
+        }
+
+        function applyAllChartThemes() {
+            if (!window.Chart?.instances) return;
+            Object.values(window.Chart.instances).forEach(applyChartTheme);
+        }
+
+        window.addEventListener("aero-admin-theme-change", applyAllChartThemes);
+
+        bindLayoutEvents();
+        applyTheme(adminState.theme, { persist: false });
+        showBoot(true);
+
+        onAuthStateChanged(auth, (user) => {
+            guardAdmin(user).catch((error) => {
+                console.error("Admin auth guard error:", error);
+                showBoot(false);
+                toast("error", "Lá»—i phÃ¢n quyá»n", error.message || "KhÃ´ng thá»ƒ kiá»ƒm tra quyá»n quáº£n trá»‹.");
+                window.setTimeout(() => {
+                    window.location.href = "/";
+                }, 1400);
+            });
+        });
+
+        window.AeroAdmin = {
+            app,
+            auth,
+            db,
+            state: adminState,
+            toast,
+            showBoot,
+            logActivity,
+            formatCurrency,
+            setTheme,
+            applyTheme,
+            getThemeColors,
+            loadDefaultTheme,
+            applyChartTheme,
+            applyAllChartThemes
+        };
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>
+
+

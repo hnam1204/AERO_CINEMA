@@ -133,7 +133,7 @@
         let selectedSeats = [];
         let totalPrice = 0;
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 Swal.fire({
                     icon: "warning",
@@ -149,6 +149,26 @@
             }
 
             currentUser = user;
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                const userStatus = userDoc.exists() ? String(userDoc.data().status || "active").toLowerCase() : "active";
+                if (userStatus === "blocked") {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Tài khoản đã bị khóa",
+                        text: "Bạn không thể đặt vé khi tài khoản đang bị khóa.",
+                        background: "#ffffff",
+                        color: "#333333",
+                        confirmButtonColor: "#f58220"
+                    }).then(() => {
+                        window.location.href = "/";
+                    });
+                    return;
+                }
+            } catch (error) {
+                console.error("Error checking user status:", error);
+            }
 
             if (!showtimeId) {
                 Swal.fire({

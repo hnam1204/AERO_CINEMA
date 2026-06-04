@@ -1,0 +1,596 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý người dùng";
+}
+
+<div class="user-admin">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="heroTitle">
+        <div>
+            <h1 id="heroTitle">Quản lý người dùng</h1>
+            <p>Quản lý tài khoản khách hàng và nhân viên. Phân vai trò quản trị, theo dõi trạng thái hoạt động và cập nhật hạng thành viên tích lũy.</p>
+        </div>
+    </section>
+
+    <!-- Stats Overview -->
+    <div class="section-title">
+        <h2>Thống kê tài khoản</h2>
+        <span>Realtime statistics</span>
+    </div>
+    <section class="admin-stats-grid">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-users"></i></span>
+            <span class="stat-label">Tổng người dùng</span>
+            <div class="stat-value skeleton" id="statTotal">0</div>
+            <div class="stat-note">Đăng ký trong hệ thống</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-user-shield"></i></span>
+            <span class="stat-label">Tổng admin</span>
+            <div class="stat-value skeleton" id="statAdmin">0</div>
+            <div class="stat-note">Tài khoản quản trị viên</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-user-check"></i></span>
+            <span class="stat-label">User hoạt động</span>
+            <div class="stat-value skeleton" id="statActive">0</div>
+            <div class="stat-note">Trạng thái Active</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-user-slash"></i></span>
+            <span class="stat-label">User bị khóa</span>
+            <div class="stat-value skeleton" id="statBlocked">0</div>
+            <div class="stat-note">Trạng thái Blocked</div>
+        </div>
+    </section>
+    
+    <section class="admin-stats-grid" style="margin-top: -8px;">
+        <div class="admin-stat-card" style="min-height: 100px;">
+            <span class="stat-icon"><i class="fas fa-gem" style="color: #06b6d4;"></i></span>
+            <span class="stat-label">Thành viên Diamond</span>
+            <div class="stat-value skeleton" id="statDiamond" style="font-size: 24px;">0</div>
+        </div>
+        <div class="admin-stat-card" style="min-height: 100px;">
+            <span class="stat-icon"><i class="fas fa-trophy" style="color: #f59e0b;"></i></span>
+            <span class="stat-label">Thành viên Gold</span>
+            <div class="stat-value skeleton" id="statGold" style="font-size: 24px;">0</div>
+        </div>
+        <div class="admin-stat-card" style="min-height: 100px;">
+            <span class="stat-icon"><i class="fas fa-medal" style="color: #64748b;"></i></span>
+            <span class="stat-label">Thành viên Silver</span>
+            <div class="stat-value skeleton" id="statSilver" style="font-size: 24px;">0</div>
+        </div>
+        <div class="admin-stat-card" style="min-height: 100px;">
+            <span class="stat-icon"><i class="fas fa-user-tag" style="color: #94a3b8;"></i></span>
+            <span class="stat-label">Thành viên Standard</span>
+            <div class="stat-value skeleton" id="statStandard" style="font-size: 24px;">0</div>
+        </div>
+    </section>
+
+    <!-- Toolbar Filters -->
+    <section class="admin-toolbar" aria-label="Bộ lọc người dùng">
+        <div class="admin-field search-input">
+            <label for="searchInput">Tìm kiếm người dùng</label>
+            <input type="search" class="admin-control" id="searchInput" placeholder="Tìm theo họ tên, email, số điện thoại..." aria-label="Tìm kiếm người dùng" />
+        </div>
+        <div class="admin-field">
+            <label for="roleFilter">Vai trò</label>
+            <select class="admin-control" id="roleFilter" aria-label="Lọc theo vai trò">
+                <option value="">Tất cả vai trò</option>
+                <option value="admin">admin</option>
+                <option value="user">user</option>
+                <option value="customer">customer</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="statusFilter">Trạng thái</label>
+            <select class="admin-control" id="statusFilter" aria-label="Lọc theo trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active">active</option>
+                <option value="blocked">blocked</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="rankFilter">Hạng thành viên</label>
+            <select class="admin-control" id="rankFilter" aria-label="Lọc theo hạng">
+                <option value="">Tất cả hạng</option>
+                <option value="Standard">Standard</option>
+                <option value="Silver">Silver</option>
+                <option value="Gold">Gold</option>
+                <option value="Diamond">Diamond</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- Grid Data -->
+    <section class="admin-card">
+        <div class="panel-head p-3" style="border-bottom: 1px solid var(--admin-border); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0; font-size: 15px; font-weight: 700;">Danh sách người dùng</h3>
+            <span id="tableCount" style="font-size: 13px; color: var(--admin-subtle);">Đang tải...</span>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">Avatar</th>
+                        <th><span class="sort-header" data-sort="fullName">Họ tên & UID <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="email">Email <i class="fas fa-sort"></i></span></th>
+                        <th>Số điện thoại</th>
+                        <th><span class="sort-header" data-sort="role">Quyền <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="status">Trạng thái <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="memberRank">Hạng <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="points">Điểm <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="createdAt">Ngày tạo <i class="fas fa-sort"></i></span></th>
+                        <th>Đăng nhập cuối</th>
+                        <th style="width: 140px; text-align: right;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <tr><td colspan="11"><div class="empty-state"><span>Đang tải người dùng...</span></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span id="pageInfo">Trang 1 / 1</span>
+            <div class="page-buttons">
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnPrev">Trước</button>
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnNext">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Edit User Modal -->
+<div class="admin-modal" id="userFormModal" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="formTitle">Chỉnh sửa thông tin người dùng</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="userFormModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <form id="userForm">
+            <div class="admin-modal-body">
+                <input type="hidden" id="docId" />
+                <div class="admin-form-grid">
+                    <div class="admin-field"><label>UID</label><input class="admin-control" id="uid" disabled /></div>
+                    <div class="admin-field"><label>Email</label><input class="admin-control" id="email" disabled /></div>
+                    <div class="admin-field"><label for="fullName">Họ tên *</label><input class="admin-control" id="fullName" required /></div>
+                    <div class="admin-field"><label for="phone">Số điện thoại</label><input class="admin-control" id="phone" /></div>
+                    <div class="admin-field"><label for="role">Quyền hạn (Role)</label><select class="admin-control" id="role"><option value="user">user</option><option value="customer">customer</option><option value="admin">admin</option></select></div>
+                    <div class="admin-field"><label for="status">Trạng thái (Status)</label><select class="admin-control" id="status"><option value="active">active</option><option value="blocked">blocked</option></select></div>
+                    <div class="admin-field"><label for="memberRank">Hạng thành viên</label><select class="admin-control" id="memberRank"><option>Standard</option><option>Silver</option><option>Gold</option><option>Diamond</option></select></div>
+                    <div class="admin-field"><label for="points">Điểm tích lũy (Points)</label><input class="admin-control" id="points" type="number" min="0" value="0" /></div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="userFormModal">Hủy</button>
+                <button type="submit" class="admin-btn admin-btn-primary">Lưu người dùng</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Detail User Modal -->
+<div class="admin-modal" id="userDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="admin-modal-panel" style="width: min(800px, 100%);">
+        <div class="admin-modal-header">
+            <h3 id="detailTitle">Hồ sơ chi tiết người dùng</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="userDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body" id="userDetailBody"></div>
+        <div class="admin-modal-footer"><button type="button" class="admin-btn admin-btn-secondary" data-close-modal="userDetailModal">Đóng</button></div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import { collection, doc, onSnapshot, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.AeroAdmin?.db || window.db;
+        const toast = window.AeroAdmin?.toast || ((type, title, message) => alert(`${title}: ${message}`));
+        const state = {
+            users: [],
+            bookings: [],
+            filtered: [],
+            page: 1,
+            pageSize: 10,
+            sortKey: "email",
+            sortDirection: "asc",
+            unsubs: []
+        };
+        
+        const els = {
+            search: document.getElementById("searchInput"), 
+            role: document.getElementById("roleFilter"), 
+            status: document.getElementById("statusFilter"), 
+            rank: document.getElementById("rankFilter"),
+            body: document.getElementById("usersTableBody"), 
+            count: document.getElementById("tableCount"), 
+            pageInfo: document.getElementById("pageInfo"), 
+            prev: document.getElementById("btnPrev"), 
+            next: document.getElementById("btnNext"),
+            form: document.getElementById("userForm")
+        };
+
+        const safe = (v, f = "-") => v === undefined || v === null || v === "" ? f : v;
+        const norm = v => String(v || "").trim().toLowerCase();
+        const toDate = v => v?.toDate ? v.toDate() : (v ? new Date(v) : null);
+        const fmtDate = v => {
+            const d = toDate(v);
+            return d && !Number.isNaN(d.getTime()) ? d.toLocaleString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }) : "-";
+        };
+        const initials = v => String(v || "US").trim().split(/\s+/).map(x => x[0]).join("").substring(0, 2).toUpperCase();
+        
+        function showLoading(show) {
+            window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
+        }
+
+        const currentUid = () => window.AeroAdmin?.state?.currentUser?.uid || window.auth?.currentUser?.uid || "";
+        const bookingCountOf = user => state.bookings.filter(b => b.userId === (user.uid || user.id) || b.userEmail === user.email).length;
+
+        function updateStats() {
+            const role = r => state.users.filter(u => norm(u.role) === r).length;
+            const status = s => state.users.filter(u => norm(u.status || "active") === s).length;
+            const rank = r => state.users.filter(u => norm(u.memberRank || u.rank || "Standard") === norm(r)).length;
+            
+            setTextElement("statTotal", state.users.length);
+            setTextElement("statAdmin", role("admin"));
+            setTextElement("statActive", status("active"));
+            setTextElement("statBlocked", status("blocked"));
+            setTextElement("statDiamond", rank("Diamond"));
+            setTextElement("statGold", rank("Gold"));
+            setTextElement("statSilver", rank("Silver"));
+            setTextElement("statStandard", rank("Standard"));
+        }
+
+        function setTextElement(id, value) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerText = value;
+                el.classList.remove("skeleton");
+            }
+        }
+
+        function sortFilteredUsers() {
+            const key = state.sortKey;
+            const dir = state.sortDirection === "asc" ? 1 : -1;
+
+            state.filtered.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                if (key === "createdAt" || key === "updatedAt" || key === "lastLoginAt") {
+                    valA = toDate(valA)?.getTime() || 0;
+                    valB = toDate(valB)?.getTime() || 0;
+                } else if (typeof valA === "string") {
+                    valA = valA.toLowerCase();
+                    valB = String(valB || "").toLowerCase();
+                } else {
+                    valA = Number(valA || 0);
+                    valB = Number(valB || 0);
+                }
+
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+        }
+
+        function filterData() {
+            const keyword = norm(els.search.value);
+            state.filtered = state.users.filter(u => {
+                const text = norm([u.fullName, u.email, u.phone].join(" "));
+                return (!keyword || text.includes(keyword)) &&
+                    (!els.role.value || norm(u.role) === els.role.value) &&
+                    (!els.status.value || norm(u.status || "active") === els.status.value) &&
+                    (!els.rank.value || norm(u.memberRank || u.rank || "Standard") === norm(els.rank.value)) &&
+                    norm(u.status) !== "deleted";
+            });
+
+            sortFilteredUsers();
+
+            const max = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+            if (state.page > max) state.page = max;
+            renderTable();
+        }
+
+        function renderTable() {
+            const start = (state.page - 1) * state.pageSize;
+            const items = state.filtered.slice(start, start + state.pageSize);
+            const total = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+            els.count.innerText = `Hiển thị ${start + 1}-${Math.min(start + state.pageSize, state.filtered.length)} trên ${state.filtered.length} user`;
+            els.pageInfo.innerText = `Trang ${state.page} / ${total}`;
+            els.prev.disabled = state.page <= 1;
+            els.next.disabled = state.page >= total;
+
+            if (!items.length) {
+                els.body.innerHTML = '<tr><td colspan="11"><div class="empty-state"><span>Không tìm thấy user phù hợp.</span></div></td></tr>';
+                return;
+            }
+
+            els.body.innerHTML = items.map(u => {
+                const name = safe(u.fullName, "Người dùng");
+                const avatar = u.avatarUrl ? `<img class="avatar" src="${u.avatarUrl}" alt="${name}" />` : `<div class="avatar">${initials(name || u.email)}</div>`;
+                const rank = u.memberRank || u.rank || "Standard";
+                
+                const roleVal = norm(u.role || "user");
+                const roleBadgeClass = roleVal === "admin" ? "danger" : "primary";
+                
+                const statusVal = norm(u.status || "active");
+                const statusBadgeClass = statusVal === "active" ? "success" : "danger";
+                
+                let rankBadgeClass = "secondary";
+                if (rank === "Diamond") rankBadgeClass = "primary";
+                else if (rank === "Gold") rankBadgeClass = "warning";
+                else if (rank === "Silver") rankBadgeClass = "secondary";
+
+                return `
+                    <tr>
+                        <td data-label="Avatar">${avatar}</td>
+                        <td data-label="Họ tên & UID">
+                            <div class="user-cell">
+                                <div class="user-name">
+                                    <strong>${name}</strong>
+                                    <span>UID: ${u.uid || u.id}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td data-label="Email">${safe(u.email)}</td>
+                        <td data-label="Số điện thoại">${safe(u.phone)}</td>
+                        <td data-label="Quyền"><span class="admin-badge ${roleBadgeClass}">${safe(u.role, "user")}</span></td>
+                        <td data-label="Trạng thái"><span class="admin-badge ${statusBadgeClass}">${safe(u.status, "active")}</span></td>
+                        <td data-label="Hạng"><span class="admin-badge ${rankBadgeClass}">${rank}</span></td>
+                        <td data-label="Điểm">${Number(u.points || 0).toLocaleString("vi-VN")}</td>
+                        <td data-label="Ngày tạo">${fmtDate(u.createdAt)}</td>
+                        <td data-label="Đăng nhập cuối">${fmtDate(u.lastLoginAt)}</td>
+                        <td data-label="Hành động" class="action-col">
+                            <div class="admin-actions">
+                                <button type="button" class="admin-icon-btn view btn-view" data-id="${u.id}" title="Chi tiết"><i class="fas fa-eye"></i></button>
+                                <button type="button" class="admin-icon-btn approve btn-edit" style="color:var(--admin-warning);" data-id="${u.id}" title="Sửa"><i class="fas fa-pen"></i></button>
+                                <button type="button" class="admin-icon-btn reject btn-delete" data-id="${u.id}" title="Soft Delete"><i class="fas fa-user-slash"></i></button>
+                            </div>
+                        </td>
+                    </tr>`;
+            }).join("");
+
+            // Re-bind actions
+            els.body.querySelectorAll(".btn-view").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const u = state.users.find(x => x.id === btn.dataset.id);
+                    if (u) openDetail(u);
+                });
+            });
+
+            els.body.querySelectorAll(".btn-edit").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const u = state.users.find(x => x.id === btn.dataset.id);
+                    if (u) openEdit(u);
+                });
+            });
+
+            els.body.querySelectorAll(".btn-delete").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const u = state.users.find(x => x.id === btn.dataset.id);
+                    if (u) softDeleteUser(u);
+                });
+            });
+        }
+
+        function openModal(id) {
+            const m = document.getElementById(id);
+            m.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+        
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            m.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+        
+        function openEdit(u) {
+            document.getElementById("docId").value = u.id;
+            document.getElementById("uid").value = u.uid || u.id;
+            document.getElementById("email").value = u.email || "";
+            document.getElementById("fullName").value = u.fullName || "";
+            document.getElementById("phone").value = u.phone || "";
+            document.getElementById("role").value = u.role || "user";
+            document.getElementById("status").value = u.status || "active";
+            document.getElementById("memberRank").value = u.memberRank || u.rank || "Standard";
+            document.getElementById("points").value = Number(u.points || 0);
+            openModal("userFormModal");
+        }
+        
+        function openDetail(u) {
+            document.getElementById("userDetailBody").innerHTML = `
+                <div class="detail-grid">
+                    ${["uid", "fullName", "email", "phone", "avatarUrl", "role", "status", "memberRank", "points", "emailVerifiedByOtp"].map(k => `
+                        <div class="detail-item ${k === 'avatarUrl' ? 'full' : ''}">
+                            <span>${k}</span>
+                            <strong>${safe(u[k] ?? (k === "uid" ? u.id : ""))}</strong>
+                        </div>`).join("")}
+                    <div class="detail-item"><span>createdAt</span><strong>${fmtDate(u.createdAt)}</strong></div>
+                    <div class="detail-item"><span>updatedAt</span><strong>${fmtDate(u.updatedAt)}</strong></div>
+                    <div class="detail-item"><span>lastLoginAt</span><strong>${fmtDate(u.lastLoginAt)}</strong></div>
+                    <div class="detail-item"><span>Số đơn đặt vé</span><strong>${bookingCountOf(u)}</strong></div>
+                </div>`;
+            openModal("userDetailModal");
+        }
+
+        function getFormData() {
+            return {
+                fullName: document.getElementById("fullName").value.trim(),
+                phone: document.getElementById("phone").value.trim(),
+                role: document.getElementById("role").value,
+                status: document.getElementById("status").value,
+                memberRank: document.getElementById("memberRank").value,
+                points: Math.max(0, Number(document.getElementById("points").value || 0))
+            };
+        }
+
+        function logAction(oldData, newData) {
+            if (oldData.role !== newData.role) return "change_role";
+            if (oldData.status !== "blocked" && newData.status === "blocked") return "block_user";
+            if (oldData.status === "blocked" && newData.status === "active") return "unblock_user";
+            return "update_user";
+        }
+
+        async function saveUser(e) {
+            e.preventDefault();
+            const id = document.getElementById("docId").value;
+            const oldData = state.users.find(u => u.id === id);
+            if (!oldData) return;
+            const data = getFormData();
+            if ((oldData.uid === currentUid() || oldData.id === currentUid()) && norm(oldData.role) === "admin" && norm(data.role) !== "admin") {
+                toast("warning", "Không thể tự hạ quyền", "Admin hiện tại không được tự chuyển mình thành user.");
+                return;
+            }
+            showLoading(true);
+            try {
+                await updateDoc(doc(db, "users", id), { ...data, updatedAt: serverTimestamp() });
+                await window.AeroAdmin?.logActivity?.(logAction(oldData, data), "users", id, oldData, data);
+                toast("success", "Đã cập nhật user", "Thông tin người dùng đã được lưu.");
+                closeModal("userFormModal");
+            } catch (err) {
+                console.error(err);
+                toast("error", "Không thể cập nhật user", err.message || "Vui lòng thử lại.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function softDeleteUser(u) {
+            if (u.uid === currentUid() || u.id === currentUid()) { 
+                toast("warning", "Không thể tự xóa", "Admin hiện tại không được tự xóa chính mình."); 
+                return; 
+            }
+            if (bookingCountOf(u) > 0) { 
+                toast("warning", "Không thể xóa", "User này đã có lịch sử booking. Hãy chuyển trạng thái tài khoản sang blocked thay vì xóa."); 
+                return; 
+            }
+
+            const res = await Swal.fire({
+                title: "Soft Delete người dùng?",
+                text: `Bạn có chắc chắn muốn xóa tài khoản "${u.email || u.id}"? Trạng thái sẽ chuyển sang deleted.`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dc2626",
+                cancelButtonColor: "#475569",
+                confirmButtonText: "Xóa tài khoản",
+                cancelButtonText: "Hủy"
+            });
+
+            if (res.isConfirmed) {
+                showLoading(true);
+                try {
+                    await updateDoc(doc(db, "users", u.id), { status: "deleted", updatedAt: serverTimestamp() });
+                    await window.AeroAdmin?.logActivity?.("delete_user", "users", u.id, u, { status: "deleted" });
+                    toast("success", "Đã soft delete", "User đã được đánh dấu deleted.");
+                } catch (err) { 
+                    console.error(err); 
+                    toast("error", "Không thể xóa user", err.message || "Vui lòng thử lại."); 
+                } finally { 
+                    showLoading(false); 
+                }
+            }
+        }
+
+        // Sorting trigger
+        function handleSorting(event) {
+            const header = event.target.closest(".sort-header");
+            if (!header) return;
+
+            const key = header.dataset.sort;
+            if (state.sortKey === key) {
+                state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+            } else {
+                state.sortKey = key;
+                state.sortDirection = "asc";
+            }
+
+            // Update all sorting icons
+            document.querySelectorAll(".sort-header i").forEach(icon => {
+                icon.className = "fas fa-sort";
+            });
+            const activeIcon = header.querySelector("i");
+            if (activeIcon) {
+                activeIcon.className = state.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+            }
+
+            filterData();
+        }
+
+        function bindEvents() {
+            els.form.addEventListener("submit", saveUser);
+
+            // Table headers sorting
+            document.querySelectorAll(".sort-header").forEach(header => {
+                header.addEventListener("click", handleSorting);
+            });
+
+            [els.search, els.role, els.status, els.rank].forEach(el => { 
+                el.addEventListener("input", () => { state.page = 1; filterData(); }); 
+                el.addEventListener("change", () => { state.page = 1; filterData(); }); 
+            });
+            els.prev.addEventListener("click", () => { if (state.page > 1) { state.page--; renderTable(); } });
+            els.next.addEventListener("click", () => { const total = Math.max(1, Math.ceil(state.filtered.length / state.pageSize)); if (state.page < total) { state.page++; renderTable(); } });
+
+            // Close modals click handlers
+            document.querySelectorAll("[data-close-modal]").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    closeModal(btn.dataset.closeModal);
+                });
+            });
+
+            // Modal overlay click to close
+            document.querySelectorAll(".admin-modal").forEach(modal => {
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+
+            // ESC key to close modals
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    document.querySelectorAll(".admin-modal.show").forEach(m => closeModal(m.id));
+                }
+            });
+        }
+
+        function attachRealtime() {
+            state.unsubs.forEach(u => u());
+            state.unsubs = [
+                onSnapshot(collection(db, "users"), snap => {
+                    state.users = snap.docs.map(d => ({
+                        id: d.id,
+                        ...d.data()
+                    })).sort((a, b) => String(a.email || "").localeCompare(String(b.email || "")));
+                    updateStats();
+                    filterData();
+                }, err => {
+                    console.error(err);
+                    toast("error", "Không thể tải users", err.message || "Kiểm tra Firestore Rules.");
+                }),
+                onSnapshot(collection(db, "bookings"), snap => {
+                    state.bookings = snap.docs.map(d => ({
+                        id: d.id,
+                        ...d.data()
+                    }));
+                    renderTable();
+                }, err => console.warn(err))
+            ];
+        }
+
+        bindEvents();
+        window.addEventListener("aero-admin-ready", attachRealtime, { once: true });
+        if (window.AeroAdmin?.state?.ready) attachRealtime();
+        window.addEventListener("beforeunload", () => state.unsubs.forEach(u => u()));
+    </script>
+}

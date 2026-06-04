@@ -1,965 +1,980 @@
 @{
-    ViewBag.Title = "Bảng Điều Khiển Quản Trị - AERO Cinema";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Dashboard";
 }
 
-<style>
-    :root {
-        --primary-color: #005baa;
-        --accent-color: #f58220;
-        --accent-hover: #e07316;
-        --text-main: #1f2937;
-        --text-sub: #6b7280;
-        --border-color: #e5e7eb;
-        --bg-body: #f6f6f6;
-        --bg-card: #ffffff;
-        --success-color: #16a34a;
-        --shadow-new: 0 8px 24px rgba(0, 0, 0, 0.08);
-        --font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    }
-
-    body {
-        background-color: var(--bg-body) !important;
-        font-family: var(--font-family) !important;
-        color: var(--text-main) !important;
-    }
-
-    /* Admin Dashboard Layout Styles */
-    .admin-layout {
-        display: grid;
-        grid-template-columns: 260px 1fr;
-        min-height: calc(100vh - 72px);
-        background-color: var(--bg-body);
-    }
-
-    .admin-sidebar {
-        background-color: #ffffff;
-        border-right: 1px solid var(--border-color);
-        padding: 30px 0;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-
-    .admin-sidebar-menu {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-    }
-
-    .admin-menu-item {
-        display: flex;
-        align-items: center;
-        gap: 15px;
-        padding: 14px 25px;
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--text-sub);
-        transition: all 0.3s ease;
-        border-left: 4px solid transparent;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-    .admin-menu-item:hover, .admin-menu-item.active {
-        color: var(--primary-color);
-        background-color: rgba(0, 91, 170, 0.04);
-        border-left-color: var(--primary-color);
-    }
-
-    .admin-menu-item i {
-        font-size: 16px;
-        width: 20px;
-        text-align: center;
-    }
-
-    .admin-sidebar-footer {
-        padding: 15px 25px 0 25px;
-        font-size: 11px;
-        color: var(--text-sub);
-        border-top: 1px solid var(--border-color);
-    }
-
-    .admin-main {
-        padding: 40px;
-        overflow-y: auto;
-    }
-
-    .admin-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 35px;
-        border-bottom: 1px solid var(--border-color);
-        padding-bottom: 20px;
-    }
-
-    .admin-title {
-        font-size: 26px;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: var(--text-main);
-        margin: 0;
-        letter-spacing: 0.5px;
-    }
-
-    .admin-user-profile {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        background: #ffffff;
-        padding: 8px 18px;
-        border-radius: 30px;
-        border: 1px solid var(--border-color);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    .admin-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background-color: var(--primary-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        color: #fff;
-        font-size: 14px;
-    }
-
-    .admin-username {
-        font-size: 13px;
-        font-weight: 700;
-        color: var(--text-main);
-    }
-
-    /* STATS CARDS */
-    .admin-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-        margin-bottom: 35px;
-    }
-
-    .stat-card {
-        background-color: #ffffff;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 25px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: var(--shadow-new);
-        transition: transform 0.3s ease, border-color 0.3s ease;
-    }
-
-    .stat-card:hover {
-        transform: translateY(-3px);
-        border-color: var(--primary-color);
-    }
-
-    .stat-info {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .stat-label {
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--text-sub);
-        text-transform: uppercase;
-        margin-bottom: 6px;
-        letter-spacing: 0.5px;
-    }
-
-    .stat-value {
-        font-size: 26px;
-        font-weight: 800;
-        color: var(--text-main);
-    }
-
-    .stat-icon {
-        width: 50px;
-        height: 50px;
-        background-color: rgba(0, 91, 170, 0.08);
-        color: var(--primary-color);
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-    }
-
-    /* CHARTS & ANALYTICS */
-    .dashboard-analytics-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 30px;
-        margin-bottom: 35px;
-    }
-
-    .analytics-card {
-        background-color: #ffffff;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 30px;
-        box-shadow: var(--shadow-new);
-    }
-
-    .analytics-card-title {
-        font-size: 16px;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--text-main);
-        margin-bottom: 25px;
-        border-left: 4px solid var(--primary-color);
-        padding-left: 10px;
-    }
-
-    /* CSS Bar Chart */
-    .bar-chart-container {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        height: 200px;
-        padding-top: 20px;
-        position: relative;
-        background-color: #ffffff;
-    }
-
-    .bar-chart-track {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        height: 100%;
-        justify-content: flex-end;
-        position: relative;
-        background-color: #f9fafb;
-        margin: 0 6px;
-        border-radius: 4px;
-    }
-
-    .bar-chart-fill {
-        width: 24px;
-        border-radius: 6px 6px 0 0;
-        background: linear-gradient(to top, var(--primary-color), #3b82f6);
-        transition: height 1s ease-in-out;
-        position: relative;
-        cursor: pointer;
-    }
-
-    .bar-chart-fill:hover {
-        background: var(--accent-color);
-        box-shadow: 0 0 10px rgba(245, 130, 32, 0.4);
-    }
-
-    .bar-tooltip {
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translate(-50%, -10px);
-        background: #1f2937;
-        border: 1px solid #1f2937;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 11px;
-        font-weight: 700;
-        color: #fff;
-        white-space: nowrap;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s;
-        z-index: 10;
-    }
-
-    .bar-chart-fill:hover .bar-tooltip {
-        opacity: 1;
-    }
-
-    .bar-label {
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--text-sub);
-        margin-top: 10px;
-    }
-
-    /* TABLE SECTION */
-    .admin-table-card {
-        background-color: #ffffff;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 30px;
-        box-shadow: var(--shadow-new);
-    }
-
-    .table-responsive {
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    .admin-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-    }
-
-    .admin-table th, .admin-table td {
-        padding: 16px 20px;
-        font-size: 14px;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .admin-table th {
-        font-weight: 700;
-        color: var(--text-sub);
-        text-transform: uppercase;
-        font-size: 11px;
-        letter-spacing: 0.5px;
-        background-color: #f9fafb;
-    }
-
-    .admin-table tbody tr:hover {
-        background-color: #f9fafb;
-    }
-
-    /* Status badges */
-    .status-badge {
-        display: inline-block;
-        padding: 5px 12px;
-        font-size: 11px;
-        font-weight: 700;
-        border-radius: 20px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .status-badge.completed {
-        background-color: rgba(22, 163, 74, 0.1);
-        color: var(--success-color);
-    }
-
-    .status-badge.pending {
-        background-color: rgba(245, 158, 11, 0.1);
-        color: var(--warning-color);
-    }
-
-    .btn-action-view {
-        background: transparent;
-        border: 1px solid var(--primary-color);
-        color: var(--primary-color);
-        padding: 6px 14px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        text-decoration: none;
-    }
-
-    .btn-action-view:hover {
-        background-color: var(--primary-color);
-        color: #ffffff;
-    }
-
-    /* Responsive */
-    @@media (max-width: 1200px) {
-        .admin-stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .dashboard-analytics-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @@media (max-width: 992px) {
-        .admin-layout {
-            grid-template-columns: 1fr;
-        }
-
-        .admin-sidebar {
-            flex-direction: row;
-            overflow-x: auto;
-            padding: 10px 20px;
-            border-right: none;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .admin-sidebar-menu {
-            flex-direction: row;
-            width: 100%;
-        }
-
-        .admin-menu-item {
-            padding: 12px 20px;
-            border-left: none;
-            border-bottom: 4px solid transparent;
-            white-space: nowrap;
-        }
-
-        .admin-menu-item:hover, .admin-menu-item.active {
-            border-left-color: transparent;
-            border-bottom-color: var(--primary-color);
-        }
-
-        .admin-sidebar-footer {
-            display: none;
-        }
-    }
-
-    @@media (max-width: 768px) {
-        .admin-stats-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .admin-main {
-            padding: 20px;
-        }
-    }
-
-    /* Skeleton Loader & Shimmer Animation */
-    .skeleton {
-        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.2s infinite;
-        border-radius: 8px;
-        display: inline-block;
-    }
-
-    .bar-chart-fill.skeleton {
-        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%) !important;
-        background-size: 200% 100% !important;
-        animation: shimmer 1.2s infinite !important;
-        pointer-events: none;
-    }
-
-    @@keyframes shimmer {
-        0% {
-            background-position: 200% 0;
-        }
-        100% {
-            background-position: -200% 0;
-        }
-    }
-</style>
-
-<div class="admin-layout">
-    
-    <!-- SIDEBAR -->
-    <aside class="admin-sidebar">
-        <nav class="admin-sidebar-menu">
-            <a href="@Url.Action("Dashboard", "Admin")" class="admin-menu-item active">
-                <i class="fas fa-chart-line"></i>
-                <span>Thống kê tổng quan</span>
-            </a>
-            <a href="#" class="admin-menu-item" onclick="alert('Tính năng quản lý danh sách phim sẽ hoạt động ở các giai đoạn tiếp theo.')">
-                <i class="fas fa-film"></i>
-                <span>Quản lý phim</span>
-            </a>
-            <a href="#" class="admin-menu-item" onclick="alert('Tính năng quản lý lịch chiếu sẽ hoạt động ở các giai đoạn tiếp theo.')">
-                <i class="fas fa-calendar-alt"></i>
-                <span>Quản lý lịch chiếu</span>
-            </a>
-            <a href="#" class="admin-menu-item" onclick="alert('Tính năng quản lý danh sách vé đã đặt sẽ hoạt động ở các giai đoạn tiếp theo.')">
-                <i class="fas fa-ticket-alt"></i>
-                <span>Quản lý đặt vé</span>
-            </a>
-            <a href="#" class="admin-menu-item" onclick="alert('Tính năng quản lý tài khoản người dùng sẽ hoạt động ở các giai đoạn tiếp theo.')">
-                <i class="fas fa-users"></i>
-                <span>Quản lý người dùng</span>
-            </a>
-            <a href="#" class="admin-menu-item" onclick="alert('Tính năng cấu hình hệ thống cụm rạp sẽ hoạt động ở các giai đoạn tiếp theo.')">
-                <i class="fas fa-cog"></i>
-                <span>Cấu hình rạp</span>
-            </a>
-        </nav>
-        <div class="admin-sidebar-footer">
-            <span>AERO Cinema Admin v1.0</span>
+<div class="dashboard-page">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="heroTitle">
+        <div>
+            <h1 id="heroTitle">Hệ thống quản trị AERO Cinema</h1>
+            <p>Trang điều khiển trung tâm tối ưu hóa hiệu năng, theo dõi dữ liệu người dùng, doanh thu trực tuyến, trạng thái hệ thống và báo cáo phân tích theo thời gian thực.</p>
         </div>
-    </aside>
+    </section>
 
-    <!-- MAIN SECTION -->
-    <main class="admin-main">
-        
-        <!-- Header -->
-        <div class="admin-header">
-            <h1 class="admin-title">Bảng Tổng Quan</h1>
-            <div class="admin-user-profile">
-                <div class="admin-avatar" id="adminAvatar">AD</div>
-                <span class="admin-username">Administrator</span>
+    <!-- Overview Grid -->
+    <div class="section-title">
+        <h2>Thống kê tổng quan</h2>
+        <span>Realtime Metrics</span>
+    </div>
+    <section class="admin-stats-grid" id="overviewCards">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-users"></i></span>
+            <span class="stat-label">Người dùng</span>
+            <div class="stat-value skeleton" id="statUsers">0</div>
+            <div class="stat-note" id="statUsersSub">Đang cập nhật...</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-film"></i></span>
+            <span class="stat-label">Tổng phim</span>
+            <div class="stat-value skeleton" id="statMovies">0</div>
+            <div class="stat-note" id="statMoviesSub">Đang cập nhật...</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-coins"></i></span>
+            <span class="stat-label">Tổng Doanh thu</span>
+            <div class="stat-value skeleton" id="statRevenue">0đ</div>
+            <div class="stat-note" id="statRevenueSub">Đang cập nhật...</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-ticket-alt"></i></span>
+            <span class="stat-label">Vé bán ra</span>
+            <div class="stat-value skeleton" id="statTickets">0</div>
+            <div class="stat-note" id="statTicketsSub">Đang cập nhật...</div>
+        </div>
+    </section>
+
+    <!-- Main Grid: Main panel (Left) + Sidebar widgets (Right) -->
+    <div class="dashboard-grid">
+        <!-- Main Column (Left) -->
+        <div class="dashboard-main-panel">
+            <!-- Tabbed Chart Container -->
+            <div class="chart-tabs-container">
+                <div class="chart-tabs-header">
+                    <h3>Phân tích dữ liệu & Xu hướng</h3>
+                    <nav class="chart-tabs-nav" aria-label="Bộ lọc biểu đồ">
+                        <button type="button" class="chart-tab-btn active" data-chart="revenue30">Doanh thu 30 ngày</button>
+                        <button type="button" class="chart-tab-btn" data-chart="revenue12">Doanh thu 12 tháng</button>
+                        <button type="button" class="chart-tab-btn" data-chart="bookingTrend">Xu hướng đặt vé</button>
+                        <button type="button" class="chart-tab-btn" data-chart="ticketTrend">Xu hướng bán vé</button>
+                        <button type="button" class="chart-tab-btn" data-chart="topMovies">Top 10 phim</button>
+                        <button type="button" class="chart-tab-btn" data-chart="topCinemas">Top 10 rạp</button>
+                        <button type="button" class="chart-tab-btn" data-chart="payments">Cổng thanh toán</button>
+                        <button type="button" class="chart-tab-btn" data-chart="userGrowth">Tăng trưởng user</button>
+                    </nav>
+                </div>
+                <div class="chart-body-wrapper">
+                    <canvas id="dashboardAnalyticChart"></canvas>
+                </div>
             </div>
+
+            <!-- Recent Bookings Table -->
+            <section class="admin-card">
+                <div class="panel-head d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">Booking mới nhận</h3>
+                    <span id="bookingTableCount" class="badge bg-primary">0 đơn mới</span>
+                </div>
+                <div class="admin-table-wrap m-0">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Mã đơn</th>
+                                <th>Khách hàng</th>
+                                <th>Phim / Rạp</th>
+                                <th>Ghế</th>
+                                <th>Tổng tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="latestBookingsBody">
+                            <tr>
+                                <td colspan="7"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><span>Đang tải booking...</span></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Recent Activity Logs Table -->
+            <section class="admin-card">
+                <div class="panel-head d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">Hoạt động hệ thống mới nhất</h3>
+                    <span class="badge bg-secondary">Bảo mật thời gian thực</span>
+                </div>
+                <div class="admin-table-wrap m-0">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Nhân viên</th>
+                                <th>Thao tác</th>
+                                <th>Phân mục</th>
+                                <th>Mã tài liệu</th>
+                                <th>Thời gian</th>
+                            </tr>
+                        </thead>
+                        <tbody id="latestActivitiesBody">
+                            <tr>
+                                <td colspan="5"><div class="empty-state"><i class="fas fa-spinner fa-spin"></i><span>Đang tải hoạt động...</span></div></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
         </div>
 
-        <!-- Stats Grid -->
-        <div class="admin-stats-grid">
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-label">Tổng Phim</span>
-                    <span class="stat-value" id="statMovies">
-                        <span class="skeleton" style="width: 50px; height: 26px; border-radius: 4px;"></span>
-                    </span>
+        <!-- Sidebar Column (Right) -->
+        <div class="dashboard-sidebar-panel">
+            <!-- System Health Monitor -->
+            <article class="sidebar-widget" aria-labelledby="healthWidgetTitle">
+                <div class="sidebar-widget-header">
+                    <h3 id="healthWidgetTitle">Trạng thái hệ thống</h3>
+                    <span>Realtime Monitor</span>
                 </div>
-                <div class="stat-icon">
-                    <i class="fas fa-video"></i>
+                <div class="health-status-row">
+                    <div class="health-status-label">
+                        <span class="pulse-indicator green" id="healthPulse"></span>
+                        Kết nối Firestore
+                    </div>
+                    <div class="health-status-value" id="healthStatus">Hoạt động</div>
                 </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-label">Vé Đã Bán</span>
-                    <span class="stat-value" id="statTickets">
-                        <span class="skeleton" style="width: 50px; height: 26px; border-radius: 4px;"></span>
-                    </span>
+                <div class="health-status-row">
+                    <div class="health-status-label"><i class="fas fa-server"></i> Độ trễ API</div>
+                    <div class="health-status-value" id="healthPing">-- ms</div>
                 </div>
-                <div class="stat-icon">
-                    <i class="fas fa-ticket-alt"></i>
+                <div class="health-status-row">
+                    <div class="health-status-label"><i class="fas fa-database"></i> Dữ liệu offline</div>
+                    <div class="health-status-value" id="healthOffline">Đã bật</div>
                 </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-label">Doanh Thu Hệ Thống</span>
-                    <span class="stat-value" id="statRevenue">
-                        <span class="skeleton" style="width: 90px; height: 26px; border-radius: 4px;"></span>
-                    </span>
+                <div class="health-status-row">
+                    <div class="health-status-label"><i class="fas fa-signal"></i> Active Listeners</div>
+                    <div class="health-status-value" id="healthListeners">9 listeners</div>
                 </div>
-                <div class="stat-icon">
-                    <i class="fas fa-wallet"></i>
+            </article>
+
+            <!-- Usage indicators -->
+            <article class="sidebar-widget" aria-labelledby="usageWidgetTitle">
+                <div class="sidebar-widget-header">
+                    <h3 id="usageWidgetTitle">Hạn ngạch & Sử dụng</h3>
+                    <span>Firebase Limits</span>
                 </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-info">
-                    <span class="stat-label">Thành Viên</span>
-                    <span class="stat-value" id="statUsers">
-                        <span class="skeleton" style="width: 50px; height: 26px; border-radius: 4px;"></span>
-                    </span>
+                <div class="usage-monitor-item">
+                    <div class="usage-monitor-info">
+                        <span class="usage-monitor-name">Firestore Reads (Truy vấn)</span>
+                        <span class="usage-monitor-percent" id="readsPercent">--%</span>
+                    </div>
+                    <div class="usage-progress-bar">
+                        <div class="usage-progress-fill success" id="readsBar" style="width: 0%;"></div>
+                    </div>
                 </div>
-                <div class="stat-icon">
-                    <i class="fas fa-user-plus"></i>
+                <div class="usage-monitor-item">
+                    <div class="usage-monitor-info">
+                        <span class="usage-monitor-name">Firestore Writes (Ghi đè)</span>
+                        <span class="usage-monitor-percent" id="writesPercent">--%</span>
+                    </div>
+                    <div class="usage-progress-bar">
+                        <div class="usage-progress-fill" id="writesBar" style="width: 0%;"></div>
+                    </div>
                 </div>
-            </div>
+                <div class="usage-monitor-item">
+                    <div class="usage-monitor-info">
+                        <span class="usage-monitor-name">Bộ nhớ hình ảnh (Storage)</span>
+                        <span class="usage-monitor-percent" id="storagePercent">--%</span>
+                    </div>
+                    <div class="usage-progress-bar">
+                        <div class="usage-progress-fill" id="storageBar" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Top List Widget -->
+            <article class="sidebar-widget" aria-labelledby="topWidgetTitle">
+                <div class="sidebar-widget-header">
+                    <h3 id="topWidgetTitle">Top rạp & Khuyến mãi</h3>
+                    <span>Xếp hạng doanh thu</span>
+                </div>
+                <div class="top-items-list" id="topCinemasList">
+                    <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><span>Đang tải xếp hạng...</span></div>
+                </div>
+            </article>
         </div>
-
-        <!-- Analytics charts & boxes -->
-        <div class="dashboard-analytics-grid">
-            <!-- Sales Chart Card -->
-            <div class="analytics-card">
-                <h3 class="analytics-card-title">Doanh Thu Theo Thứ (VNĐ)</h3>
-                <div class="bar-chart-container">
-                    <div class="bar-chart-track">
-                        <div id="barMon" class="bar-chart-fill skeleton" style="height: 40%;">
-                            <span class="bar-tooltip" id="tooltipMon">0đ</span>
-                        </div>
-                        <span class="bar-label">T2</span>
-                    </div>
-                    <div class="bar-chart-track">
-                        <div id="barTue" class="bar-chart-fill skeleton" style="height: 60%;">
-                            <span class="bar-tooltip" id="tooltipTue">0đ</span>
-                        </div>
-                        <span class="bar-label">T3</span>
-                    </div>
-                    <div class="bar-chart-track">
-                        <div id="barWed" class="bar-chart-fill skeleton" style="height: 35%;">
-                            <span class="bar-tooltip" id="tooltipWed">0đ</span>
-                        </div>
-                        <span class="bar-label">T4</span>
-                    </div>
-                    <div class="bar-chart-track">
-                        <div id="barThu" class="bar-chart-fill skeleton" style="height: 70%;">
-                            <span class="bar-tooltip" id="tooltipThu">0đ</span>
-                        </div>
-                        <span class="bar-label">T5</span>
-                    </div>
-                    <div class="bar-chart-track">
-                        <div id="barFri" class="bar-chart-fill skeleton" style="height: 50%;">
-                            <span class="bar-tooltip" id="tooltipFri">0đ</span>
-                        </div>
-                        <span class="bar-label">T6</span>
-                    </div>
-                    <div class="bar-chart-track">
-                        <div id="barSat" class="bar-chart-fill skeleton" style="height: 85%;">
-                            <span class="bar-tooltip" id="tooltipSat">0đ</span>
-                        </div>
-                        <span class="bar-label">T7</span>
-                    </div>
-                    <div class="bar-chart-track">
-                        <div id="barSun" class="bar-chart-fill skeleton" style="height: 45%;">
-                            <span class="bar-tooltip" id="tooltipSun">0đ</span>
-                        </div>
-                        <span class="bar-label">CN</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Top movies card -->
-            <div class="analytics-card">
-                <h3 class="analytics-card-title">Xếp Hạng Phim Ăn Khách</h3>
-                <div id="topMoviesList" style="display: flex; flex-direction: column; gap: 15px;">
-                    <div class="movie-rank-skeleton" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;">
-                        <span class="skeleton" style="width: 180px; height: 16px; border-radius: 4px;"></span>
-                        <span class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></span>
-                    </div>
-                    <div class="movie-rank-skeleton" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;">
-                        <span class="skeleton" style="width: 150px; height: 16px; border-radius: 4px;"></span>
-                        <span class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></span>
-                    </div>
-                    <div class="movie-rank-skeleton" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;">
-                        <span class="skeleton" style="width: 200px; height: 16px; border-radius: 4px;"></span>
-                        <span class="skeleton" style="width: 40px; height: 16px; border-radius: 4px;"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Latest Orders Table -->
-        <div class="admin-table-card">
-            <h3 class="analytics-card-title">Đơn Đặt Vé Gần Đây</h3>
-            <div class="table-responsive">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Mã Vé</th>
-                            <th>Khách Hàng</th>
-                            <th>Tên Phim</th>
-                            <th>Suất Chiếu</th>
-                            <th>Ghế</th>
-                            <th>Tổng Tiền</th>
-                            <th>Phương Thức</th>
-                            <th>Trạng Thái</th>
-                            <th>Thao Tác</th>
-                        </tr>
-                    </thead>
-                    <tbody id="latestBookingsTable">
-                        <tr class="table-row-skeleton">
-                            <td><span class="skeleton" style="width: 100px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 120px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 150px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 110px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 60px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 80px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 80px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 90px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 70px; height: 26px; border-radius: 4px;"></span></td>
-                        </tr>
-                        <tr class="table-row-skeleton">
-                            <td><span class="skeleton" style="width: 90px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 100px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 180px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 110px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 50px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 80px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 70px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 90px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 70px; height: 26px; border-radius: 4px;"></span></td>
-                        </tr>
-                        <tr class="table-row-skeleton">
-                            <td><span class="skeleton" style="width: 110px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 130px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 130px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 110px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 70px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 80px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 85px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 90px; height: 16px; border-radius: 4px;"></span></td>
-                            <td><span class="skeleton" style="width: 70px; height: 26px; border-radius: 4px;"></span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </main>
-
+    </div>
 </div>
 
 @section scripts {
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { doc, getDoc, collection, getDocs, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import {
+            collection,
+            onSnapshot,
+            query,
+            orderBy,
+            limit
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        const auth = window.auth;
-        const db = window.db;
+        // Active collection tracking
+        const collections = ["users", "movies", "showtimes", "bookings", "tickets", "payments", "promotions", "news", "activity_logs", "cinemas"];
+        const state = {
+            users: [],
+            movies: [],
+            showtimes: [],
+            bookings: [],
+            tickets: [],
+            payments: [],
+            promotions: [],
+            news: [],
+            activity_logs: [],
+            cinemas: [],
+            loaded: new Set(),
+            unsubscribers: [],
+            currentActiveChartTab: "revenue30",
+            chartInstance: null,
+            chartRenderTimer: null,
+            isRenderingChart: false,
+            firestoreReadCount: 0
+        };
 
-        function formatDateSafe(dateValue) {
-            if (!dateValue) return "Đang cập nhật";
-            try {
-                if (typeof dateValue === "string") {
-                    const parts = dateValue.split("-");
-                    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
-                    return dateValue;
+        const formatMoney = (val) => {
+            return Number(val || 0).toLocaleString("vi-VN") + "đ";
+        };
+
+        const safeString = (val, fallback = "-") => {
+            return val === undefined || val === null || val === "" ? fallback : val;
+        };
+
+        const toDateObject = (val) => {
+            if (!val) return null;
+            if (val.toDate) return val.toDate();
+            if (typeof val === "number") return new Date(val);
+            const parsed = new Date(val);
+            return Number.isNaN(parsed.getTime()) ? null : parsed;
+        };
+
+        const formatFullDateTime = (val) => {
+            const d = toDateObject(val);
+            return d ? d.toLocaleString("vi-VN", {
+                hour: "2-digit",
+                minute: "2-digit",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric"
+            }) : "Đang cập nhật";
+        };
+
+        const normalizeValue = (val) => String(val || "").trim().toLowerCase();
+
+        const getTimestamp = (item) => {
+            const d = toDateObject(item.createdAt || item.updatedAt || item.timestamp || item.date);
+            return d ? d.getTime() : 0;
+        };
+
+        const getPaidPayments = () => {
+            return state.payments.filter(p => normalizeValue(p.status) === "paid" || normalizeValue(p.status) === "success" || normalizeValue(p.status) === "completed");
+        };
+
+        const getCompletedBookings = () => {
+            return state.bookings.filter(b => normalizeValue(b.status) === "paid" || normalizeValue(b.status) === "completed" || normalizeValue(b.status) === "success");
+        };
+
+        function getStatusText(status) {
+            const value = normalizeValue(status);
+            const map = {
+                pending: "Chờ xử lý",
+                unpaid: "Chờ thanh toán",
+                paid: "Đã thanh toán",
+                completed: "Hoàn tất",
+                success: "Thành công",
+                cancelled: "Đã hủy",
+                canceled: "Đã hủy",
+                rejected: "Từ chối",
+                active: "Hoạt động"
+            };
+            return map[value] || safeString(status, "Không rõ");
+        }
+
+        function getStatusClass(status) {
+            const value = normalizeValue(status);
+            if (["pending", "unpaid"].includes(value)) return "warning";
+            if (["paid", "completed", "success", "active"].includes(value)) return "success";
+            if (["cancelled", "canceled", "rejected"].includes(value)) return "danger";
+            return "secondary";
+        }
+
+        // Realtime stats calculator
+        function updateSummaryCards() {
+            const paid = getPaidPayments();
+            const totalRev = paid.reduce((sum, p) => sum + Number(p.amount || p.totalPrice || 0), 0);
+            
+            const now = new Date();
+            let todayRev = 0;
+            paid.forEach(p => {
+                const d = toDateObject(p.createdAt || p.updatedAt);
+                if (d && d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+                    todayRev += Number(p.amount || p.totalPrice || 0);
                 }
-                if (dateValue.toDate) return dateValue.toDate().toLocaleDateString("vi-VN");
-                return new Date(dateValue).toLocaleDateString("vi-VN");
-            } catch {
-                return "Đang cập nhật";
+            });
+
+            // Set text & remove skeletons
+            setTextElement("statUsers", state.users.length.toLocaleString("vi-VN"));
+            setTextElement("statUsersSub", `${state.users.filter(u => normalizeValue(u.status) === "active").length} tài khoản hoạt động`);
+
+            setTextElement("statMovies", state.movies.length.toLocaleString("vi-VN"));
+            setTextElement("statMoviesSub", `${state.movies.filter(m => normalizeValue(m.status) === "active" || normalizeValue(m.status) === "now_showing").length} phim đang chiếu`);
+
+            setTextElement("statRevenue", formatMoney(totalRev));
+            setTextElement("statRevenueSub", `Hôm nay: ${formatMoney(todayRev)}`);
+
+            // Compute ticket count from seats in completed bookings
+            let ticketCount = 0;
+            getCompletedBookings().forEach(b => {
+                if (Array.isArray(b.seats)) ticketCount += b.seats.length;
+                else if (typeof b.seats === "string" && b.seats.trim()) ticketCount += b.seats.split(",").length;
+            });
+            setTextElement("statTickets", ticketCount.toLocaleString("vi-VN"));
+            setTextElement("statTicketsSub", `Đơn đặt: ${state.bookings.length} | Hủy: ${state.bookings.filter(b => normalizeValue(b.status) === "cancelled").length}`);
+        }
+
+        function setTextElement(id, text) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerText = text;
+                el.classList.remove("skeleton");
             }
         }
 
-        function formatCurrency(amount) {
-            const value = Number(amount || 0);
-            return value.toLocaleString("vi-VN") + "đ";
+        // Render widgets (Recent bookings, activity logs, sidebars)
+        function renderWidgets() {
+            // 1. Recent bookings (last 10)
+            const bookingsBody = document.getElementById("latestBookingsBody");
+            if (bookingsBody) {
+                const recentBookings = [...state.bookings]
+                    .sort((a, b) => getTimestamp(b) - getTimestamp(a))
+                    .slice(0, 10);
+                
+                document.getElementById("bookingTableCount").innerText = `${state.bookings.filter(b => normalizeValue(b.status) === "pending").length} đơn mới`;
+
+                if (!recentBookings.length) {
+                    bookingsBody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><span>Chưa có booking nào.</span></div></td></tr>`;
+                } else {
+                    bookingsBody.innerHTML = recentBookings.map(b => {
+                        let seatsStr = "-";
+                        if (Array.isArray(b.seats)) seatsStr = b.seats.join(", ");
+                        else if (typeof b.seats === "string") seatsStr = b.seats;
+
+                        return `
+                            <tr>
+                                <td data-label="Mã đơn"><strong class="text-primary">${b.id.substring(0, 8)}...</strong></td>
+                                <td data-label="Khách hàng"><div class="main-cell"><strong>${safeString(b.userEmail)}</strong><span>${safeString(b.userPhone || b.userId || "")}</span></div></td>
+                                <td data-label="Phim / Rạp"><div class="main-cell"><strong>${safeString(b.movieTitle)}</strong><span>${safeString(b.cinemaName)}</span></div></td>
+                                <td data-label="Ghế">${seatsStr}</td>
+                                <td data-label="Tổng tiền"><strong>${formatMoney(b.totalPrice)}</strong></td>
+                                <td data-label="Trạng thái"><span class="admin-badge ${getStatusClass(b.status)}">${getStatusText(b.status)}</span></td>
+                                <td data-label="Thời gian">${formatFullDateTime(b.createdAt)}</td>
+                            </tr>
+                        `;
+                    }).join("");
+                }
+            }
+
+            // 2. Recent Activity Logs (last 10)
+            const activitiesBody = document.getElementById("latestActivitiesBody");
+            if (activitiesBody) {
+                const recentActs = [...state.activity_logs]
+                    .sort((a, b) => getTimestamp(b) - getTimestamp(a))
+                    .slice(0, 10);
+
+                if (!recentActs.length) {
+                    activitiesBody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><span>Chưa có lịch sử hoạt động.</span></div></td></tr>`;
+                } else {
+                    activitiesBody.innerHTML = recentActs.map(act => {
+                        const email = act.email || "system@aerocinema.vn";
+                        const action = act.action || "update";
+                        const coll = act.collection || "system";
+                        
+                        let badgeClass = "secondary";
+                        if (action === "create" || action === "add") badgeClass = "success";
+                        else if (action === "delete" || action === "remove") badgeClass = "danger";
+                        else if (action === "update" || action === "edit") badgeClass = "primary";
+
+                        return `
+                            <tr>
+                                <td data-label="Nhân viên"><strong>${email}</strong></td>
+                                <td data-label="Thao tác"><span class="admin-badge ${badgeClass}">${action.toUpperCase()}</span></td>
+                                <td data-label="Phân mục"><span class="badge bg-dark">${coll}</span></td>
+                                <td data-label="Mã tài liệu"><span class="text-muted font-monospace" style="font-size:11px;">${safeString(act.docId, "global")}</span></td>
+                                <td data-label="Thời gian">${formatFullDateTime(act.timestamp)}</td>
+                            </tr>
+                        `;
+                    }).join("");
+                }
+            }
+
+            // 3. Top Cinemas sidebar
+            const cinemasList = document.getElementById("topCinemasList");
+            if (cinemasList) {
+                const cinemaStats = {};
+                // Initialize from existing cinemas
+                state.cinemas.forEach(c => {
+                    cinemaStats[c.name] = { name: c.name, city: c.city, count: 0, revenue: 0 };
+                });
+
+                // Group bookings
+                getCompletedBookings().forEach(b => {
+                    const name = b.cinemaName || "Khác";
+                    if (!cinemaStats[name]) {
+                        cinemaStats[name] = { name: name, city: "AERO System", count: 0, revenue: 0 };
+                    }
+                    cinemaStats[name].count++;
+                    cinemaStats[name].revenue += Number(b.totalPrice || 0);
+                });
+
+                const sortedCinemas = Object.values(cinemaStats)
+                    .sort((a, b) => b.revenue - a.revenue)
+                    .slice(0, 5);
+
+                if (!sortedCinemas.length) {
+                    cinemasList.innerHTML = `<div class="empty-state"><span>Chưa có dữ liệu rạp.</span></div>`;
+                } else {
+                    cinemasList.innerHTML = sortedCinemas.map((c, idx) => `
+                        <div class="top-item">
+                            <div class="top-item-avatar">${idx + 1}</div>
+                            <div class="top-item-info">
+                                <p class="top-item-title">${c.name}</p>
+                                <p class="top-item-subtitle">${c.city} · ${c.count} vé đặt</p>
+                            </div>
+                            <div class="top-item-value">${formatMoney(c.revenue)}</div>
+                        </div>
+                    `).join("");
+                }
+            }
+
+            // 4. Usage Metrics Calculations (simulate based on dataset doc sizes + basic rules)
+            // Firebase limits simulation: reads (50k/day for free tier), writes (20k/day), storage (5GB)
+            const totalDocs = state.users.length + state.movies.length + state.showtimes.length + state.bookings.length + state.tickets.length + state.payments.length + state.promotions.length + state.news.length + state.activity_logs.length + state.cinemas.length;
+            
+            // Reads = current reads count, writes = bookings + logs * 1.5, storage = movies count * 0.4MB + banners
+            state.firestoreReadCount = totalDocs;
+            const simulatedWrites = (state.bookings.length + state.activity_logs.length) * 2;
+            const simulatedStorage = (state.movies.length * 480 * 1024) + (state.promotions.length * 200 * 1024) + 24 * 1024 * 1024; // in bytes
+
+            const readPct = Math.min(100, Math.round((state.firestoreReadCount / 50000) * 100));
+            const writePct = Math.min(100, Math.round((simulatedWrites / 20000) * 100));
+            const storagePct = Math.min(100, Math.round((simulatedStorage / (5 * 1024 * 1024 * 1024)) * 100 * 10) / 10);
+
+            document.getElementById("readsPercent").innerText = `${readPct}% (${state.firestoreReadCount.toLocaleString("vi-VN")} / 50K)`;
+            document.getElementById("readsBar").style.width = `${readPct}%`;
+
+            document.getElementById("writesPercent").innerText = `${writePct}% (${simulatedWrites.toLocaleString("vi-VN")} / 20K)`;
+            document.getElementById("writesBar").style.width = `${writePct}%`;
+
+            document.getElementById("storagePercent").innerText = `${storagePct}% (${(simulatedStorage / (1024 * 1024)).toFixed(1)}MB / 5GB)`;
+            document.getElementById("storageBar").style.width = `${storagePct}%`;
         }
 
-        function safeText(value, fallback = "Đang cập nhật") {
-            return value === undefined || value === null || value === "" ? fallback : value;
+        // Chart generators
+        function buildChartData(tabName) {
+            const colors = window.AeroAdmin?.getThemeColors() || { primary: "#f97316", muted: "#94a3b8" };
+            const paid = getPaidPayments();
+
+            if (tabName === "revenue30") {
+                // Past 30 days daily revenue
+                const days = [];
+                for (let i = 29; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    d.setHours(0,0,0,0);
+                    days.push({
+                        date: d,
+                        label: d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" }),
+                        revenue: 0
+                    });
+                }
+                paid.forEach(p => {
+                    const pd = toDateObject(p.createdAt || p.updatedAt);
+                    if (!pd) return;
+                    const item = days.find(day => day.date.getDate() === pd.getDate() && day.date.getMonth() === pd.getMonth() && day.date.getFullYear() === pd.getFullYear());
+                    if (item) item.revenue += Number(p.amount || p.totalPrice || 0);
+                });
+
+                return {
+                    type: "line",
+                    data: {
+                        labels: days.map(d => d.label),
+                        datasets: [{
+                            label: "Doanh thu ngày",
+                            data: days.map(d => d.revenue),
+                            borderColor: colors.primary,
+                            backgroundColor: "rgba(249, 115, 22, 0.12)",
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            tooltip: { callbacks: { label: (ctx) => formatMoney(ctx.raw) } }
+                        }
+                    }
+                };
+            }
+
+            if (tabName === "revenue12") {
+                // Past 12 months revenue
+                const months = [];
+                for (let i = 11; i >= 0; i--) {
+                    const d = new Date();
+                    d.setMonth(d.getMonth() - i);
+                    months.push({
+                        year: d.getFullYear(),
+                        month: d.getMonth(),
+                        label: d.toLocaleDateString("vi-VN", { month: "short", year: "2-digit" }),
+                        revenue: 0
+                    });
+                }
+                paid.forEach(p => {
+                    const pd = toDateObject(p.createdAt || p.updatedAt);
+                    if (!pd) return;
+                    const item = months.find(m => m.month === pd.getMonth() && m.year === pd.getFullYear());
+                    if (item) item.revenue += Number(p.amount || p.totalPrice || 0);
+                });
+
+                return {
+                    type: "bar",
+                    data: {
+                        labels: months.map(m => m.label),
+                        datasets: [{
+                            label: "Doanh thu tháng",
+                            data: months.map(m => m.revenue),
+                            backgroundColor: colors.primary,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            tooltip: { callbacks: { label: (ctx) => formatMoney(ctx.raw) } }
+                        }
+                    }
+                };
+            }
+
+            if (tabName === "bookingTrend") {
+                // Past 30 days bookings count
+                const days = [];
+                for (let i = 29; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    d.setHours(0,0,0,0);
+                    days.push({
+                        date: d,
+                        label: d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" }),
+                        count: 0
+                    });
+                }
+                state.bookings.forEach(b => {
+                    const bd = toDateObject(b.createdAt);
+                    if (!bd) return;
+                    const item = days.find(day => day.date.getDate() === bd.getDate() && day.date.getMonth() === bd.getMonth() && day.date.getFullYear() === bd.getFullYear());
+                    if (item) item.count++;
+                });
+
+                return {
+                    type: "line",
+                    data: {
+                        labels: days.map(d => d.label),
+                        datasets: [{
+                            label: "Số đơn đặt vé",
+                            data: days.map(d => d.count),
+                            borderColor: "#3b82f6",
+                            backgroundColor: "rgba(59, 130, 246, 0.1)",
+                            fill: true,
+                            tension: 0.35
+                        }]
+                    }
+                };
+            }
+
+            if (tabName === "ticketTrend") {
+                // Past 30 days seats booked
+                const days = [];
+                for (let i = 29; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    d.setHours(0,0,0,0);
+                    days.push({
+                        date: d,
+                        label: d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" }),
+                        count: 0
+                    });
+                }
+                getCompletedBookings().forEach(b => {
+                    const bd = toDateObject(b.createdAt);
+                    if (!bd) return;
+                    const item = days.find(day => day.date.getDate() === bd.getDate() && day.date.getMonth() === bd.getMonth() && day.date.getFullYear() === bd.getFullYear());
+                    if (item) {
+                        if (Array.isArray(b.seats)) item.count += b.seats.length;
+                        else if (typeof b.seats === "string" && b.seats.trim()) item.count += b.seats.split(",").length;
+                    }
+                });
+
+                return {
+                    type: "line",
+                    data: {
+                        labels: days.map(d => d.label),
+                        datasets: [{
+                            label: "Số vé bán",
+                            data: days.map(d => d.count),
+                            borderColor: "#10b981",
+                            backgroundColor: "rgba(16, 185, 129, 0.1)",
+                            fill: true,
+                            tension: 0.35
+                        }]
+                    }
+                };
+            }
+
+            if (tabName === "topMovies") {
+                // Top 10 movies by seats booked
+                const moviesMap = {};
+                state.movies.forEach(m => {
+                    moviesMap[m.title] = { title: m.title, count: 0 };
+                });
+                getCompletedBookings().forEach(b => {
+                    const title = b.movieTitle || "Khác";
+                    if (!moviesMap[title]) moviesMap[title] = { title: title, count: 0 };
+                    
+                    let seatsCount = 0;
+                    if (Array.isArray(b.seats)) seatsCount = b.seats.length;
+                    else if (typeof b.seats === "string" && b.seats.trim()) seatsCount = b.seats.split(",").length;
+                    
+                    moviesMap[title].count += seatsCount;
+                });
+
+                const sorted = Object.values(moviesMap)
+                    .sort((a,b) => b.count - a.count)
+                    .slice(0, 10);
+
+                return {
+                    type: "bar",
+                    data: {
+                        labels: sorted.map(m => m.title.length > 15 ? m.title.substring(0, 15) + "..." : m.title),
+                        datasets: [{
+                            label: "Vé bán ra",
+                            data: sorted.map(m => m.count),
+                            backgroundColor: ["#f97316", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899", "#f59e0b", "#14b8a6", "#6366f1", "#a855f7", "#06b6d4"],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        indexAxis: "y"
+                    }
+                };
+            }
+
+            if (tabName === "topCinemas") {
+                // Top Cinemas by bookings
+                const cinemaMap = {};
+                state.cinemas.forEach(c => {
+                    cinemaMap[c.name] = { name: c.name, count: 0 };
+                });
+                getCompletedBookings().forEach(b => {
+                    const name = b.cinemaName || "Khác";
+                    if (!cinemaMap[name]) cinemaMap[name] = { name: name, count: 0 };
+                    cinemaMap[name].count++;
+                });
+
+                const sorted = Object.values(cinemaMap)
+                    .sort((a,b) => b.count - a.count)
+                    .slice(0, 10);
+
+                return {
+                    type: "bar",
+                    data: {
+                        labels: sorted.map(c => c.name),
+                        datasets: [{
+                            label: "Số đơn đặt thành công",
+                            data: sorted.map(c => c.count),
+                            backgroundColor: "#8b5cf6",
+                            borderRadius: 6
+                        }]
+                    }
+                };
+            }
+
+            if (tabName === "payments") {
+                // Payment gateways distribution
+                const gateMap = { "Momo": 0, "VNPay": 0, "MB Bank": 0, "Cash": 0, "Khác": 0 };
+                state.payments.forEach(p => {
+                    const m = p.method || p.paymentMethod || "Khác";
+                    let matched = "Khác";
+                    if (normalizeValue(m).includes("momo")) matched = "Momo";
+                    else if (normalizeValue(m).includes("vnpay")) matched = "VNPay";
+                    else if (normalizeValue(m).includes("mb") || normalizeValue(m).includes("bank")) matched = "MB Bank";
+                    else if (normalizeValue(m).includes("cash") || normalizeValue(m).includes("tiền mặt")) matched = "Cash";
+
+                    gateMap[matched]++;
+                });
+
+                return {
+                    type: "doughnut",
+                    data: {
+                        labels: Object.keys(gateMap),
+                        datasets: [{
+                            data: Object.values(gateMap),
+                            backgroundColor: ["#a21caf", "#0369a1", "#047857", "#475569", "#64748b"]
+                        }]
+                    },
+                    options: {
+                        maintainAspectRatio: false
+                    }
+                };
+            }
+
+            if (tabName === "userGrowth") {
+                // Cumulative registrations by month
+                const months = [];
+                for (let i = 11; i >= 0; i--) {
+                    const d = new Date();
+                    d.setMonth(d.getMonth() - i);
+                    months.push({
+                        year: d.getFullYear(),
+                        month: d.getMonth(),
+                        label: d.toLocaleDateString("vi-VN", { month: "short", year: "2-digit" }),
+                        registrations: 0
+                    });
+                }
+                
+                state.users.forEach(u => {
+                    const ud = toDateObject(u.createdAt);
+                    if (!ud) return;
+                    const item = months.find(m => m.month === ud.getMonth() && m.year === ud.getFullYear());
+                    if (item) item.registrations++;
+                });
+
+                // Compute cumulative sum
+                let sum = state.users.length;
+                // Subtract months in chart to get starting sum
+                const chartRegCount = months.reduce((s, m) => s + m.registrations, 0);
+                let currentTotal = Math.max(0, sum - chartRegCount);
+                
+                const cumulativeData = months.map(m => {
+                    currentTotal += m.registrations;
+                    return currentTotal;
+                });
+
+                return {
+                    type: "line",
+                    data: {
+                        labels: months.map(m => m.label),
+                        datasets: [{
+                            label: "Tổng người dùng (Tích lũy)",
+                            data: cumulativeData,
+                            borderColor: "#ec4899",
+                            backgroundColor: "rgba(236, 72, 153, 0.08)",
+                            fill: true,
+                            tension: 0.3
+                        }]
+                    }
+                };
+            }
+
+            return null;
         }
 
-        // Security check
-        onAuthStateChanged(auth, async (user) => {
-            if (!user) {
-                window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
+        function createOrUpdateChart() {
+            const canvas = document.getElementById("dashboardAnalyticChart");
+            if (!canvas || !window.Chart || state.isRenderingChart) return;
+
+            const config = buildChartData(state.currentActiveChartTab);
+            if (!config) return;
+
+            state.isRenderingChart = true;
+            try {
+                if (state.chartInstance) {
+                    state.chartInstance.destroy();
+                    state.chartInstance = null;
+                }
+
+                // Get theme colors BEFORE chart construction to bake them into initial config
+                const colors = window.AeroAdmin?.getThemeColors?.() || {
+                    bg: "#0f172a", card: "#1e293b", border: "#334155",
+                    text: "#f8fafc", muted: "#cbd5e1", primary: "#f58220"
+                };
+
+                // Standard layout rules
+                const chartOptions = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: {
+                        legend: {
+                            position: "top",
+                            labels: {
+                                boxWidth: 12,
+                                font: { family: "Inter", weight: 600 },
+                                color: colors.text
+                            }
+                        }
+                    },
+                    scales: config.type === "doughnut" ? {} : {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: colors.border },
+                            ticks: { color: colors.muted }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: colors.muted }
+                        }
+                    }
+                };
+
+                // Merge specialized options
+                const mergedOptions = { ...chartOptions, ...config.options };
+                if (config.options?.plugins) {
+                    mergedOptions.plugins = { ...chartOptions.plugins, ...config.options.plugins };
+                }
+                if (config.options?.scales) {
+                    mergedOptions.scales = { ...chartOptions.scales, ...config.options.scales };
+                }
+
+                // Create chart — do NOT call update() after construction,
+                // Chart.js constructor already performs the initial render.
+                state.chartInstance = new Chart(canvas, {
+                    type: config.type,
+                    data: config.data,
+                    options: mergedOptions
+                });
+            } finally {
+                state.isRenderingChart = false;
+            }
+        }
+
+        function scheduleDashboardChart() {
+            if (state.chartRenderTimer) clearTimeout(state.chartRenderTimer);
+            state.chartRenderTimer = setTimeout(createOrUpdateChart, 150);
+        }
+
+        // Render dashboard elements
+        function renderDashboard() {
+            updateSummaryCards();
+            renderWidgets();
+            scheduleDashboardChart();
+        }
+
+        // Attach listeners to firestore collections
+        function attachRealtimeListeners() {
+            const db = window.AeroAdmin?.db || window.db;
+            if (!db) {
+                window.AeroAdmin?.toast?.("error", "Firebase chưa sẵn sàng", "Không thể khởi tạo listeners.");
                 return;
             }
 
+            // Measure response times
+            const startTime = performance.now();
+
+            state.unsubscribers.forEach(unsub => unsub());
+            state.unsubscribers = [];
+
+            let loadedCounter = 0;
+
+            collections.forEach(collName => {
+                const unsub = onSnapshot(collection(db, collName), (snap) => {
+                    state[collName] = snap.docs.map(docSnap => ({
+                        id: docSnap.id,
+                        ...docSnap.data()
+                    }));
+                    state.loaded.add(collName);
+                    
+                    if (state.loaded.size === collections.length) {
+                        if (loadedCounter === 0) {
+                            const delay = Math.round(performance.now() - startTime);
+                            document.getElementById("healthPing").innerText = `${delay} ms`;
+                            if (delay > 500) {
+                                document.getElementById("healthPulse").className = "pulse-indicator yellow";
+                            } else {
+                                document.getElementById("healthPulse").className = "pulse-indicator green";
+                            }
+                            loadedCounter++;
+                        }
+                    }
+
+                    renderDashboard();
+                }, (err) => {
+                    console.error(`Firestore error on collection ${collName}:`, err);
+                    document.getElementById("healthStatus").innerText = "Sự cố";
+                    document.getElementById("healthPulse").className = "pulse-indicator yellow";
+                });
+
+                state.unsubscribers.push(unsub);
+            });
+        }
+
+        // Setup chart tabs triggers
+        function setupChartTabs() {
+            document.querySelectorAll(".chart-tab-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    document.querySelectorAll(".chart-tab-btn").forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    state.currentActiveChartTab = btn.dataset.chart;
+                    if (state.chartRenderTimer) clearTimeout(state.chartRenderTimer);
+                    createOrUpdateChart();
+                });
+            });
+        }
+
+        // Handle Theme Changes — only update options + dataset colors, then call update("none") once.
+        // Do NOT re-create the chart or call applyChartTheme (which is already called globally by the layout).
+        window.addEventListener("aero-admin-theme-change", () => {
+            if (!state.chartInstance || state.isRenderingChart) return;
+            state.isRenderingChart = true;
             try {
-                const userDocSnap = await getDoc(doc(db, "users", user.uid));
-                if (!userDocSnap.exists() || userDocSnap.data().role !== "admin") {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Truy cập bị từ chối',
-                        text: 'Bạn không có quyền quản trị để xem trang này!',
-                        background: '#ffffff',
-                        color: '#1f2937',
-                        confirmButtonColor: '#f58220'
-                    }).then(() => {
-                        window.location.href = '/';
-                    });
-                    return;
+                const colors = window.AeroAdmin?.getThemeColors?.() || { primary: "#f97316", muted: "#cbd5e1", border: "#334155", text: "#f8fafc" };
+
+                // Update dataset colors for primary-colored charts
+                if (state.chartInstance.data?.datasets?.[0]) {
+                    if (state.currentActiveChartTab === "revenue30") {
+                        state.chartInstance.data.datasets[0].borderColor = colors.primary;
+                    } else if (state.currentActiveChartTab === "revenue12") {
+                        state.chartInstance.data.datasets[0].backgroundColor = colors.primary;
+                    }
                 }
 
-                // Show Admin Profile Name
-                const adminName = userDocSnap.data().fullName || user.displayName || "Admin";
-                document.querySelector(".admin-username").innerText = adminName;
-                document.getElementById("adminAvatar").innerText = adminName.substring(0, 2).toUpperCase();
+                // Update scale + legend colors directly on existing options
+                if (state.chartInstance.options.scales?.x) {
+                    state.chartInstance.options.scales.x.ticks = state.chartInstance.options.scales.x.ticks || {};
+                    state.chartInstance.options.scales.x.ticks.color = colors.muted;
+                    state.chartInstance.options.scales.x.grid = state.chartInstance.options.scales.x.grid || {};
+                    state.chartInstance.options.scales.x.grid.color = colors.border;
+                }
+                if (state.chartInstance.options.scales?.y) {
+                    state.chartInstance.options.scales.y.ticks = state.chartInstance.options.scales.y.ticks || {};
+                    state.chartInstance.options.scales.y.ticks.color = colors.muted;
+                    state.chartInstance.options.scales.y.grid = state.chartInstance.options.scales.y.grid || {};
+                    state.chartInstance.options.scales.y.grid.color = colors.border;
+                }
+                if (state.chartInstance.options.plugins?.legend?.labels) {
+                    state.chartInstance.options.plugins.legend.labels.color = colors.text;
+                }
 
-                // Load stats
-                await loadDashboardStats();
-
-            } catch (e) {
-                console.error("Dashboard Auth Error: ", e);
-                window.location.href = '/';
+                state.chartInstance.update("none");
+            } finally {
+                state.isRenderingChart = false;
             }
         });
 
-        // Main loader
-        async function loadDashboardStats() {
-            try {
-                // Fetch all movies, users, bookings, tickets in parallel to build fast maps and compute metrics
-                const [moviesSnap, usersSnap, bookingsSnap, ticketsSnap] = await Promise.all([
-                    getDocs(query(collection(db, "movies"), limit(50))),
-                    getDocs(query(collection(db, "users"), limit(100))),
-                    getDocs(query(collection(db, "bookings"), orderBy("createdAt", "desc"), limit(100))),
-                    getDocs(query(collection(db, "tickets"), limit(100)))
-                ]);
+        // App ready initialization
+        window.addEventListener("aero-admin-ready", () => {
+            setupChartTabs();
+            attachRealtimeListeners();
+        }, { once: true });
 
-                // Count stats
-                document.getElementById("statMovies").innerText = moviesSnap.size;
-                document.getElementById("statUsers").innerText = usersSnap.size;
-
-                // Build Users Map
-                const usersMap = {};
-                usersSnap.forEach(uDoc => {
-                    usersMap[uDoc.id] = uDoc.data();
-                });
-
-                // Build Tickets Map (by Booking ID)
-                const ticketsMap = {};
-                ticketsSnap.forEach(tDoc => {
-                    const ticketData = tDoc.data();
-                    if (ticketData.bookingId) {
-                        ticketsMap[ticketData.bookingId] = ticketData;
-                    }
-                });
-
-                let totalRevenue = 0;
-                let totalSeatsSold = 0;
-                const bookingsList = [];
-                const movieSales = {};
-                const dayRev = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 0: 0 }; // Mon-Sun
-
-                bookingsSnap.forEach(bDoc => {
-                    const booking = bDoc.data();
-                    const bookingId = bDoc.id;
-                    bookingsList.push({ id: bookingId, ...booking });
-
-                    // Sum completed revenue
-                    totalRevenue += booking.totalPrice || 0;
-
-                    // Sum seats
-                    const seatCount = Array.isArray(booking.seats) ? booking.seats.length : 1;
-                    totalSeatsSold += seatCount;
-
-                    // Group by Movie for popularity rating
-                    const movieId = booking.movieId;
-                    if (movieId) {
-                        if (!movieSales[movieId]) {
-                            movieSales[movieId] = { title: booking.movieTitle || "Phim", count: 0 };
-                        }
-                        movieSales[movieId].count += seatCount;
-                    }
-
-                    // Group revenue by day of week
-                    if (booking.createdAt) {
-                        const date = booking.createdAt.toDate ? booking.createdAt.toDate() : new Date(booking.createdAt);
-                        const day = date.getDay(); // 0 (Sun) - 6 (Sat)
-                        dayRev[day] += booking.totalPrice || 0;
-                    }
-                });
-
-                document.getElementById("statTickets").innerText = totalSeatsSold;
-                document.getElementById("statRevenue").innerText = formatCurrency(totalRevenue);
-
-                // 1. Sort bookings by date desc for the latest orders table
-                bookingsList.sort((a, b) => {
-                    const timeA = a.createdAt?.seconds || 0;
-                    const timeB = b.createdAt?.seconds || 0;
-                    return timeB - timeA;
-                });
-
-                const latestBookings = bookingsList.slice(0, 5);
-                let tableHtml = "";
-
-                if (latestBookings.length === 0) {
-                    tableHtml = `<tr><td colspan="9" class="text-center py-4 text-muted">Không có đơn đặt vé nào.</td></tr>`;
-                } else {
-                    latestBookings.forEach(booking => {
-                        const dateFormatted = formatDateSafe(booking?.date);
-                        const seatsString = Array.isArray(booking.seats) ? booking.seats.join(", ") : safeText(booking.seats);
-                        const userDoc = usersMap[booking.userId] || {};
-                        const customerName = userDoc.fullName || booking.userEmail || "Khách hàng";
-                        
-                        const ticket = ticketsMap[booking.id] || {};
-                        const ticketCode = ticket.ticketCode || "AERO-PENDING";
-                        const qrText = ticket.qrText || "AEROCINEMA-PENDING";
-                        
-                        let payMethod = "Tiền mặt";
-                        if (booking.paymentMethod === "qr") payMethod = "QR Banking";
-                        if (booking.paymentMethod === "momo") payMethod = "Ví MoMo";
-                        
-                        const priceFormatted = formatCurrency(booking.totalPrice);
-
-                        tableHtml += `
-                            <tr>
-                                <td><strong style="color: var(--primary-color);">${ticketCode}</strong></td>
-                                <td>${customerName}</td>
-                                <td>${safeText(booking.movieTitle, "AERO Cinema")}</td>
-                                <td>${safeText(booking.time)} - ${dateFormatted}</td>
-                                <td>${seatsString}</td>
-                                <td>${priceFormatted}</td>
-                                <td>${payMethod}</td>
-                                <td><span class="status-badge completed">Thành công</span></td>
-                                <td>
-                                    <button class="btn-action-view" onclick="showTicketDetailModal('${ticketCode}', '${qrText}', '${booking.movieTitle.replace(/'/g, "\\'")}', '${safeText(booking.cinemaName)}', '${safeText(booking.roomName)}', '${safeText(booking.time)}', '${safeText(booking.date, '')}', '${seatsString}', '${priceFormatted}', '${payMethod}', '${customerName}')">
-                                        Chi tiết
-                                    </button>
-                                </td>
-                            </tr>
-                        `;
-                    });
-                }
-                document.getElementById("latestBookingsTable").innerHTML = tableHtml;
-
-                // 2. Render Top Movies List (sorted by number of seats sold)
-                const sortedMovieSales = Object.values(movieSales).sort((a, b) => b.count - a.count).slice(0, 4);
-                let moviesListHtml = "";
-                
-                if (sortedMovieSales.length === 0) {
-                    moviesListHtml = `<div class="text-muted text-center py-4">Chưa có xếp hạng phim.</div>`;
-                } else {
-                    sortedMovieSales.forEach((movie, index) => {
-                        moviesListHtml += `
-                            <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); margin-bottom: 5px;">
-                                <span style="font-size: 14px; font-weight: 700; color: var(--text-main);">${index + 1}. ${movie.title}</span>
-                                <span style="font-size: 13px; color: var(--primary-color); font-weight: 700;">${movie.count} Vé</span>
-                            </div>
-                        `;
-                    });
-                }
-                document.getElementById("topMoviesList").innerHTML = moviesListHtml;
-
-                // 3. Render Revenue Weekly Chart heights dynamically
-                const maxRev = Math.max(...Object.values(dayRev), 100000); // base threshold to prevent zero height
-                const daysMap = {
-                    1: { id: "barMon", tooltipId: "tooltipMon" },
-                    2: { id: "barTue", tooltipId: "tooltipTue" },
-                    3: { id: "barWed", tooltipId: "tooltipWed" },
-                    4: { id: "barThu", tooltipId: "tooltipThu" },
-                    5: { id: "barFri", tooltipId: "tooltipFri" },
-                    6: { id: "barSat", tooltipId: "tooltipSat" },
-                    0: { id: "barSun", tooltipId: "tooltipSun" }
-                };
-
-                for (const day in daysMap) {
-                    const rev = dayRev[day];
-                    const pct = Math.min(100, Math.floor((rev / maxRev) * 100));
-                    const fillEl = document.getElementById(daysMap[day].id);
-                    if (fillEl) {
-                        fillEl.style.height = `${pct}%`;
-                        fillEl.classList.remove("skeleton");
-                    }
-                    const tooltipEl = document.getElementById(daysMap[day].tooltipId);
-                    if (tooltipEl) {
-                        tooltipEl.innerText = formatCurrency(rev);
-                    }
-                }
-
-            } catch (e) {
-                console.error("Error loading dashboard data: ", e);
-            }
+        if (window.AeroAdmin?.state?.ready) {
+            setupChartTabs();
+            attachRealtimeListeners();
         }
 
-        // Global function for modal display
-        window.showTicketDetailModal = function(ticketCode, qrText, movieTitle, cinemaName, roomName, time, date, seats, price, payMethod, userName) {
-            const dateFormatted = formatDateSafe(date);
-            Swal.fire({
-                title: `<div style="font-size: 16px; font-weight:800; text-transform:uppercase; color:var(--text-main); border-bottom:1px solid var(--border-color); padding-bottom:12px; font-family:'Raleway', sans-serif;">Chi Tiết Vé ${ticketCode}</div>`,
-                html: `
-                    <div style="text-align: left; font-size: 13px; color: var(--text-sub); margin-top: 15px; font-family:'Raleway', sans-serif;">
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>Khách hàng:</span>
-                            <span style="color:var(--text-main); font-weight:600;">${userName}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>Phim:</span>
-                            <span style="color:var(--text-main); font-weight:600;">${movieTitle}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>Rạp:</span>
-                            <span style="color:var(--text-main); font-weight:600;">${cinemaName} (${roomName})</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>Suất chiếu:</span>
-                            <span style="color:var(--text-main); font-weight:600;">${time} - ${dateFormatted}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>Ghế:</span>
-                            <span style="color: var(--primary-color); font-weight:700;">${seats}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                            <span>Thanh toán:</span>
-                            <span style="color:var(--text-main); font-weight:600;">${payMethod}</span>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                            <span>Tổng tiền:</span>
-                            <span style="color:var(--text-main); font-weight:600;">${price}</span>
-                        </div>
-                        <div style="display: flex; flex-direction: column; align-items: center; background: #ffffff; padding: 15px; border-radius: 12px; border: 1px solid #e5e7eb; width: 180px; margin: 15px auto 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrText)}" style="width: 150px; height: 150px; object-fit: contain;" alt="QR Code" />
-                        </div>
-                        <div style="text-align: center; font-size: 11px; color:var(--text-sub); margin-top: 10px;">
-                            Mã quét: ${qrText}
-                        </div>
-                    </div>
-                `,
-                showConfirmButton: true,
-                confirmButtonText: 'Đóng',
-                confirmButtonColor: '#f58220',
-                background: '#ffffff',
-                color: '#1f2937'
-            });
-        };
+        window.addEventListener("beforeunload", () => {
+            state.unsubscribers.forEach(unsub => unsub());
+        });
     </script>
 }

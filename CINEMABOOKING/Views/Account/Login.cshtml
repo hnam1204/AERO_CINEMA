@@ -60,10 +60,21 @@
             signInWithEmailAndPassword,
             setPersistence,
             browserLocalPersistence,
-            browserSessionPersistence
+            browserSessionPersistence,
+            signOut
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import {
+            doc,
+            getDoc,
+            collection,
+            query,
+            where,
+            limit,
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const auth = window.auth;
+        const db = window.db;
         const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
         const loginSubmitBtn = document.getElementById("loginSubmitBtn");
         const loginSubmitText = document.getElementById("loginSubmitText");
@@ -97,8 +108,100 @@
         }
 
         function getReturnUrl() {
-            const returnUrl = new URLSearchParams(window.location.search).get("returnUrl");
-            return returnUrl || "/";
+            return new URLSearchParams(window.location.search).get("returnUrl") || "";
+        }
+
+        function isSafeLocalUrl(url) {
+            return typeof url === "string" && url.startsWith("/") && !url.startsWith("//");
+        }
+
+        async function findUserDocumentByEmail(email) {
+            try {
+                const normalizedEmail = String(email || "").trim().toLowerCase();
+                const candidates = [normalizedEmail];
+
+                if (email && email !== normalizedEmail) {
+                    candidates.push(email);
+                }
+
+                for (const candidate of candidates) {
+                    const emailQuery = query(
+                        collection(db, "users"),
+                        where("email", "==", candidate),
+                        limit(3)
+                    );
+                    const snap = await getDocs(emailQuery);
+                    if (!snap.empty) {
+                        return snap.docs.map(item => ({
+                            id: item.id,
+                            path: `users/${item.id}`,
+                            data: item.data()
+                        }));
+                    }
+                }
+            } catch (error) {
+                console.warn("AERO ADMIN DEBUG - Query users by email failed. Firestore Rules may not allow this for non-admin users.", error);
+            }
+
+            return [];
+        }
+
+        async function loadUserDocumentAfterLogin(user) {
+            const userDocPath = `users/${user.uid}`;
+            const userDocRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userDocRef);
+            const userData = userSnap.exists() ? userSnap.data() : null;
+            const emailMatches = userData ? [] : await findUserDocumentByEmail(user.email);
+
+            console.log("AERO ADMIN DEBUG - Auth UID:", user.uid);
+            console.log("AERO ADMIN DEBUG - Email:", user.email);
+            console.log("AERO ADMIN DEBUG - Document path đang đọc:", userDocPath);
+            console.log("AERO ADMIN DEBUG - User data Firestore:", userData);
+            console.log("AERO ADMIN DEBUG - Role:", userData?.role);
+            console.log("AERO ADMIN DEBUG - Status:", userData?.status);
+            if (emailMatches.length > 0) {
+                console.warn("AERO ADMIN DEBUG - Tìm thấy document theo email nhưng sai UID:", emailMatches);
+            }
+
+            return {
+                exists: userSnap.exists(),
+                path: userDocPath,
+                data: userData,
+                emailMatches
+            };
+        }
+
+        async function redirectByRole(user, loginEmail) {
+            const result = await loadUserDocumentAfterLogin(user);
+
+            if (!result.exists) {
+                await signOut(auth);
+
+                const wrongDocHint = result.emailMatches.length > 0
+                    ? ` Firestore đang có document theo email tại ${result.emailMatches.map(item => item.path).join(", ")} nhưng document ID không trùng Auth UID ${user.uid}. Hãy đổi/tạo lại document users/${user.uid}.`
+                    : "";
+
+                throw new Error(`Không tìm thấy hồ sơ Firestore tại ${result.path}.${wrongDocHint}`);
+            }
+
+            const role = String(result.data.role || "").trim().toLowerCase();
+            const status = String(result.data.status || "active").trim().toLowerCase();
+
+            if (status !== "active") {
+                await signOut(auth);
+                throw new Error(`Tài khoản đang có status = "${status}". Chỉ tài khoản active mới được đăng nhập.`);
+            }
+
+            if (role === "admin") {
+                return "/Admin/Dashboard";
+            }
+
+            const returnUrl = getReturnUrl();
+            if (isSafeLocalUrl(returnUrl) && !returnUrl.toLowerCase().startsWith("/admin")) {
+                return returnUrl;
+            }
+
+            return "/Account/Profile";
         }
 
         document.getElementById("loginForm").addEventListener("submit", async (e) => {
@@ -131,7 +234,8 @@
 
             try {
                 await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
-                await signInWithEmailAndPassword(auth, email, password);
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const redirectUrl = await redirectByRole(userCredential.user, email);
 
                 postForm("/Otp/SendLoginAlert", { email }).catch((error) => {
                     console.warn("Login alert email skipped:", error);
@@ -144,15 +248,15 @@
                     background: "#ffffff",
                     color: "#333333",
                     confirmButtonColor: "#f58220",
-                    timer: 1200,
+                    timer: 900,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location.href = getReturnUrl();
+                    window.location.href = redirectUrl;
                 });
             } catch (error) {
                 console.error("Error signing in:", error);
 
-                let message = "Email hoặc mật khẩu không chính xác.";
+                let message = error.message || "Email hoặc mật khẩu không chính xác.";
                 if (error.code === "auth/invalid-email") {
                     message = "Email không hợp lệ.";
                 } else if (error.code === "auth/user-disabled") {

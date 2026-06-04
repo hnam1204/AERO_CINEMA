@@ -249,6 +249,76 @@
         text-align: center;
     }
 
+    .bank-qr-box {
+        margin-top: 18px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 18px;
+        padding: 22px;
+        text-align: center;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+    }
+
+    .bank-label {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: rgba(0, 91, 170, 0.08);
+        color: var(--primary-color);
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+    }
+
+    .bank-qr-img {
+        width: min(260px, 100%);
+        height: auto;
+        display: block;
+        margin: 0 auto 18px auto;
+        border-radius: 14px;
+        border: 1px solid var(--border-color);
+        background: #ffffff;
+    }
+
+    .bank-info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-align: left;
+    }
+
+    .bank-info-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        font-size: 13px;
+        color: var(--text-sub);
+        border-bottom: 1px dashed var(--border-color);
+        padding-bottom: 8px;
+    }
+
+    .bank-info-row:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+    }
+
+    .bank-info-row strong {
+        color: var(--text-main);
+        font-weight: 800;
+        text-align: right;
+        overflow-wrap: anywhere;
+    }
+
+    .bank-info-row .bank-amount {
+        color: var(--accent-color);
+        font-size: 20px;
+        font-weight: 900;
+    }
+
     /* Voucher & Breakdown Sidebar */
     .invoice-sidebar {
         display: flex;
@@ -359,7 +429,7 @@
     }
 
     .btn-confirm-payment {
-        background-color: var(--accent-color);
+                    <span>Tôi đã chuyển khoản - Xác nhận đặt vé</span>
         border: none;
         color: #fff;
         font-weight: 700;
@@ -482,6 +552,15 @@
         .input-field-group.full-width {
             grid-column: span 1;
         }
+
+        .bank-info-row {
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .bank-info-row strong {
+            text-align: left;
+        }
     }
 </style>
 
@@ -490,15 +569,15 @@
     <!-- STEP PROGRESS BAR -->
     <div class="booking-steps-bar">
         <div class="step-indicator">
-            <i class="fas fa-couch"></i> Chọn Ghế
+            <i class="fas fa-couch"></i> Chọn ghế
         </div>
         <div class="step-line active"></div>
         <div class="step-indicator active">
-            <i class="fas fa-credit-card"></i> Thanh Toán
+            <i class="fas fa-credit-card"></i> Thanh toán
         </div>
         <div class="step-line active"></div>
         <div class="step-indicator">
-            <i class="fas fa-check-circle"></i> Hoàn Tất
+            <i class="fas fa-check-circle"></i> Hoàn tất
         </div>
     </div>
 
@@ -511,7 +590,7 @@
             <div class="checkout-card">
                 <div class="card-title">
                     <i class="fas fa-ticket-alt"></i>
-                    <span>Thông tin vé đã đặt</span>
+                    <span>THÔNG TIN VÉ ĐÃ ĐẶT</span>
                 </div>
                 <div class="movie-summary-item">
                     <div class="summary-poster-wrap skeleton" id="chkPosterWrapper">
@@ -545,15 +624,15 @@
             <div class="checkout-card">
                 <div class="card-title">
                     <i class="fas fa-user"></i>
-                    <span>Thông tin người nhận vé</span>
+                    <span>THÔNG TIN NGƯỜI NHẬN VÉ</span>
                 </div>
                 <form id="customerForm" class="form-grid" onsubmit="event.preventDefault();">
                     <div class="input-field-group">
-                        <label for="txtFullName">Họ và Tên</label>
+                        <label for="txtFullName">Họ và tên</label>
                         <input type="text" id="txtFullName" placeholder="Nhập họ và tên..." required />
                     </div>
                     <div class="input-field-group">
-                        <label for="txtPhone">Số Điện Thoại</label>
+                        <label for="txtPhone">Số điện thoại</label>
                         <input type="tel" id="txtPhone" placeholder="Nhập số điện thoại..." required />
                     </div>
                     <div class="input-field-group full-width">
@@ -572,60 +651,70 @@
             <div class="checkout-card">
                 <div class="card-title">
                     <i class="fas fa-wallet"></i>
-                    <span>Phương thức thanh toán</span>
+                    <span>PHƯƠNG THỨC THANH TOÁN</span>
                 </div>
                 
                 <div class="payment-options">
-                    <div class="payment-option-card selected" onclick="selectPaymentCard('cash')">
-                        <input type="radio" id="payCash" name="paymentGroup" value="cash" checked />
-                        <label class="payment-option-label" for="payCash">
-                            <i class="fas fa-money-bill-wave" style="color: #16a34a;"></i>
-                            <span>Tiền mặt tại quầy</span>
-                        </label>
-                    </div>
-                    
-                    <div class="payment-option-card" onclick="selectPaymentCard('qr')">
-                        <input type="radio" id="payQR" name="paymentGroup" value="qr" />
+                    <div class="payment-option-card selected" onclick="selectPaymentCard('qr')">
+                        <input type="radio" id="payQR" name="paymentGroup" value="qr" checked />
                         <label class="payment-option-label" for="payQR">
                             <i class="fas fa-qrcode" style="color: #005baa;"></i>
-                            <span>QR Banking (Chuyển khoản VietQR)</span>
+                            <span>QR Banking / Chuyển khoản MB Bank</span>
                         </label>
                     </div>
-                    
-                    <div class="payment-option-card" onclick="selectPaymentCard('momo')">
-                        <input type="radio" id="payMoMo" name="paymentGroup" value="momo" />
-                        <label class="payment-option-label" for="payMoMo">
-                            <i class="fas fa-mobile-alt" style="color: #a84fd3;"></i>
-                            <span>Ví Điện Tử MoMo (Demo)</span>
-                        </label>
+                </div>
+
+                <div class="bank-qr-box" id="bankQrBox">
+                    <div class="bank-label">
+                        <i class="fas fa-building-columns"></i>
+                        <span>MB Bank VietQR</span>
+                    </div>
+                    <img src="https://img.vietqr.io/image/mbbank-195989-compact2.jpg?amount=0&addInfo=AERO&accountName=NGUYEN%20HAI%20NAM" alt="QR MB Bank" class="bank-qr-img" id="bankQrImage" />
+                    <div class="bank-info-list">
+                        <div class="bank-info-row">
+                            <span>Chủ tài khoản</span>
+                            <strong>NGUYỄN HẢI NAM</strong>
+                        </div>
+                        <div class="bank-info-row">
+                            <span>Số tài khoản</span>
+                            <strong>195989</strong>
+                        </div>
+                        <div class="bank-info-row">
+                            <span>Số tiền</span>
+                            <strong class="bank-amount" id="bankQrAmount">0đ</strong>
+                        </div>
+                        <div class="bank-info-row">
+                            <span>Nội dung chuyển khoản</span>
+                            <strong id="bankQrOrderCode">AERO</strong>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Total Billing Card -->
             <div class="checkout-card">
-                <h3 class="sidebar-section-title">Chi tiết thanh toán</h3>
+                <h3 class="sidebar-section-title">CHI TIẾT THANH TOÁN</h3>
                 
                 <div class="breakdown-row">
-                    <span class="lbl">Giá Vé</span>
+                    <span class="lbl">Giá vé</span>
                     <span class="val" id="chkTicketPrice"><span class="skeleton" style="display: inline-block; width: 80px; height: 18px; border-radius: 4px;"></span></span>
                 </div>
                 <div class="breakdown-row">
-                    <span class="lbl">Phí Dịch Vụ</span>
+                    <span class="lbl">Phí dịch vụ</span>
                     <span class="val">0đ</span>
                 </div>
                 
                 <div class="breakdown-row" id="discountRow" style="display: none; color: #16a34a;">
-                    <span class="lbl" style="color: #16a34a;">Khuyến Mãi</span>
+                    <span class="lbl" style="color: #16a34a;">Khuyến mãi</span>
                     <span class="val" id="chkDiscount">-0đ</span>
                 </div>
                 
                 <div class="divider-dashed"></div>
                 
                 <!-- PROMO INPUT BOX -->
-                <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-sub); display: block;">Mã Khuyến Mãi</label>
+                <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-sub); display: block;">Mã khuyến mãi</label>
                 <div class="promo-input-box">
-                    <input type="text" id="promoInput" placeholder="Mã Giảm Giá (DGCINE50 / CINEMA10)" />
+                    <input type="text" id="promoInput" placeholder="Mã giảm giá (DGCINE50 / CINEMA10)" />
                     <button class="btn-apply-promo" onclick="applyPromo()">Áp dụng</button>
                 </div>
                 <span id="promoMsg" class="promo-message"></span>
@@ -633,12 +722,12 @@
                 <div class="divider-dashed"></div>
                 
                 <div class="total-price-box">
-                    <span class="lbl">Tổng Cộng</span>
+                    <span class="lbl">Tổng cộng</span>
                     <span class="val" id="chkTotal"><span class="skeleton" style="display: inline-block; width: 100px; height: 26px; border-radius: 4px;"></span></span>
                 </div>
                 
                 <button class="btn-confirm-payment" onclick="processCheckout()">
-                    <span>Xác Nhận Đặt Vé</span>
+                    <span>Tôi đã chuyển khoản - Xác nhận đặt vé</span>
                     <i class="fas fa-shield-alt"></i>
                 </button>
             </div>
@@ -652,7 +741,7 @@
 <!-- DEMO BANKING QR MODAL SCREEN (Styled as clean Light Theme Card) -->
 <div id="processingModal" class="processing-modal">
     <div class="processing-modal-content">
-        <h3 id="modalTitle" style="text-transform: uppercase; font-weight: 800; color: var(--text-main); margin: 0; font-family: 'Raleway', sans-serif;">Thanh Toán Đơn Hàng</h3>
+        <h3 id="modalTitle" style="text-transform: uppercase; font-weight: 800; color: var(--text-main); margin: 0; font-family: 'Raleway', sans-serif;">Thanh toán đơn hàng</h3>
         <p id="modalInstruction" style="font-size: 14px; color: var(--text-sub); margin: 0 0 10px 0; font-family: 'Raleway', sans-serif;"></p>
         
         <div class="qr-placeholder-image" id="qrContainer">
@@ -687,7 +776,10 @@
         let ticketPrice = 0;
         let discount = 0;
         let totalAmount = 0;
-        let selectedMethod = "cash";
+        let selectedMethod = "qr";
+        let bookingRef = null;
+        let bookingId = "";
+        let orderCode = "";
 
         function formatDateSafe(dateValue) {
             if (!dateValue) return "Đang cập nhật";
@@ -715,6 +807,34 @@
             return value === undefined || value === null || value === "" ? fallback : value;
         }
 
+        function getMbBankQrUrl() {
+            const amount = Math.max(0, Math.round(Number(totalAmount || 0)));
+            const transferContent = orderCode || "AERO";
+            return "https://img.vietqr.io/image/mbbank-195989-compact2.jpg?amount="
+                + amount
+                + "&addInfo="
+                + encodeURIComponent(transferContent)
+                + "&accountName=NGUYEN%20HAI%20NAM";
+        }
+
+        function updateBankQrBox() {
+            const qrImage = document.getElementById("bankQrImage");
+            const qrAmount = document.getElementById("bankQrAmount");
+            const qrOrderCode = document.getElementById("bankQrOrderCode");
+
+            if (qrImage) {
+                qrImage.src = getMbBankQrUrl();
+            }
+
+            if (qrAmount) {
+                qrAmount.innerText = formatCurrency(totalAmount);
+            }
+
+            if (qrOrderCode) {
+                qrOrderCode.innerText = orderCode || "AERO";
+            }
+        }
+
         // 1. Enforce Authentication and Autofill
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
@@ -729,6 +849,19 @@
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
+                        if (String(userData.status || "active").toLowerCase() === "blocked") {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Tài khoản đã bị khóa',
+                                text: 'Bạn không thể thanh toán khi tài khoản đang bị khóa.',
+                                background: '#ffffff',
+                                color: '#1f2937',
+                                confirmButtonColor: '#f58220'
+                            }).then(() => {
+                                window.location.href = '/';
+                            });
+                            return;
+                        }
                         if (userData.phone) document.getElementById("txtPhone").value = userData.phone;
                         if (userData.fullName && !user.displayName) {
                             document.getElementById("txtFullName").value = userData.fullName;
@@ -771,6 +904,9 @@
                     return;
                 }
                 showtimeData = showtimeDoc.data();
+                bookingRef = doc(collection(db, "bookings"));
+                bookingId = bookingRef.id;
+                orderCode = "AERO-" + bookingId;
 
                 // Fetch Movie
                 const movieDoc = showtimeData.movieId ? await getDoc(doc(db, "movies", showtimeData.movieId)) : null;
@@ -799,6 +935,7 @@
                 // Breakdown UI
                 document.getElementById("chkTicketPrice").innerText = formatCurrency(ticketPrice);
                 document.getElementById("chkTotal").innerText = formatCurrency(totalAmount);
+                updateBankQrBox();
 
             } catch (e) {
                 console.error("Error setting up checkout: ", e);
@@ -846,6 +983,7 @@
             
             totalAmount = ticketPrice - discount;
             chkTotal.innerText = formatCurrency(totalAmount);
+            updateBankQrBox();
         };
 
         // 5. Transaction Checkout logic
@@ -865,33 +1003,7 @@
                 return;
             }
 
-            if (selectedMethod === "cash") {
-                executeBookingDB();
-            } else {
-                // Online Payment screen trigger
-                const modal = document.getElementById("processingModal");
-                const modalTitle = document.getElementById("modalTitle");
-                const modalInstruction = document.getElementById("modalInstruction");
-                const qrImage = document.getElementById("qrImage");
-                
-                modal.style.display = "flex";
-                
-                if (selectedMethod === "qr") {
-                    modalTitle.innerText = "Chuyển Khoản Ngân Hàng";
-                    modalInstruction.innerText = "Vui lòng quét mã VietQR bên dưới bằng ứng dụng ngân hàng để chuyển khoản số tiền: " + formatCurrency(totalAmount);
-                    qrImage.src = "https://img.vietqr.io/image/970415-10987654321-compact2.png?amount=" + totalAmount + "&addInfo=AEROCINEMA%20TICKET";
-                } else if (selectedMethod === "momo") {
-                    modalTitle.innerText = "Thanh Toán Qua MoMo";
-                    modalInstruction.innerText = "Dùng ứng dụng MoMo quét mã QR bên dưới để thanh toán số tiền: " + formatCurrency(totalAmount);
-                    qrImage.src = "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=momo://pay?amount=" + totalAmount;
-                }
-                
-                // Wait 4.5 seconds for fake payment, then execute booking
-                setTimeout(async () => {
-                    modal.style.display = "none";
-                    await executeBookingDB();
-                }, 4500);
-            }
+            await executeBookingDB();
         };
 
         // 6. Execute atomic booking write via Firestore Transaction
@@ -916,8 +1028,12 @@
                         .filter(Boolean)
                 ));
                 const showtimeRef = doc(db, "showtimes", showtimeId);
-                const bookingRef = doc(collection(db, "bookings"));
-                const bookingId = bookingRef.id;
+                if (!bookingRef) {
+                    bookingRef = doc(collection(db, "bookings"));
+                    bookingId = bookingRef.id;
+                    orderCode = "AERO-" + bookingId;
+                    updateBankQrBox();
+                }
 
                 await runTransaction(db, async (transaction) => {
                     const currentShowtimeDoc = await transaction.get(showtimeRef);

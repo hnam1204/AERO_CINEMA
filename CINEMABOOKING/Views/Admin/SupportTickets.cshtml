@@ -1,0 +1,199 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý hỗ trợ";
+}
+
+<style>
+    .support-admin { display: flex; flex-direction: column; gap: 20px; }
+    .admin-stats-grid { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+    @@media (max-width: 1100px) { .admin-stats-grid { grid-template-columns: repeat(2, minmax(0,1fr)) !important; } }
+    @@media (max-width: 760px)  { .admin-stats-grid { grid-template-columns: 1fr !important; } .admin-toolbar { grid-template-columns: 1fr !important; } .detail, .reply-form { grid-template-columns: 1fr !important; padding: 15px !important; } }
+    
+    .cat {
+        display: inline-flex;
+        padding: 6px 10px;
+        border-radius: 8px;
+        background: var(--admin-surface-2);
+        color: var(--admin-text);
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid var(--admin-border);
+    }
+    
+    .badge.closed { background: rgba(107, 114, 128, 0.12); color: var(--admin-muted); }
+    
+    .detail { padding: 22px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .detail-row {
+        padding: 14px;
+        border: 1px solid var(--admin-border);
+        border-radius: 16px;
+        background: var(--admin-surface-2);
+    }
+    .detail-row.full { grid-column: 1/-1; }
+    .detail-row span {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--admin-muted);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+    .detail-row strong, .detail-row p {
+        margin: 0;
+        color: var(--admin-text);
+        font-size: 14px;
+        line-height: 1.65;
+    }
+    
+    .reply-form {
+        display: grid;
+        grid-template-columns: 210px 1fr;
+        gap: 14px;
+        padding: 0 22px 22px;
+    }
+    .reply-form label {
+        display: block;
+        margin-bottom: 7px;
+        color: var(--admin-muted);
+        font-size: 12px;
+        font-weight: 700;
+    }
+    
+    .loading {
+        position: fixed;
+        inset: 0;
+        z-index: 6000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: var(--aero-admin-overlay);
+        backdrop-filter: blur(4px);
+    }
+    .loading.show { display: flex; }
+    
+
+</style>
+
+<div class="support-admin">
+    <section class="hero">
+        <h1>Quản lý hỗ trợ khách hàng</h1>
+        <p>Theo dõi yêu cầu hỗ trợ về booking, thanh toán, tài khoản và phản hồi ngay trong Firestore realtime.</p>
+    </section>
+    
+    <section class="admin-stats-grid" aria-label="Thống kê hỗ trợ">
+        <div class="admin-stat-card"><span class="admin-stat-label">Tổng ticket</span><strong class="admin-stat-value" id="sTotal">0</strong><span class="admin-stat-note">Tất cả yêu cầu</span><span class="admin-stat-icon"><i class="fas fa-headset"></i></span></div>
+        <div class="admin-stat-card"><span class="admin-stat-label">Chờ xử lý</span><strong class="admin-stat-value" id="sPending">0</strong><span class="admin-stat-note">Pending</span><span class="admin-stat-icon"><i class="fas fa-clock"></i></span></div>
+        <div class="admin-stat-card"><span class="admin-stat-label">Đang xử lý</span><strong class="admin-stat-value" id="sProcessing">0</strong><span class="admin-stat-note">Processing</span><span class="admin-stat-icon"><i class="fas fa-spinner"></i></span></div>
+        <div class="admin-stat-card"><span class="admin-stat-label">Đã giải quyết</span><strong class="admin-stat-value" id="sResolved">0</strong><span class="admin-stat-note">Resolved</span><span class="admin-stat-icon"><i class="fas fa-check-circle"></i></span></div>
+        <div class="admin-stat-card"><span class="admin-stat-label">Đã đóng</span><strong class="admin-stat-value" id="sClosed">0</strong><span class="admin-stat-note">Closed</span><span class="admin-stat-icon"><i class="fas fa-times-circle"></i></span></div>
+    </section>
+    
+    <section class="admin-toolbar" aria-label="Bộ lọc hỗ trợ" style="grid-template-columns: minmax(260px,1fr) 190px 190px;">
+        <input class="admin-control" id="q" type="search" placeholder="Tìm email, tiêu đề, nội dung..." aria-label="Tìm kiếm yêu cầu hỗ trợ" />
+        <select class="admin-control" id="categoryFilter" aria-label="Lọc theo danh mục">
+            <option value="">Tất cả danh mục</option>
+            <option value="booking">booking</option>
+            <option value="payment">payment</option>
+            <option value="account">account</option>
+            <option value="movie">movie</option>
+            <option value="other">other</option>
+        </select>
+        <select class="admin-control" id="statusFilter" aria-label="Lọc theo trạng thái">
+            <option value="">Tất cả trạng thái</option>
+            <option value="pending">pending</option>
+            <option value="processing">processing</option>
+            <option value="resolved">resolved</option>
+            <option value="closed">closed</option>
+        </select>
+    </section>
+    
+    <section class="card">
+        <div class="head">
+            <h2>Danh sách yêu cầu hỗ trợ</h2>
+            <span id="count">Đang tải...</span>
+        </div>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Khách hàng</th>
+                        <th>Tiêu đề</th>
+                        <th>Danh mục</th>
+                        <th>Trạng thái</th>
+                        <th>Phản hồi</th>
+                        <th>Ngày tạo</th>
+                        <th>Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="body">
+                    <tr>
+                        <td colspan="7"><div class="empty">Đang tải ticket...</div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pager">
+            <span id="pageInfo">Trang 1</span>
+            <div>
+                <button class="admin-btn admin-btn-secondary" id="prev" type="button" aria-label="Trang trước">Trước</button>
+                <button class="admin-btn admin-btn-secondary" id="next" type="button" aria-label="Trang sau">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<div class="admin-modal" id="modal">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-head">
+            <h3>Chi tiết yêu cầu hỗ trợ</h3>
+            <button class="admin-icon-btn view" id="closeModal" type="button" aria-label="Đóng" title="Đóng"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="detail" id="detail"></div>
+        <div class="reply-form">
+            <div>
+                <label for="ticketStatus">Trạng thái</label>
+                <select class="admin-control" id="ticketStatus">
+                    <option value="pending">pending</option>
+                    <option value="processing">processing</option>
+                    <option value="resolved">resolved</option>
+                    <option value="closed">closed</option>
+                </select>
+            </div>
+            <div>
+                <label for="reply">Nội dung phản hồi</label>
+                <textarea class="admin-control" id="reply" placeholder="Nhập phản hồi cho khách hàng..."></textarea>
+            </div>
+        </div>
+        <div class="admin-modal-foot">
+            <button class="admin-btn admin-btn-secondary" id="cancelModal" type="button">Đóng</button>
+            <button class="admin-btn admin-btn-primary" id="saveReply" type="button">Lưu phản hồi</button>
+        </div>
+    </div>
+</div>
+
+<div class="loading" id="loading">
+    <div class="loading-box">Đang xử lý...</div>
+</div>
+
+@section scripts{
+<script type="module">
+import {collection,doc,onSnapshot,updateDoc,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+const db=window.AeroAdmin?.db||window.db, toast=window.AeroAdmin?.toast||((t,a,b)=>alert(`${a}: ${b}`));
+const state={items:[],filtered:[],selected:null,page:1,size:10,unsub:null};
+const $=id=>document.getElementById(id), el={q:$("q"),category:$("categoryFilter"),status:$("statusFilter"),body:$("body"),count:$("count"),page:$("pageInfo"),prev:$("prev"),next:$("next"),modal:$("modal"),detail:$("detail"),loading:$("loading")};
+const norm=v=>String(v||"").trim().toLowerCase(), safe=(v,f="-")=>v===undefined||v===null||v===""?f:v, toDate=v=>v?.toDate?v.toDate():(v?new Date(v):null), fmt=v=>{const d=toDate(v);return d&&!isNaN(d)?d.toLocaleString("vi-VN",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}):"-"}, statusOf=x=>norm(x.status||"pending"), load=s=>el.loading.classList.toggle("show",s);
+function stats(){const a=state.items;$("sTotal").innerText=a.length;$("sPending").innerText=a.filter(x=>statusOf(x)==="pending").length;$("sProcessing").innerText=a.filter(x=>statusOf(x)==="processing").length;$("sResolved").innerText=a.filter(x=>statusOf(x)==="resolved").length;$("sClosed").innerText=a.filter(x=>statusOf(x)==="closed").length}
+function filter(){const q=norm(el.q.value);state.filtered=state.items.filter(x=>{const text=norm([x.userEmail,x.title,x.message,x.reply,x.category,x.status].join(" "));return(!q||text.includes(q))&&(!el.category.value||norm(x.category)===el.category.value)&&(!el.status.value||statusOf(x)===el.status.value)}).sort((a,b)=>(toDate(b.createdAt)?.getTime()||0)-(toDate(a.createdAt)?.getTime()||0));const max=Math.max(1,Math.ceil(state.filtered.length/state.size));if(state.page>max)state.page=max;render()}
+function render(){const start=(state.page-1)*state.size,items=state.filtered.slice(start,start+state.size),max=Math.max(1,Math.ceil(state.filtered.length/state.size));el.count.innerText=`${state.filtered.length} ticket`;el.page.innerText=`Trang ${state.page}/${max}`;el.prev.disabled=state.page<=1;el.next.disabled=state.page>=max;if(!items.length){el.body.innerHTML='<tr><td colspan="7"><div class="empty">Không có ticket phù hợp.</div></td></tr>';return}el.body.innerHTML=items.map(x=>{
+    const st = statusOf(x);
+    const badgeClass = st === "pending" ? "warning" : (st === "processing" ? "info" : (st === "resolved" ? "success" : "closed"));
+    const replyBadgeClass = x.reply ? "success" : "warning";
+    return `<tr><td><div class="main"><strong>${safe(x.userEmail,"Ẩn danh")}</strong><span>${safe(x.userId)}</span></div></td><td><div class="main"><strong>${safe(x.title)}</strong><span>${safe(x.message,"Không có nội dung")}</span></div></td><td><span class="cat">${safe(x.category,"other")}</span></td><td><span class="admin-badge ${badgeClass}">${safe(x.status,"pending")}</span></td><td><span class="admin-badge ${replyBadgeClass}">${x.reply?'Đã phản hồi':'Chưa phản hồi'}</span></td><td>${fmt(x.createdAt)}</td><td><div class="admin-actions"><button type="button" class="admin-icon-btn view" data-a="view" data-id="${x.id}" title="Xem và phản hồi" aria-label="Xem và phản hồi"><i class="fas fa-reply"></i></button></div></td></tr>`;
+}).join("")}
+function openDetail(item){state.selected=item;$("ticketStatus").value=statusOf(item);$("reply").value=item.reply||"";el.detail.innerHTML=`<div class="detail-row"><span>Khách hàng</span><strong>${safe(item.userEmail,"Ẩn danh")}</strong></div><div class="detail-row"><span>Danh mục</span><strong>${safe(item.category,"other")}</strong></div><div class="detail-row full"><span>Tiêu đề</span><strong>${safe(item.title)}</strong></div><div class="detail-row full"><span>Nội dung yêu cầu</span><p>${safe(item.message,"Không có nội dung")}</p></div><div class="detail-row"><span>Ngày tạo</span><strong>${fmt(item.createdAt)}</strong></div><div class="detail-row"><span>Cập nhật</span><strong>${fmt(item.updatedAt)}</strong></div>`;el.modal.classList.add("show")}function closeDetail(){el.modal.classList.remove("show");state.selected=null}
+async function saveReply(){const item=state.selected;if(!item)return;const reply=$("reply").value.trim(), status=$("ticketStatus").value;if(!reply&&["resolved","closed"].includes(status)){toast("error","Thiếu phản hồi","Ticket resolved/closed cần có nội dung phản hồi.");return}load(true);try{const next={reply,status,updatedAt:serverTimestamp()};await updateDoc(doc(db,"support_tickets",item.id),next);await window.AeroAdmin?.logActivity?.("reply_ticket","support_tickets",item.id,item,next);toast("success","Đã lưu phản hồi","Yêu cầu hỗ trợ đã được cập nhật.");closeDetail()}catch(e){toast("error","Không thể cập nhật ticket",e.message)}finally{load(false)}}
+function bind(){[$("closeModal"),$("cancelModal")].forEach(x=>x.onclick=closeDetail);$("saveReply").onclick=saveReply;[el.q,el.category,el.status].forEach(x=>{x.addEventListener("input",()=>{state.page=1;filter()});x.addEventListener("change",()=>{state.page=1;filter()})});el.prev.onclick=()=>{if(state.page>1){state.page--;render()}};el.next.onclick=()=>{const max=Math.max(1,Math.ceil(state.filtered.length/state.size));if(state.page<max){state.page++;render()}};document.addEventListener("click",e=>{const b=e.target.closest("[data-a='view']");if(!b)return;const item=state.items.find(x=>x.id===b.dataset.id);if(item)openDetail(item)})}
+function attach(){state.unsub?.();state.unsub=onSnapshot(collection(db,"support_tickets"),s=>{state.items=s.docs.map(d=>({id:d.id,...d.data()}));stats();filter()},e=>toast("error","Không thể tải support_tickets",e.message))}
+bind();window.addEventListener("aero-admin-ready",attach,{once:true});if(window.AeroAdmin?.state?.ready)attach();window.addEventListener("beforeunload",()=>state.unsub?.());
+</script>
+}

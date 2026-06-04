@@ -1,0 +1,554 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý vé";
+}
+
+<div class="tkt-page">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="tktHeroTitle">
+        <div>
+            <h1 id="tktHeroTitle">Quản lý vé</h1>
+            <p>Kiểm tra check-in vé khách hàng, truy xuất thông tin mã QR, hoặc thực hiện hủy vé chưa sử dụng để hoàn trả ghế ngồi.</p>
+        </div>
+    </section>
+
+    <!-- Stats Overview -->
+    <section class="admin-stats-grid" aria-label="Thống kê vé">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-ticket-alt"></i></span>
+            <span class="stat-label">Tổng vé</span>
+            <strong class="stat-value skeleton" id="sTotal">0</strong>
+            <span class="stat-note">Vé đã phát hành</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+            <span class="stat-label">Đã sử dụng</span>
+            <strong class="stat-value skeleton" id="sUsed">0</strong>
+            <span class="stat-note">Check-in thành công</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-clock"></i></span>
+            <span class="stat-label">Chưa sử dụng</span>
+            <strong class="stat-value skeleton" id="sUnused">0</strong>
+            <span class="stat-note">Vé đang chờ soát</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-times-circle"></i></span>
+            <span class="stat-label">Đã hủy</span>
+            <strong class="stat-value skeleton" id="sCancelled">0</strong>
+            <span class="stat-note">Vé đã hoàn trả ghế</span>
+        </div>
+    </section>
+
+    <!-- Toolbar Filters -->
+    <section class="admin-toolbar" aria-label="Bộ lọc vé">
+        <div class="admin-field search-input" style="grid-column: span 2;">
+            <label for="tktSearch">Tìm kiếm vé</label>
+            <input type="search" class="admin-control" id="tktSearch" placeholder="Tìm theo mã vé, tên phim, mã khách hàng..." aria-label="Tìm kiếm vé" />
+        </div>
+        <div class="admin-field">
+            <label for="tktStatus">Trạng thái</label>
+            <select class="admin-control" id="tktStatus" aria-label="Lọc theo trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option value="unused">unused</option>
+                <option value="used">used</option>
+                <option value="cancelled">cancelled</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- Data Grid -->
+    <section class="admin-card">
+        <div class="section-head" style="padding:16px 20px; border-bottom:1px solid var(--admin-border); display:flex; align-items:center; justify-content:space-between;">
+            <h2 style="margin:0; font-size:15px; font-weight:800; color:var(--admin-text);">Danh sách vé</h2>
+            <span id="tktCount" style="font-size:12px; color:var(--admin-subtle); font-weight:600;">Đang tải...</span>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th><span class="sort-header" data-sort="ticketCode">Mã vé <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="movieTitle">Tên phim <i class="fas fa-sort"></i></span></th>
+                        <th>Rạp</th>
+                        <th>Phòng</th>
+                        <th>Ghế</th>
+                        <th>Ngày chiếu</th>
+                        <th>Trạng thái</th>
+                        <th><span class="sort-header" data-sort="createdAt">Ngày tạo <i class="fas fa-sort"></i></span></th>
+                        <th class="action-col" style="text-align: right; width: 140px;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="tktBody">
+                    <tr>
+                        <td colspan="9"><div class="empty-state"><span>Đang tải vé...</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span id="tktPageInfo">Trang 1 / 1</span>
+            <div class="page-buttons">
+                <button class="admin-btn admin-btn-secondary" id="tktPrev" type="button">Trước</button>
+                <button class="admin-btn admin-btn-secondary" id="tktNext" type="button">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Ticket Detail Modal -->
+<div class="admin-modal" id="tktDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="tktModalTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="tktModalTitle">Chi tiết vé</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="tktDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body" id="tktDetailBody"></div>
+        <div class="admin-modal-footer">
+            <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="tktDetailModal">Đóng</button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import {
+            collection,
+            doc,
+            onSnapshot,
+            updateDoc,
+            runTransaction,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.AeroAdmin?.db || window.db;
+        const toast = window.AeroAdmin?.toast || ((type, title, msg) => alert(`${title}: ${msg}`));
+
+        const state = {
+            tickets: [],
+            bookings: [],
+            payments: [],
+            filtered: [],
+            page: 1,
+            size: 10,
+            sortKey: "createdAt",
+            sortDirection: "desc",
+            unsubs: []
+        };
+
+        const el = {
+            search: document.getElementById("tktSearch"),
+            status: document.getElementById("tktStatus"),
+            body: document.getElementById("tktBody"),
+            count: document.getElementById("tktCount"),
+            pageInfo: document.getElementById("tktPageInfo"),
+            prev: document.getElementById("tktPrev"),
+            next: document.getElementById("tktNext")
+        };
+
+        const norm = v => String(v || "").trim().toLowerCase();
+        const safe = (v, f = "-") => v === undefined || v === null || v === "" ? f : v;
+        const seats = s => Array.isArray(s) ? s.join(", ") : safe(s);
+        const toDate = v => v?.toDate ? v.toDate() : (v ? new Date(v) : null);
+        const fmtDate = v => {
+            const x = toDate(v);
+            return x && !isNaN(x) ? x.toLocaleString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }) : "-";
+        };
+
+        function showLoading(show) {
+            window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
+        }
+
+        const normStatus = t => {
+            const s = norm(t.status || "unused");
+            return s === "active" ? "unused" : s;
+        };
+
+        const booking = id => state.bookings.find(b => b.id === id);
+        const payments = id => state.payments.filter(p => p.bookingId === id);
+
+        function showDate(t) {
+            const b = booking(t.bookingId) || {};
+            return `${safe(t.date || b.date)} ${safe(t.time || b.time, "")}`.trim();
+        }
+
+        function statusBadgeClass(s) {
+            if (s === "used") return "success";
+            if (s === "unused") return "warning";
+            if (s === "cancelled") return "danger";
+            return "secondary";
+        }
+
+        function updateStats() {
+            setTextElement("sTotal", state.tickets.length);
+            setTextElement("sUsed", state.tickets.filter(t => normStatus(t) === "used").length);
+            setTextElement("sUnused", state.tickets.filter(t => ["unused", "active"].includes(normStatus(t))).length);
+            setTextElement("sCancelled", state.tickets.filter(t => normStatus(t) === "cancelled").length);
+        }
+
+        function setTextElement(id, value) {
+            const element = document.getElementById(id);
+            if (element) {
+                element.innerText = value;
+                element.classList.remove("skeleton");
+            }
+        }
+
+        function sortFilteredTickets() {
+            const key = state.sortKey;
+            const dir = state.sortDirection === "asc" ? 1 : -1;
+
+            state.filtered.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                if (key === "createdAt" || key === "updatedAt") {
+                    valA = toDate(valA)?.getTime() || 0;
+                    valB = toDate(valB)?.getTime() || 0;
+                } else if (typeof valA === "string") {
+                    valA = valA.toLowerCase();
+                    valB = String(valB || "").toLowerCase();
+                } else {
+                    valA = Number(valA || 0);
+                    valB = Number(valB || 0);
+                }
+
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+        }
+
+        function filterData() {
+            const q = norm(el.search.value), sf = el.status.value;
+            state.filtered = state.tickets.filter(t => {
+                const text = norm([t.ticketCode, t.movieTitle, t.userId].join(" "));
+                return (!q || text.includes(q)) && (!sf || normStatus(t) === sf);
+            });
+
+            sortFilteredTickets();
+
+            const max = Math.max(1, Math.ceil(state.filtered.length / state.size));
+            if (state.page > max) state.page = max;
+            renderTable();
+        }
+
+        function renderTable() {
+            const start = (state.page - 1) * state.size;
+            const items = state.filtered.slice(start, start + state.size);
+            const max = Math.max(1, Math.ceil(state.filtered.length / state.size));
+            el.count.innerText = `${state.filtered.length} vé`;
+            el.pageInfo.innerText = `Trang ${state.page}/${max}`;
+            el.prev.disabled = state.page <= 1;
+            el.next.disabled = state.page >= max;
+
+            if (!items.length) {
+                el.body.innerHTML = '<tr><td colspan="9"><div class="empty-state"><span>Không tìm thấy vé phù hợp.</span></div></td></tr>';
+                return;
+            }
+
+            el.body.innerHTML = items.map(t => {
+                const s = normStatus(t);
+                const isUsed = s === "used";
+                const isCancelled = s === "cancelled";
+                const checkinDis = isUsed || isCancelled ? "disabled" : "";
+                const cancelDis = isCancelled ? "disabled" : "";
+                const badgeClass = statusBadgeClass(s);
+
+                return `<tr>
+                    <td data-label="Mã vé"><div class="main"><strong>${safe(t.ticketCode, t.id.substring(0, 8) + '...')}</strong><span>${safe(t.bookingId)}</span></div></td>
+                    <td data-label="Tên phim">${safe(t.movieTitle)}</td>
+                    <td data-label="Rạp">${safe(t.cinemaName || booking(t.bookingId)?.cinemaName)}</td>
+                    <td data-label="Phòng">${safe(t.roomName || booking(t.bookingId)?.roomName)}</td>
+                    <td data-label="Ghế">${seats(t.seats || booking(t.bookingId)?.seats)}</td>
+                    <td data-label="Ngày chiếu">${showDate(t)}</td>
+                    <td data-label="Trạng thái"><span class="admin-badge ${badgeClass}">${s}</span></td>
+                    <td data-label="Ngày tạo">${fmtDate(t.createdAt)}</td>
+                    <td data-label="Hành động" class="action-col">
+                        <div class="admin-actions">
+                            <button type="button" class="admin-icon-btn view" data-action="view" data-id="${t.id}" title="Xem chi tiết vé" aria-label="Xem chi tiết vé"><i class="fas fa-eye"></i></button>
+                            <button type="button" class="admin-icon-btn approve" data-action="checkin" data-id="${t.id}" title="Check-in vé" aria-label="Check-in vé" ${checkinDis}><i class="fas fa-check"></i></button>
+                            <button type="button" class="admin-icon-btn reject" data-action="cancel" data-id="${t.id}" title="Hủy vé" aria-label="Hủy vé" ${cancelDis}><i class="fas fa-ban"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join("");
+        }
+
+        function openModal(id) {
+            const m = document.getElementById(id);
+            m.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            m.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+
+        function openDetail(t) {
+            const qr = t.qrText || t.ticketCode || t.id;
+            const bk = booking(t.bookingId) || {};
+            document.getElementById("tktDetailBody").innerHTML = `
+                <div class="qr-grid">
+                    <div style="display:flex; justify-content:center; align-items:center;"><img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qr)}" alt="QR vé" /></div>
+                    <div class="detail-grid2">
+                        ${["ticketCode", "bookingId", "userId", "movieTitle", "cinemaName", "roomName", "date", "time", "status"].map(k =>
+                            `<div class="detail-item"><span>${k}</span><strong>${safe(t[k] || bk[k])}</strong></div>`
+                        ).join("")}
+                        <div class="detail-item"><span>seats</span><strong>${seats(t.seats || bk.seats)}</strong></div>
+                        <div class="detail-item"><span>qrText</span><strong>${qr}</strong></div>
+                        <div class="detail-item"><span>createdAt</span><strong>${fmtDate(t.createdAt)}</strong></div>
+                    </div>
+                </div>`;
+            openModal("tktDetailModal");
+        }
+
+        async function checkin(t) {
+            const s = normStatus(t);
+            if (s === "used") {
+                toast("info", "Vé đã dùng", "Không thể check-in vé đã sử dụng.");
+                return;
+            }
+            if (s === "cancelled") {
+                toast("warning", "Vé đã hủy", "Không thể check-in vé đã hủy.");
+                return;
+            }
+
+            const res = await Swal.fire({
+                title: "Xác nhận check-in vé?",
+                text: `Vé ${t.ticketCode || t.id} sẽ được đánh dấu đã soát và hoàn tất sử dụng.`,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "var(--admin-primary)",
+                cancelButtonColor: "var(--admin-subtle)",
+                confirmButtonText: "Check-in",
+                cancelButtonText: "Hủy"
+            });
+
+            if (!res.isConfirmed) return;
+
+            showLoading(true);
+            try {
+                await updateDoc(doc(db, "tickets", t.id), {
+                    status: "used",
+                    updatedAt: serverTimestamp()
+                });
+                await window.AeroAdmin?.logActivity?.("checkin_ticket", "tickets", t.id, t, { status: "used" });
+                toast("success", "Check-in thành công", "Vé đã chuyển sang used.");
+            } catch (e) {
+                console.error(e);
+                toast("error", "Không thể check-in", e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function cancelTicket(t) {
+            const s = normStatus(t);
+            if (s === "used") {
+                toast("warning", "Không thể hủy", "Vé đã sử dụng không thể hủy.");
+                return;
+            }
+            if (s === "cancelled") {
+                toast("info", "Đã hủy", "Vé này đã ở trạng thái cancelled.");
+                return;
+            }
+
+            const res = await Swal.fire({
+                title: "Hủy vé xem phim?",
+                text: "Thao tác này sẽ giải phóng ghế ngồi và đồng bộ các giao dịch liên quan.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "var(--admin-danger)",
+                cancelButtonColor: "var(--admin-subtle)",
+                confirmButtonText: "Đồng ý hủy",
+                cancelButtonText: "Đóng"
+            });
+
+            if (!res.isConfirmed) return;
+
+            showLoading(true);
+            try {
+                const bk = booking(t.bookingId) || {};
+                const seatList = (Array.isArray(t.seats) ? t.seats
+                    : Array.isArray(bk.seats) ? bk.seats
+                    : String(t.seats || bk.seats || "").split(","))
+                    .map(x => String(x).trim().toUpperCase()).filter(Boolean);
+
+                await runTransaction(db, async tx => {
+                    tx.update(doc(db, "tickets", t.id), {
+                        status: "cancelled",
+                        updatedAt: serverTimestamp()
+                    });
+                    if (t.bookingId) tx.update(doc(db, "bookings", t.bookingId), {
+                        status: "cancelled",
+                        updatedAt: serverTimestamp()
+                    });
+                    payments(t.bookingId).forEach(p =>
+                        tx.update(doc(db, "payments", p.id), {
+                            status: "cancelled",
+                            updatedAt: serverTimestamp()
+                        }));
+                    if (bk.showtimeId) {
+                        const ref = doc(db, "showtimes", bk.showtimeId);
+                        const snap = await tx.get(ref);
+                        if (snap.exists()) {
+                            const sold = Array.isArray(snap.data().soldSeats)
+                                ? snap.data().soldSeats.map(s => String(s).toUpperCase()) : [];
+                            tx.update(ref, {
+                                soldSeats: sold.filter(s => !seatList.includes(s)),
+                                updatedAt: serverTimestamp()
+                            });
+                        }
+                    }
+                });
+
+                await window.AeroAdmin?.logActivity?.("cancel_ticket", "tickets", t.id, t, {
+                    status: "cancelled",
+                    returnedSeats: seatList
+                });
+                toast("success", "Đã hủy vé", "Ghế đã được trả về lịch chiếu.");
+            } catch (e) {
+                console.error(e);
+                toast("error", "Không thể hủy vé", e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Sorting trigger
+        function handleSorting(event) {
+            const header = event.target.closest(".sort-header");
+            if (!header) return;
+
+            const key = header.dataset.sort;
+            if (state.sortKey === key) {
+                state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+            } else {
+                state.sortKey = key;
+                state.sortDirection = "asc";
+            }
+
+            // Update all sorting icons
+            document.querySelectorAll(".sort-header i").forEach(icon => {
+                icon.className = "fas fa-sort";
+            });
+            const activeIcon = header.querySelector("i");
+            if (activeIcon) {
+                activeIcon.className = state.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+            }
+
+            filterData();
+        }
+
+        function bindEvents() {
+            // Table headers sorting
+            document.querySelectorAll(".sort-header").forEach(header => {
+                header.addEventListener("click", handleSorting);
+            });
+
+            [el.search, el.status].forEach(x => {
+                x.addEventListener("input", () => {
+                    state.page = 1;
+                    filterData();
+                });
+                x.addEventListener("change", () => {
+                    state.page = 1;
+                    filterData();
+                });
+            });
+
+            el.prev.addEventListener("click", () => {
+                if (state.page > 1) {
+                    state.page--;
+                    renderTable();
+                }
+            });
+
+            el.next.addEventListener("click", () => {
+                const max = Math.max(1, Math.ceil(state.filtered.length / state.size));
+                if (state.page < max) {
+                    state.page++;
+                    renderTable();
+                }
+            });
+
+            document.addEventListener("click", e => {
+                const close = e.target.closest("[data-close-modal]");
+                if (close) {
+                    closeModal(close.dataset.closeModal);
+                    return;
+                }
+                const btn = e.target.closest("[data-action]");
+                if (!btn || btn.disabled) return;
+                const t = state.tickets.find(x => x.id === btn.dataset.id);
+                if (!t) return;
+
+                if (btn.dataset.action === "view") openDetail(t);
+                if (btn.dataset.action === "checkin") checkin(t);
+                if (btn.dataset.action === "cancel") cancelTicket(t);
+            });
+
+            // Modal overlay click to close
+            document.querySelectorAll(".admin-modal").forEach(modal => {
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+
+            // ESC key to close modals
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    document.querySelectorAll(".admin-modal.show").forEach(m => closeModal(m.id));
+                }
+            });
+        }
+
+        function attachRealtime() {
+            state.unsubs.forEach(u => u());
+            state.unsubs = [
+                onSnapshot(collection(db, "tickets"),
+                    s => {
+                        state.tickets = s.docs.map(d => ({
+                            id: d.id,
+                            ...d.data()
+                        }));
+                        updateStats();
+                        filterData();
+                    },
+                    e => toast("error", "Không thể tải vé", e.message)),
+                onSnapshot(collection(db, "bookings"),
+                    s => {
+                        state.bookings = s.docs.map(d => ({
+                            id: d.id,
+                            ...d.data()
+                        }));
+                        renderTable();
+                    },
+                    e => console.warn(e)),
+                onSnapshot(collection(db, "payments"),
+                    s => {
+                        state.payments = s.docs.map(d => ({
+                            id: d.id,
+                            ...d.data()
+                        }));
+                    },
+                    e => console.warn(e))
+            ];
+        }
+
+        bindEvents();
+        window.addEventListener("aero-admin-ready", attachRealtime, { once: true });
+        if (window.AeroAdmin?.state?.ready) attachRealtime();
+        window.addEventListener("beforeunload", () => state.unsubs.forEach(u => u()));
+    </script>
+}

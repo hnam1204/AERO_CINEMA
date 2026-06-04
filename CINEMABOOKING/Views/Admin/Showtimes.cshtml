@@ -1,0 +1,758 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý lịch chiếu";
+}
+
+<style>
+    .showtimes-page {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+    
+    .movie-poster-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .movie-poster-cell img {
+        width: 40px;
+        height: 56px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: var(--admin-surface-2);
+        border: 1px solid var(--admin-border);
+    }
+    
+    .movie-info-text strong {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        max-width: 280px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .movie-info-text span {
+        display: block;
+        font-size: 11px;
+        color: var(--admin-muted);
+    }
+    
+    .cinema-room-cell strong {
+        display: block;
+        font-size: 13px;
+    }
+    
+    .cinema-room-cell span {
+        display: block;
+        font-size: 11px;
+        color: var(--admin-muted);
+    }
+    
+    .datetime-cell strong {
+        display: block;
+        font-size: 13px;
+        color: var(--admin-primary);
+    }
+    
+    .datetime-cell span {
+        display: block;
+        font-size: 11px;
+        color: var(--admin-muted);
+    }
+</style>
+
+<div class="showtimes-page">
+    <section class="dashboard-hero">
+        <div>
+            <h1>Quản lý lịch chiếu</h1>
+            <p>Thiết lập và vận hành các suất chiếu phim. Hệ thống tự động đồng bộ tên phim, rạp chiếu, phòng chiếu từ Firestore và ràng buộc chặt chẽ với các đơn đặt vé hiện có.</p>
+        </div>
+        <div class="dashboard-sync">
+            <span>Realtime Firestore</span>
+            <strong id="lastUpdated">Đang kết nối...</strong>
+        </div>
+    </section>
+
+    <div class="section-title">
+        <h2>Thống kê tổng quan</h2>
+        <span>Realtime showtimes overview</span>
+    </div>
+
+    <section class="admin-stats-grid" id="showtimeStats">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-calendar-alt"></i></span>
+            <span class="stat-label">Tổng suất chiếu</span>
+            <div class="stat-value skeleton" id="statTotal">0</div>
+            <div class="stat-note">Được thiết lập trong hệ thống</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-play"></i></span>
+            <span class="stat-label">Suất đang mở</span>
+            <div class="stat-value skeleton" id="statActive">0</div>
+            <div class="stat-note">Trạng thái Active</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-film"></i></span>
+            <span class="stat-label">Phim có lịch chiếu</span>
+            <div class="stat-value skeleton" id="statMovies">0</div>
+            <div class="stat-note">Phim đang chiếu tại rạp</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-building"></i></span>
+            <span class="stat-label">Rạp có lịch chiếu</span>
+            <div class="stat-value skeleton" id="statCinemas">0</div>
+            <div class="stat-note">Các cụm rạp đang vận hành</div>
+        </div>
+    </section>
+
+    <div class="admin-toolbar">
+        <div class="admin-field search-input">
+            <label for="searchInput">Tìm kiếm lịch chiếu</label>
+            <input type="text" id="searchInput" class="admin-control" placeholder="Tìm theo tên phim, tên rạp, tên phòng..." aria-label="Tìm kiếm lịch chiếu" />
+        </div>
+        <div class="admin-field">
+            <label for="movieFilter">Lọc theo phim</label>
+            <select id="movieFilter" class="admin-control" aria-label="Lọc theo phim">
+                <option value="">Tất cả phim</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="cinemaFilter">Lọc theo rạp</label>
+            <select id="cinemaFilter" class="admin-control" aria-label="Lọc theo rạp">
+                <option value="">Tất cả rạp</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="statusFilter">Lọc trạng thái</label>
+            <select id="statusFilter" class="admin-control" aria-label="Lọc trạng thái">
+                <option value="">Tất cả</option>
+                <option value="active">Hoạt động (Active)</option>
+                <option value="inactive">Tạm ngưng (Inactive)</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label>&nbsp;</label>
+            <button type="button" class="admin-btn admin-btn-primary" id="btnAddShowtime">
+                <i class="fas fa-plus"></i> Thêm lịch chiếu
+            </button>
+        </div>
+    </div>
+
+    <section class="admin-card">
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Phim</th>
+                        <th>Rạp & Phòng</th>
+                        <th>Ngày & Giờ chiếu</th>
+                        <th>Giá vé</th>
+                        <th>Đã bán / Ghế</th>
+                        <th>Trạng thái</th>
+                        <th style="width: 120px; text-align: right;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="showtimesTableBody">
+                    <tr>
+                        <td colspan="7"><div class="empty-state skeleton">Đang tải lịch chiếu...</div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="panel-footer d-flex justify-content-between align-items-center p-3" style="border-top: 1px solid var(--admin-border);">
+            <span id="tableCount" class="text-muted" style="font-size: 13px;">Hiển thị 0 lịch chiếu</span>
+            <div class="admin-btn-group d-flex gap-2">
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnPrevPage" disabled>Trở lại</button>
+                <span id="pageInfo" class="align-self-center" style="font-size: 13px; font-weight: 600;">Trang 1</span>
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnNextPage" disabled>Tiếp theo</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Add/Edit Showtime Modal -->
+<div class="admin-modal" id="showtimeModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="modalTitle">Thêm lịch chiếu</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" id="btnCloseModal" aria-label="Đóng">
+                <i class="fas fa-times" style="font-size: 18px;"></i>
+            </button>
+        </div>
+        <form id="showtimeForm">
+            <input type="hidden" id="docId" />
+            <div class="admin-modal-body">
+                <div class="admin-form-grid">
+                    <div class="admin-field full">
+                        <label for="fieldMovie">Chọn phim *</label>
+                        <select id="fieldMovie" class="admin-control" required>
+                            <option value="">-- Chọn phim --</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="fieldCinema">Chọn rạp *</label>
+                        <select id="fieldCinema" class="admin-control" required>
+                            <option value="">-- Chọn rạp --</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="fieldRoom">Chọn phòng chiếu *</label>
+                        <select id="fieldRoom" class="admin-control" required disabled>
+                            <option value="">-- Vui lòng chọn rạp trước --</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="fieldDate">Ngày chiếu *</label>
+                        <input type="date" id="fieldDate" class="admin-control" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="fieldTime">Giờ chiếu *</label>
+                        <input type="time" id="fieldTime" class="admin-control" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="fieldPrice">Giá vé (VNĐ) *</label>
+                        <input type="number" id="fieldPrice" class="admin-control" placeholder="Ví dụ: 90000" min="0" step="5000" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="fieldStatus">Trạng thái *</label>
+                        <select id="fieldStatus" class="admin-control" required>
+                            <option value="active">Hoạt động (Active)</option>
+                            <option value="inactive">Tạm ngưng (Inactive)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnCancelModal">Hủy</button>
+                <button type="submit" class="admin-btn admin-btn-primary" id="btnSaveShowtime">Lưu lịch chiếu</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import {
+            collection,
+            doc,
+            onSnapshot,
+            addDoc,
+            updateDoc,
+            deleteDoc,
+            query,
+            where,
+            getDocs,
+            limit,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const state = {
+            showtimes: [],
+            movies: [],
+            cinemas: [],
+            rooms: [],
+            bookings: [],
+            filtered: [],
+            page: 1,
+            pageSize: 10,
+            unsubs: []
+        };
+
+        const db = window.AeroAdmin?.db || window.db;
+        const toast = window.AeroAdmin?.toast || ((type, title, message) => alert(`${title}: ${message}`));
+
+        const els = {
+            searchInput: document.getElementById("searchInput"),
+            movieFilter: document.getElementById("movieFilter"),
+            cinemaFilter: document.getElementById("cinemaFilter"),
+            statusFilter: document.getElementById("statusFilter"),
+            tableBody: document.getElementById("showtimesTableBody"),
+            tableCount: document.getElementById("tableCount"),
+            pageInfo: document.getElementById("pageInfo"),
+            btnPrevPage: document.getElementById("btnPrevPage"),
+            btnNextPage: document.getElementById("btnNextPage"),
+            modal: document.getElementById("showtimeModal"),
+            form: document.getElementById("showtimeForm"),
+            modalTitle: document.getElementById("modalTitle"),
+            docId: document.getElementById("docId"),
+            fieldMovie: document.getElementById("fieldMovie"),
+            fieldCinema: document.getElementById("fieldCinema"),
+            fieldRoom: document.getElementById("fieldRoom"),
+            fieldDate: document.getElementById("fieldDate"),
+            fieldTime: document.getElementById("fieldTime"),
+            fieldPrice: document.getElementById("fieldPrice"),
+            fieldStatus: document.getElementById("fieldStatus"),
+            btnAddShowtime: document.getElementById("btnAddShowtime"),
+            btnCloseModal: document.getElementById("btnCloseModal"),
+            btnCancelModal: document.getElementById("btnCancelModal")
+        };
+
+        function showLoading(show) {
+            window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
+        }
+
+        function safe(value, fallback = "Chưa cập nhật") {
+            return value === undefined || value === null || value === "" ? fallback : value;
+        }
+
+        function normalize(value) {
+            return String(value || "").trim().toLowerCase();
+        }
+
+        function formatCurrency(value) {
+            return Number(value || 0).toLocaleString("vi-VN") + "đ";
+        }
+
+        function countSeats(seats) {
+            if (Array.isArray(seats)) return seats.length;
+            if (typeof seats === "string") return seats.split(",").map(x => x.trim()).filter(Boolean).length;
+            return seats ? 1 : 0;
+        }
+
+        // Realtime Stats UI Update
+        function renderStats() {
+            const total = state.showtimes.length;
+            const active = state.showtimes.filter(s => normalize(s.status) === "active").length;
+            
+            const movieIds = new Set(state.showtimes.map(s => s.movieId).filter(Boolean));
+            const cinemaIds = new Set(state.showtimes.map(s => s.cinemaId).filter(Boolean));
+
+            setText("statTotal", total);
+            setText("statActive", active);
+            setText("statMovies", movieIds.size);
+            setText("statCinemas", cinemaIds.size);
+        }
+
+        function setText(id, value) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerText = value;
+                el.classList.remove("skeleton");
+            }
+        }
+
+        // Render drop-down filters in Toolbar & Form
+        function populateFilters() {
+            // Movie lists
+            const movieOpts = state.movies.map(m => `<option value="${m.id}">${safe(m.title)}</option>`).join("");
+            els.movieFilter.innerHTML = '<option value="">Tất cả phim</option>' + movieOpts;
+            els.fieldMovie.innerHTML = '<option value="">-- Chọn phim --</option>' + movieOpts;
+
+            // Cinema lists
+            const cinemaOpts = state.cinemas.map(c => `<option value="${c.id}">${safe(c.name)}</option>`).join("");
+            els.cinemaFilter.innerHTML = '<option value="">Tất cả rạp</option>' + cinemaOpts;
+            els.fieldCinema.innerHTML = '<option value="">-- Chọn rạp --</option>' + cinemaOpts;
+        }
+
+        // Handle dynamic room dropdown in modal based on selected cinema
+        function handleCinemaChange() {
+            const cinemaId = els.fieldCinema.value;
+            if (!cinemaId) {
+                els.fieldRoom.innerHTML = '<option value="">-- Vui lòng chọn rạp trước --</option>';
+                els.fieldRoom.disabled = true;
+                return;
+            }
+
+            const rooms = state.rooms.filter(r => r.cinemaId === cinemaId);
+            if (rooms.length === 0) {
+                els.fieldRoom.innerHTML = '<option value="">-- Rạp này chưa cấu hình phòng chiếu --</option>';
+                els.fieldRoom.disabled = true;
+                return;
+            }
+
+            els.fieldRoom.innerHTML = '<option value="">-- Chọn phòng chiếu --</option>' +
+                rooms.map(r => `<option value="${r.id}">${safe(r.name)} (${r.type || "2D"})</option>`).join("");
+            els.fieldRoom.disabled = false;
+        }
+
+        // Filter and Search Logic
+        function filterShowtimes() {
+            const queryText = normalize(els.searchInput.value);
+            const movieVal = els.movieFilter.value;
+            const cinemaVal = els.cinemaFilter.value;
+            const statusVal = els.statusFilter.value;
+
+            state.filtered = state.showtimes.filter(s => {
+                const matchQuery = !queryText || 
+                    normalize(s.movieTitle).includes(queryText) || 
+                    normalize(s.cinemaName).includes(queryText) || 
+                    normalize(s.roomName).includes(queryText);
+                const matchMovie = !movieVal || s.movieId === movieVal;
+                const matchCinema = !cinemaVal || s.cinemaId === cinemaVal;
+                const matchStatus = !statusVal || normalize(s.status) === statusVal;
+
+                return matchQuery && matchMovie && matchCinema && matchStatus;
+            });
+
+            // Sort showtimes by date and time (chronological)
+            state.filtered.sort((a, b) => {
+                const dateA = a.date || "";
+                const dateB = b.date || "";
+                if (dateA !== dateB) return dateB.localeCompare(dateA); // newest dates first
+                const timeA = a.time || "";
+                const timeB = b.time || "";
+                return timeA.localeCompare(timeB);
+            });
+
+            state.page = 1;
+            renderTable();
+        }
+
+        // Render showtimes list table
+        function renderTable() {
+            const totalItems = state.filtered.length;
+            const start = (state.page - 1) * state.pageSize;
+            const end = start + state.pageSize;
+            const paged = state.filtered.slice(start, end);
+
+            els.tableCount.innerText = `Hiển thị ${start + 1}-${Math.min(end, totalItems)} trên tổng số ${totalItems} lịch chiếu`;
+            els.pageInfo.innerText = `Trang ${state.page} / ${Math.max(1, Math.ceil(totalItems / state.pageSize))}`;
+
+            els.btnPrevPage.disabled = state.page === 1;
+            els.btnNextPage.disabled = state.page >= Math.ceil(totalItems / state.pageSize);
+
+            if (paged.length === 0) {
+                els.tableBody.innerHTML = `<tr><td colspan="7"><div class="empty-state">Không tìm thấy lịch chiếu nào phù hợp.</div></td></tr>`;
+                return;
+            }
+
+            els.tableBody.innerHTML = paged.map(s => {
+                const movie = state.movies.find(m => m.id === s.movieId) || {};
+                const poster = movie.posterUrl || "";
+                const soldCount = Array.isArray(s.soldSeats) ? s.soldSeats.length : 0;
+                
+                // Find total capacity of the room
+                const room = state.rooms.find(r => r.id === s.roomId) || {};
+                const capacity = room.totalSeats || room.capacity || 80;
+
+                const statusVal = normalize(s.status);
+                let badgeClass = "secondary";
+                let badgeLabel = "Tạm ngưng";
+                if (statusVal === "active") {
+                    badgeClass = "success";
+                    badgeLabel = "Hoạt động";
+                }
+
+                // Format Price
+                const priceText = formatCurrency(s.price);
+
+                // Format Date
+                let formattedDate = safe(s.date);
+                if (s.date && s.date.includes("-")) {
+                    const parts = s.date.split("-");
+                    if (parts.length === 3) formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                }
+
+                return `
+                    <tr data-id="${s.id}">
+                        <td>
+                            <div class="movie-poster-cell">
+                                <img src="${poster}" alt="Poster" onerror="this.src='https://placehold.co/100x150?text=No+Poster';" />
+                                <div class="movie-info-text">
+                                    <strong>${safe(s.movieTitle)}</strong>
+                                    <span>Thời lượng: ${movie.duration || "120"} phút</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="cinema-room-cell">
+                                <strong>${safe(s.cinemaName)}</strong>
+                                <span>Phòng: ${safe(s.roomName)}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="datetime-cell">
+                                <strong>${formattedDate}</strong>
+                                <span>Suất: ${safe(s.time)}</span>
+                            </div>
+                        </td>
+                        <td style="font-weight: 700; color: var(--admin-text);">${priceText}</td>
+                        <td>
+                            <div class="progress-info" style="font-size: 12px;">
+                                <strong>${soldCount} / ${capacity} ghế</strong>
+                                <div class="progress mt-1" style="height: 6px; width: 100px; background: var(--admin-surface-2); border-radius: 99px; overflow: hidden;">
+                                    <div class="progress-bar bg-warning" style="width: ${Math.min(100, (soldCount / capacity) * 100)}%; height: 100%;"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="admin-badge ${badgeClass}">${badgeLabel}</span>
+                        </td>
+                        <td style="text-align: right;">
+                            <div class="d-flex justify-content-end gap-1">
+                                <button type="button" class="admin-btn admin-btn-secondary btn-edit p-2" style="min-height: auto; min-width: auto;" data-id="${s.id}" title="Sửa">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="admin-btn admin-btn-danger btn-delete p-2" style="min-height: auto; min-width: auto;" data-id="${s.id}" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+            // Bind Table Action Buttons
+            els.tableBody.querySelectorAll(".btn-edit").forEach(btn => {
+                btn.addEventListener("click", () => openModal(btn.getAttribute("data-id")));
+            });
+
+            els.tableBody.querySelectorAll(".btn-delete").forEach(btn => {
+                btn.addEventListener("click", () => deleteShowtime(btn.getAttribute("data-id")));
+            });
+        }
+
+        // Open Modal (Add / Edit)
+        function openModal(id = null) {
+            els.form.reset();
+            els.docId.value = id || "";
+            
+            if (id) {
+                // Edit mode
+                els.modalTitle.innerText = "Chỉnh sửa lịch chiếu";
+                const showtime = state.showtimes.find(s => s.id === id);
+                if (showtime) {
+                    els.fieldMovie.value = showtime.movieId || "";
+                    els.fieldCinema.value = showtime.cinemaId || "";
+                    
+                    // Manually trigger cinema change to populate and enable room select
+                    handleCinemaChange();
+                    els.fieldRoom.value = showtime.roomId || "";
+                    
+                    els.fieldDate.value = showtime.date || "";
+                    els.fieldTime.value = showtime.time || "";
+                    els.fieldPrice.value = showtime.price || "";
+                    els.fieldStatus.value = showtime.status || "active";
+                }
+            } else {
+                // Add mode
+                els.modalTitle.innerText = "Thêm lịch chiếu mới";
+                els.fieldRoom.disabled = true;
+                els.fieldRoom.innerHTML = '<option value="">-- Vui lòng chọn rạp trước --</option>';
+            }
+
+            els.modal.classList.add("show");
+            document.body.style.overflow = "hidden"; // Prevent body scrolling
+        }
+
+        function closeModal() {
+            els.modal.classList.remove("show");
+            document.body.style.overflow = ""; // Enable body scrolling
+        }
+
+        // Save Showtime Logic
+        async function saveShowtime(e) {
+            e.preventDefault();
+
+            const id = els.docId.value;
+            const movieId = els.fieldMovie.value;
+            const cinemaId = els.fieldCinema.value;
+            const roomId = els.fieldRoom.value;
+            const date = els.fieldDate.value;
+            const time = els.fieldTime.value;
+            const price = Number(els.fieldPrice.value);
+            const status = els.fieldStatus.value;
+
+            if (!movieId || !cinemaId || !roomId || !date || !time || price < 0) {
+                toast("error", "Dữ liệu không hợp lệ", "Vui lòng điền đầy đủ thông tin yêu cầu.");
+                return;
+            }
+
+            // Conflict Check (same room at same date and time)
+            const isOverlap = state.showtimes.some(s => 
+                s.id !== id && 
+                s.roomId === roomId && 
+                s.date === date && 
+                s.time === time
+            );
+
+            if (isOverlap) {
+                await Swal.fire({
+                    icon: "warning",
+                    title: "Trùng phòng và thời gian",
+                    text: "Lịch chiếu này bị trùng phòng chiếu và khung giờ với một lịch chiếu khác đã tồn tại.",
+                    confirmButtonColor: "#f58220"
+                });
+                return;
+            }
+
+            // Load name metadata from collections
+            const selectedMovie = state.movies.find(m => m.id === movieId) || {};
+            const selectedCinema = state.cinemas.find(c => c.id === cinemaId) || {};
+            const selectedRoom = state.rooms.find(r => r.id === roomId) || {};
+
+            const payload = {
+                movieId,
+                movieTitle: selectedMovie.title || "",
+                cinemaId,
+                cinemaName: selectedCinema.name || "",
+                roomId,
+                roomName: selectedRoom.name || "",
+                date,
+                time,
+                price,
+                status,
+                updatedAt: serverTimestamp()
+            };
+
+            showLoading(true);
+            try {
+                if (id) {
+                    // Update
+                    const oldData = state.showtimes.find(s => s.id === id);
+                    await updateDoc(doc(db, "showtimes", id), payload);
+                    await window.AeroAdmin?.logActivity?.("update_showtime", "showtimes", id, oldData, payload);
+                    toast("success", "Thành công", "Lịch chiếu đã được cập nhật.");
+                } else {
+                    // Create
+                    payload.soldSeats = [];
+                    payload.createdAt = serverTimestamp();
+                    const docRef = await addDoc(collection(db, "showtimes"), payload);
+                    await window.AeroAdmin?.logActivity?.("create_showtime", "showtimes", docRef.id, null, payload);
+                    toast("success", "Thành công", "Thêm lịch chiếu mới thành công.");
+                }
+                closeModal();
+            } catch (error) {
+                console.error("Save showtime error:", error);
+                toast("error", "Thất bại", `Không thể lưu lịch chiếu: ${error.message}`);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Delete Showtime Logic
+        async function deleteShowtime(id) {
+            const showtime = state.showtimes.find(s => s.id === id);
+            if (!showtime) return;
+
+            // Constraint Check: check if any booking belongs to this showtime
+            const hasBooking = state.bookings.some(b => b.showtimeId === id && normalize(b.status) !== "cancelled");
+            if (hasBooking) {
+                await Swal.fire({
+                    icon: "error",
+                    title: "Không thể xóa lịch chiếu",
+                    text: `Lịch chiếu phim "${showtime.movieTitle}" đang chứa các đơn đặt vé đang hoạt động. Không thể xóa!`,
+                    confirmButtonColor: "#dc2626"
+                });
+                return;
+            }
+
+            const res = await Swal.fire({
+                title: "Xóa lịch chiếu?",
+                text: `Bạn có chắc muốn xóa lịch chiếu phim "${showtime.movieTitle}" tại "${showtime.cinemaName} - ${showtime.roomName}" vào lúc ${showtime.time} ngày ${showtime.date}?`,
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#dc2626",
+                cancelButtonColor: "#475569",
+                confirmButtonText: "Đồng ý xóa",
+                cancelButtonText: "Hủy"
+            });
+
+            if (res.isConfirmed) {
+                showLoading(true);
+                try {
+                    await deleteDoc(doc(db, "showtimes", id));
+                    await window.AeroAdmin?.logActivity?.("delete_showtime", "showtimes", id, showtime, null);
+                    toast("success", "Thành công", "Đã xóa lịch chiếu.");
+                } catch (error) {
+                    console.error("Delete showtime error:", error);
+                    toast("error", "Lỗi", `Không thể xóa lịch chiếu: ${error.message}`);
+                } finally {
+                    showLoading(false);
+                }
+            }
+        }
+
+        // Realtime Sync Init
+        function initRealtime() {
+            if (!db) return;
+
+            // Unsubscribe existing
+            state.unsubs.forEach(unsub => unsub());
+            state.unsubs = [];
+
+            // Listeners
+            const collectionsList = ["showtimes", "movies", "cinemas", "rooms", "bookings"];
+            collectionsList.forEach(colName => {
+                const unsub = onSnapshot(collection(db, colName), (snap) => {
+                    state[colName] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    
+                    if (colName === "movies" || colName === "cinemas") {
+                        populateFilters();
+                    }
+                    
+                    renderStats();
+                    filterShowtimes();
+                    
+                    document.getElementById("lastUpdated").innerText = new Date().toLocaleTimeString("vi-VN");
+                }, (error) => {
+                    console.error(`Realtime sync failed for ${colName}:`, error);
+                });
+                state.unsubs.push(unsub);
+            });
+        }
+
+        // Bind DOM Events
+        function bindEvents() {
+            els.searchInput.addEventListener("input", filterShowtimes);
+            els.movieFilter.addEventListener("change", filterShowtimes);
+            els.cinemaFilter.addEventListener("change", filterShowtimes);
+            els.statusFilter.addEventListener("change", filterShowtimes);
+            els.fieldCinema.addEventListener("change", handleCinemaChange);
+
+            els.btnAddShowtime.addEventListener("click", () => openModal());
+            els.btnCloseModal.addEventListener("click", closeModal);
+            els.btnCancelModal.addEventListener("click", closeModal);
+            els.form.addEventListener("submit", saveShowtime);
+
+            // Pagination
+            els.btnPrevPage.addEventListener("click", () => {
+                if (state.page > 1) {
+                    state.page--;
+                    renderTable();
+                }
+            });
+
+            els.btnNextPage.addEventListener("click", () => {
+                const totalPages = Math.ceil(state.filtered.length / state.pageSize);
+                if (state.page < totalPages) {
+                    state.page++;
+                    renderTable();
+                }
+            });
+
+            // Modal click overlay to close (if not loading)
+            els.modal.addEventListener("click", (e) => {
+                if (e.target === els.modal) {
+                    closeModal();
+                }
+            });
+
+            // ESC key to close modal
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && els.modal.classList.contains("show")) {
+                    closeModal();
+                }
+            });
+        }
+
+        // Bootstrapping
+        window.addEventListener("aero-admin-ready", () => {
+            initRealtime();
+            bindEvents();
+        }, { once: true });
+
+        if (window.AeroAdmin?.state?.ready) {
+            initRealtime();
+            bindEvents();
+        }
+
+        window.addEventListener("beforeunload", () => {
+            state.unsubs.forEach(unsub => unsub());
+        });
+    </script>
+}

@@ -1,0 +1,587 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý booking";
+}
+
+<div class="bk-admin">
+    <!-- Hero Section -->
+    <section class="hero" aria-labelledby="heroTitle">
+        <div>
+            <h1 id="heroTitle">Quản lý booking</h1>
+            <p>Xem, xác nhận thanh toán và hủy đặt vé. Khi hủy, hệ thống tự động giải phóng ghế ngồi và đồng bộ các giao dịch liên quan.</p>
+        </div>
+    </section>
+
+    <!-- Stats Overview -->
+    <section class="admin-stats-grid" aria-label="Thống kê booking">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-ticket-alt"></i></span>
+            <span class="stat-label">Tổng booking</span>
+            <strong class="stat-value skeleton" id="statTotal">0</strong>
+            <span class="stat-note">Đơn đặt vé đã tạo</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-clock"></i></span>
+            <span class="stat-label">Chờ thanh toán</span>
+            <strong class="stat-value skeleton" id="statPending">0</strong>
+            <span class="stat-note">Hóa đơn chưa hoàn tất</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+            <span class="stat-label">Đã thanh toán</span>
+            <strong class="stat-value skeleton" id="statPaid">0</strong>
+            <span class="stat-note">Giao dịch thành công</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-times-circle"></i></span>
+            <span class="stat-label">Đã hủy</span>
+            <strong class="stat-value skeleton" id="statCancelled">0</strong>
+            <span class="stat-note">Đơn đã hoàn trả ghế</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-coins"></i></span>
+            <span class="stat-label">Doanh thu booking</span>
+            <strong class="stat-value skeleton" id="statRevenue">0đ</strong>
+            <span class="stat-note">Thực thu thành công</span>
+        </div>
+    </section>
+
+    <!-- Toolbar Filters -->
+    <section class="admin-toolbar" aria-label="Bộ lọc booking">
+        <div class="admin-field search-input" style="grid-column: span 2;">
+            <label for="searchInput">Tìm kiếm booking</label>
+            <input type="search" class="admin-control" id="searchInput" placeholder="Tìm theo mã đặt vé, email, tên phim..." aria-label="Tìm kiếm booking" />
+        </div>
+        <div class="admin-field">
+            <label for="statusFilter">Trạng thái</label>
+            <select class="admin-control" id="statusFilter" aria-label="Lọc theo trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option value="pending">pending</option>
+                <option value="paid">paid</option>
+                <option value="cancelled">cancelled</option>
+                <option value="completed">completed</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="movieFilter">Phim</label>
+            <select class="admin-control" id="movieFilter" aria-label="Lọc theo phim">
+                <option value="">Tất cả phim</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="dateFilter">Ngày chiếu</label>
+            <input class="admin-control" type="date" id="dateFilter" aria-label="Lọc theo ngày" />
+        </div>
+        <div class="admin-field">
+            <label for="cinemaFilter">Rạp</label>
+            <select class="admin-control" id="cinemaFilter" aria-label="Lọc theo rạp">
+                <option value="">Tất cả rạp</option>
+            </select>
+        </div>
+    </section>
+
+    <!-- Data Grid -->
+    <section class="admin-card">
+        <div class="section-head" style="padding: 16px 20px; border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
+            <h2 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--admin-text);">Danh sách booking</h2>
+            <span id="tableCount" style="font-size: 12px; color: var(--admin-subtle); font-weight: 600;">Đang tải...</span>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th><span class="sort-header" data-sort="id">Mã booking <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="userEmail">Email <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="movieTitle">Tên phim <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="cinemaName">Rạp <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="roomName">Phòng <i class="fas fa-sort"></i></span></th>
+                        <th>Ghế</th>
+                        <th><span class="sort-header" data-sort="totalPrice">Tổng tiền <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="paymentMethod">Phương thức <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="status">Trạng thái <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="createdAt">Ngày tạo <i class="fas fa-sort"></i></span></th>
+                        <th class="action-col" style="text-align: right; width: 140px;">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody id="bookingsTableBody">
+                    <tr>
+                        <td colspan="11"><div class="empty-state"><span>Đang tải booking...</span></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="pagination">
+            <span id="pageInfo">Trang 1 / 1</span>
+            <div class="page-buttons">
+                <button class="admin-btn admin-btn-secondary" id="btnPrev" type="button">Trước</button>
+                <button class="admin-btn admin-btn-secondary" id="btnNext" type="button">Sau</button>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Booking Detail Modal -->
+<div class="admin-modal" id="bookingDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="modalTitle">Chi tiết booking</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="bookingDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body" id="bookingDetailBody"></div>
+        <div class="admin-modal-footer">
+            <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="bookingDetailModal">Đóng</button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import {
+            collection,
+            doc,
+            onSnapshot,
+            updateDoc,
+            runTransaction,
+            serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.AeroAdmin?.db || window.db;
+        const toast = window.AeroAdmin?.toast || ((type, title, message) => alert(`${title}: ${message}`));
+
+        const state = {
+            bookings: [],
+            tickets: [],
+            payments: [],
+            showtimes: [],
+            filtered: [],
+            page: 1,
+            pageSize: 10,
+            sortKey: "createdAt",
+            sortDirection: "desc",
+            unsubs: []
+        };
+
+        const els = {
+            search: document.getElementById("searchInput"),
+            status: document.getElementById("statusFilter"),
+            movie: document.getElementById("movieFilter"),
+            date: document.getElementById("dateFilter"),
+            cinema: document.getElementById("cinemaFilter"),
+            body: document.getElementById("bookingsTableBody"),
+            count: document.getElementById("tableCount"),
+            pageInfo: document.getElementById("pageInfo"),
+            prev: document.getElementById("btnPrev"),
+            next: document.getElementById("btnNext")
+        };
+
+        const safe = (v, f = "-") => v === undefined || v === null || v === "" ? f : v;
+        const norm = v => String(v || "").trim().toLowerCase();
+        const money = v => Number(v || 0).toLocaleString("vi-VN") + "đ";
+        const toDate = v => v?.toDate ? v.toDate() : (v ? new Date(v) : null);
+        const fmtDate = v => {
+            const d = toDate(v);
+            return d && !Number.isNaN(d.getTime()) ? d.toLocaleString("vi-VN", {
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }) : "-";
+        };
+        const dateKey = v => {
+            const d = toDate(v);
+            return d && !Number.isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : "";
+        };
+        const seatsText = s => Array.isArray(s) ? s.join(", ") : safe(s);
+        
+        function showLoading(show) {
+            window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
+        }
+
+        const statusClass = s => {
+            const n = norm(s);
+            if (n === "paid" || n === "completed" || n === "success") return "success";
+            if (n === "pending" || n === "unpaid") return "warning";
+            if (n === "cancelled" || n === "canceled") return "danger";
+            return "secondary";
+        };
+        const paidStatuses = ["paid", "completed", "success"];
+
+        function updateStats() {
+            setTextElement("statTotal", state.bookings.length);
+            setTextElement("statPending", state.bookings.filter(b => ["pending", "unpaid", ""].includes(norm(b.status))).length);
+            setTextElement("statPaid", state.bookings.filter(b => paidStatuses.includes(norm(b.status))).length);
+            setTextElement("statCancelled", state.bookings.filter(b => ["cancelled", "canceled"].includes(norm(b.status))).length);
+
+            const revenue = state.bookings.filter(b => paidStatuses.includes(norm(b.status))).reduce((sum, b) => sum + Number(b.totalPrice || 0), 0);
+            setTextElement("statRevenue", money(revenue));
+        }
+
+        function setTextElement(id, value) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerText = value;
+                el.classList.remove("skeleton");
+            }
+        }
+
+        function setOptions() {
+            const movieCurrent = els.movie.value, cinemaCurrent = els.cinema.value;
+            const movies = [...new Set(state.bookings.map(b => b.movieTitle).filter(Boolean))].sort();
+            const cinemas = [...new Set(state.bookings.map(b => b.cinemaName).filter(Boolean))].sort();
+            els.movie.innerHTML = '<option value="">Tất cả phim</option>' + movies.map(m => `<option value="${m}">${m}</option>`).join("");
+            els.cinema.innerHTML = '<option value="">Tất cả rạp</option>' + cinemas.map(c => `<option value="${c}">${c}</option>`).join("");
+            els.movie.value = movieCurrent;
+            els.cinema.value = cinemaCurrent;
+        }
+
+        function sortFilteredBookings() {
+            const key = state.sortKey;
+            const dir = state.sortDirection === "asc" ? 1 : -1;
+
+            state.filtered.sort((a, b) => {
+                let valA = a[key];
+                let valB = b[key];
+
+                if (key === "createdAt" || key === "updatedAt" || key === "date") {
+                    valA = toDate(valA)?.getTime() || 0;
+                    valB = toDate(valB)?.getTime() || 0;
+                } else if (typeof valA === "string") {
+                    valA = valA.toLowerCase();
+                    valB = String(valB || "").toLowerCase();
+                } else {
+                    valA = Number(valA || 0);
+                    valB = Number(valB || 0);
+                }
+
+                if (valA < valB) return -1 * dir;
+                if (valA > valB) return 1 * dir;
+                return 0;
+            });
+        }
+
+        function filterData() {
+            const kw = norm(els.search.value);
+            state.filtered = state.bookings.filter(b => {
+                const text = norm([b.id, b.userEmail, b.movieTitle].join(" "));
+                return (!kw || text.includes(kw)) &&
+                    (!els.status.value || norm(b.status) === els.status.value) &&
+                    (!els.movie.value || b.movieTitle === els.movie.value) &&
+                    (!els.date.value || b.date === els.date.value || dateKey(b.createdAt) === els.date.value) &&
+                    (!els.cinema.value || b.cinemaName === els.cinema.value);
+            });
+
+            sortFilteredBookings();
+
+            const max = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+            if (state.page > max) state.page = max;
+            renderTable();
+        }
+
+        function renderTable() {
+            const start = (state.page - 1) * state.pageSize, items = state.filtered.slice(start, start + state.pageSize);
+            const total = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+            els.count.innerText = `${state.filtered.length} booking`;
+            els.pageInfo.innerText = `Trang ${state.page}/${total}`;
+            els.prev.disabled = state.page <= 1;
+            els.next.disabled = state.page >= total;
+
+            if (!items.length) {
+                els.body.innerHTML = '<tr><td colspan="11"><div class="empty-state"><span>Không tìm thấy booking phù hợp.</span></div></td></tr>';
+                return;
+            }
+
+            els.body.innerHTML = items.map(b => {
+                const statusVal = norm(b.status);
+                const isCancelled = ["cancelled", "canceled"].includes(statusVal);
+                const isPaid = paidStatuses.includes(statusVal);
+                const confirmAttr = isPaid || isCancelled ? "disabled" : "";
+                const cancelAttr = isCancelled ? "disabled" : "";
+
+                return `<tr>
+                    <td data-label="Mã booking"><div class="main-cell"><strong>${b.id.substring(0, 8)}...</strong><span>${safe(b.showtimeId)}</span></div></td>
+                    <td data-label="Email">${safe(b.userEmail)}</td>
+                    <td data-label="Tên phim">${safe(b.movieTitle)}</td>
+                    <td data-label="Rạp">${safe(b.cinemaName)}</td>
+                    <td data-label="Phòng">${safe(b.roomName)}</td>
+                    <td data-label="Ghế">${seatsText(b.seats)}</td>
+                    <td data-label="Tổng tiền"><strong>${money(b.totalPrice)}</strong></td>
+                    <td data-label="Phương thức">${safe(b.paymentMethod)}</td>
+                    <td data-label="Trạng thái"><span class="admin-badge ${statusClass(b.status)}">${safe(b.status, "pending")}</span></td>
+                    <td data-label="Ngày tạo">${fmtDate(b.createdAt)}</td>
+                    <td data-label="Hành động" class="action-col">
+                        <div class="admin-actions">
+                            <button type="button" class="admin-icon-btn view" data-action="view" data-id="${b.id}" title="Chi tiết" aria-label="Xem chi tiết booking"><i class="fas fa-eye"></i></button>
+                            <button type="button" class="admin-icon-btn approve" data-action="confirm" data-id="${b.id}" title="Xác nhận" aria-label="Xác nhận booking" ${confirmAttr}><i class="fas fa-check"></i></button>
+                            <button type="button" class="admin-icon-btn reject" data-action="cancel" data-id="${b.id}" title="Hủy" aria-label="Hủy booking" ${cancelAttr}><i class="fas fa-ban"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join("");
+        }
+
+        function openModal(id) {
+            const m = document.getElementById(id);
+            m.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal(id) {
+            const m = document.getElementById(id);
+            m.classList.remove("show");
+            document.body.style.overflow = "";
+        }
+
+        function openDetail(b) {
+            document.getElementById("bookingDetailBody").innerHTML = `<div class="detail-grid">
+                ${["id", "userId", "userEmail", "showtimeId", "movieId", "movieTitle", "cinemaName", "roomName", "date", "time", "paymentMethod", "status"].map(k => `<div class="detail-item"><span>${k}</span><strong>${safe(b[k] ?? (k === "id" ? b.id : ""))}</strong></div>`).join("")}
+                <div class="detail-item"><span>seats</span><strong>${seatsText(b.seats)}</strong></div>
+                <div class="detail-item"><span>totalPrice</span><strong>${money(b.totalPrice)}</strong></div>
+                <div class="detail-item"><span>createdAt</span><strong>${fmtDate(b.createdAt)}</strong></div>
+                <div class="detail-item"><span>updatedAt</span><strong>${fmtDate(b.updatedAt)}</strong></div>
+            </div>`;
+            openModal("bookingDetailModal");
+        }
+
+        async function confirmBooking(b) {
+            if (paidStatuses.includes(norm(b.status))) {
+                toast("info", "Đã xử lý", "Booking này đã ở trạng thái paid.");
+                return;
+            }
+            if (norm(b.status) === "cancelled" || norm(b.status) === "canceled") {
+                toast("info", "Đã hủy", "Không thể xác nhận booking đã hủy.");
+                return;
+            }
+
+            const res = await Swal.fire({
+                title: "Xác nhận thanh toán?",
+                text: "Booking này sẽ được chuyển sang trạng thái đã thanh toán và đồng bộ vé/giao dịch.",
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonColor: "var(--admin-primary)",
+                cancelButtonColor: "var(--admin-subtle)",
+                confirmButtonText: "Đồng ý",
+                cancelButtonText: "Hủy"
+            });
+
+            if (!res.isConfirmed) return;
+
+            showLoading(true);
+            try {
+                await updateDoc(doc(db, "bookings", b.id), {
+                    status: "paid",
+                    updatedAt: serverTimestamp()
+                });
+                await window.AeroAdmin?.logActivity?.("confirm_booking", "bookings", b.id, b, { status: "paid" });
+                toast("success", "Đã xác nhận", "Booking đã chuyển sang paid.");
+            } catch (err) {
+                console.error(err);
+                toast("error", "Không thể xác nhận", err.message || "Vui lòng thử lại.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function related(collectionName, bookingId) {
+            const source = collectionName === "tickets" ? state.tickets : state.payments;
+            return source.filter(x => x.bookingId === bookingId);
+        }
+
+        async function cancelBooking(b) {
+            if (norm(b.status) === "cancelled" || norm(b.status) === "canceled") {
+                toast("info", "Đã hủy", "Booking này đã ở trạng thái cancelled.");
+                return;
+            }
+
+            const res = await Swal.fire({
+                title: "Hủy đơn đặt vé?",
+                text: "Thao tác này sẽ tự động giải phóng các ghế ngồi đã đặt và đồng bộ hóa vé, thanh toán liên quan.",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "var(--admin-danger)",
+                cancelButtonColor: "var(--admin-subtle)",
+                confirmButtonText: "Đồng ý hủy",
+                cancelButtonText: "Đóng"
+            });
+
+            if (!res.isConfirmed) return;
+
+            showLoading(true);
+            try {
+                const seatList = Array.isArray(b.seats) ? b.seats.map(s => String(s).trim().toUpperCase()) : String(b.seats || "").split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
+                const bookingRef = doc(db, "bookings", b.id);
+                const showtimeRef = b.showtimeId ? doc(db, "showtimes", b.showtimeId) : null;
+                const tickets = related("tickets", b.id);
+                const payments = related("payments", b.id);
+
+                await runTransaction(db, async tx => {
+                    if (showtimeRef) {
+                        const stSnap = await tx.get(showtimeRef);
+                        if (stSnap.exists()) {
+                            const st = stSnap.data();
+                            const current = Array.isArray(st.soldSeats) ? st.soldSeats.map(s => String(s).trim().toUpperCase()) : [];
+                            tx.update(showtimeRef, {
+                                soldSeats: current.filter(s => !seatList.includes(s)),
+                                updatedAt: serverTimestamp()
+                            });
+                        }
+                    }
+                    tx.update(bookingRef, {
+                        status: "cancelled",
+                        updatedAt: serverTimestamp()
+                    });
+                    tickets.forEach(t => tx.update(doc(db, "tickets", t.id), {
+                        status: "cancelled",
+                        updatedAt: serverTimestamp()
+                    }));
+                    payments.forEach(p => tx.update(doc(db, "payments", p.id), {
+                        status: "cancelled",
+                        updatedAt: serverTimestamp()
+                    }));
+                });
+
+                await window.AeroAdmin?.logActivity?.("cancel_booking", "bookings", b.id, b, {
+                    status: "cancelled",
+                    returnedSeats: seatList
+                });
+                toast("success", "Đã hủy booking", "Ghế đã được trả về showtimes.soldSeats.");
+            } catch (err) {
+                console.error(err);
+                toast("error", "Không thể hủy booking", err.message || "Vui lòng thử lại.");
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Sorting trigger
+        function handleSorting(event) {
+            const header = event.target.closest(".sort-header");
+            if (!header) return;
+
+            const key = header.dataset.sort;
+            if (state.sortKey === key) {
+                state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+            } else {
+                state.sortKey = key;
+                state.sortDirection = "asc";
+            }
+
+            // Update all sorting icons
+            document.querySelectorAll(".sort-header i").forEach(icon => {
+                icon.className = "fas fa-sort";
+            });
+            const activeIcon = header.querySelector("i");
+            if (activeIcon) {
+                activeIcon.className = state.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+            }
+
+            filterData();
+        }
+
+        function bindEvents() {
+            // Table headers sorting
+            document.querySelectorAll(".sort-header").forEach(header => {
+                header.addEventListener("click", handleSorting);
+            });
+
+            [els.search, els.status, els.movie, els.date, els.cinema].forEach(el => {
+                el.addEventListener("input", () => {
+                    state.page = 1;
+                    filterData();
+                });
+                el.addEventListener("change", () => {
+                    state.page = 1;
+                    filterData();
+                });
+            });
+
+            els.prev.addEventListener("click", () => {
+                if (state.page > 1) {
+                    state.page--;
+                    renderTable();
+                }
+            });
+
+            els.next.addEventListener("click", () => {
+                const total = Math.max(1, Math.ceil(state.filtered.length / state.pageSize));
+                if (state.page < total) {
+                    state.page++;
+                    renderTable();
+                }
+            });
+
+            document.addEventListener("click", e => {
+                const close = e.target.closest("[data-close-modal]");
+                if (close) {
+                    closeModal(close.dataset.closeModal);
+                    return;
+                }
+                const btn = e.target.closest("[data-action]");
+                if (!btn) return;
+                const b = state.bookings.find(x => x.id === btn.dataset.id);
+                if (!b) return;
+
+                if (btn.dataset.action === "view") openDetail(b);
+                if (btn.dataset.action === "confirm") confirmBooking(b);
+                if (btn.dataset.action === "cancel") cancelBooking(b);
+            });
+
+            // Modal overlay click to close
+            document.querySelectorAll(".admin-modal").forEach(modal => {
+                modal.addEventListener("click", (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+
+            // ESC key to close modals
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    document.querySelectorAll(".admin-modal.show").forEach(m => closeModal(m.id));
+                }
+            });
+        }
+
+        function attachRealtime() {
+            state.unsubs.forEach(u => u());
+            state.unsubs = [
+                onSnapshot(collection(db, "bookings"), snap => {
+                    state.bookings = snap.docs.map(d => ({
+                        id: d.id,
+                        ...d.data()
+                    }));
+                    setOptions();
+                    updateStats();
+                    filterData();
+                }, err => {
+                    console.error(err);
+                    toast("error", "Không thể tải bookings", err.message || "Kiểm tra Firestore Rules.");
+                }),
+                onSnapshot(collection(db, "tickets"), snap => {
+                    state.tickets = snap.docs.map(d => ({
+                        id: d.id,
+                        ...d.data()
+                    }));
+                }, err => console.warn(err)),
+                onSnapshot(collection(db, "payments"), snap => {
+                    state.payments = snap.docs.map(d => ({
+                        id: d.id,
+                        ...d.data()
+                    }));
+                }, err => console.warn(err)),
+                onSnapshot(collection(db, "showtimes"), snap => {
+                    state.showtimes = snap.docs.map(d => ({
+                        id: d.id,
+                        ...d.data()
+                    }));
+                }, err => console.warn(err))
+            ];
+        }
+
+        bindEvents();
+        window.addEventListener("aero-admin-ready", attachRealtime, { once: true });
+        if (window.AeroAdmin?.state?.ready) attachRealtime();
+        window.addEventListener("beforeunload", () => state.unsubs.forEach(u => u()));
+    </script>
+}

@@ -1,0 +1,583 @@
+@{
+    Layout = null;
+    Response.ContentEncoding = System.Text.Encoding.UTF8;
+    Response.Charset = "utf-8";
+
+    var adminPageTitle = ViewBag.Title != null ? ViewBag.Title.ToString() : "Quản trị";
+    var adminControllerName = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var adminActionName = "";
+
+    if (ViewContext != null &&
+        ViewContext.RouteData != null &&
+        ViewContext.RouteData.Values["action"] != null)
+    {
+        adminActionName = ViewContext.RouteData.Values["action"].ToString();
+    }
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>@adminPageTitle - AERO Admin</title>
+    <script>
+        (function () {
+            var theme = "dark";
+            try {
+                var storedTheme = localStorage.getItem("admin_theme");
+                var storedDefault = localStorage.getItem("admin_theme_default");
+                if (storedTheme === "dark" || storedTheme === "light") {
+                    theme = storedTheme;
+                } else if (storedDefault === "dark" || storedDefault === "light") {
+                    theme = storedDefault;
+                }
+            } catch (error) { }
+
+            document.documentElement.setAttribute("data-admin-theme", theme);
+            document.documentElement.setAttribute("data-theme", theme);
+            document.documentElement.style.colorScheme = theme;
+            window.__AERO_ADMIN_INITIAL_THEME__ = theme;
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+    <link rel="dns-prefetch" href="//www.gstatic.com" />
+    <link rel="dns-prefetch" href="//firestore.googleapis.com" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <link rel="stylesheet" href="@Url.Content("~/Content/admin-design-system.css")" />
+
+    @RenderSection("styles", required: false)
+</head>
+<body class="aero-admin-body" data-admin-action="@adminActionName">
+    <div id="adminBootScreen" class="aero-admin-boot">
+        <div class="aero-admin-boot-card">
+            <div class="aero-admin-spinner"></div>
+            <strong>Đang kiểm tra quyền quản trị...</strong>
+            <span>Vui lòng chờ trong giây lát</span>
+        </div>
+    </div>
+
+    <!-- Global Loader Screen -->
+    <div id="adminGlobalLoader" class="aero-admin-boot is-hidden" style="background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px);">
+        <div class="aero-admin-boot-card" style="background: var(--admin-card); border: 1px solid var(--admin-border);">
+            <div class="aero-admin-spinner"></div>
+            <strong id="adminGlobalLoaderText">Đang xử lý...</strong>
+            <span>Vui lòng chờ trong giây lát</span>
+        </div>
+    </div>
+
+    <div id="adminShell" class="aero-admin-shell is-locked">
+        <aside class="aero-admin-sidebar" id="adminSidebar">
+            <div class="aero-admin-brand">
+                <a href="@Url.Action("Index", "Home")" aria-label="AERO Cinema">
+                    <span>AERO</span>
+                    <strong>Cinema</strong>
+                </a>
+                <small>Admin Console</small>
+            </div>
+
+            <nav class="aero-admin-menu" aria-label="Admin menu">
+                <a class="aero-admin-menu-item @(adminActionName == "Dashboard" ? "active" : "")" href="@Url.Action("Dashboard", "Admin")">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Movies" ? "active" : "")" href="@Url.Action("Movies", "Admin")">
+                    <i class="fas fa-film"></i>
+                    <span>Phim</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Cinemas" ? "active" : "")" href="@Url.Action("Cinemas", "Admin")">
+                    <i class="fas fa-building"></i>
+                    <span>Rạp</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Rooms" ? "active" : "")" href="@Url.Action("Rooms", "Admin")">
+                    <i class="fas fa-door-open"></i>
+                    <span>Phòng chiếu</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Showtimes" ? "active" : "")" href="@Url.Action("Showtimes", "Admin")">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Lịch chiếu</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Bookings" ? "active" : "")" href="@Url.Action("Bookings", "Admin")">
+                    <i class="fas fa-ticket-alt"></i>
+                    <span>Booking</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Tickets" ? "active" : "")" href="@Url.Action("Tickets", "Admin")">
+                    <i class="fas fa-qrcode"></i>
+                    <span>Vé</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Payments" ? "active" : "")" href="@Url.Action("Payments", "Admin")">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Thanh toán</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Reports" ? "active" : "")" href="@Url.Action("Reports", "Admin")">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Báo cáo</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Users" ? "active" : "")" href="@Url.Action("Users", "Admin")">
+                    <i class="fas fa-users"></i>
+                    <span>Người dùng</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Banners" ? "active" : "")" href="@Url.Action("Banners", "Admin")">
+                    <i class="fas fa-images"></i>
+                    <span>Banner</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Promotions" ? "active" : "")" href="@Url.Action("Promotions", "Admin")">
+                    <i class="fas fa-tags"></i>
+                    <span>Khuyến mãi</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "News" ? "active" : "")" href="@Url.Action("News", "Admin")">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Tin tức</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Reviews" ? "active" : "")" href="@Url.Action("Reviews", "Admin")">
+                    <i class="fas fa-star"></i>
+                    <span>Đánh giá</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "SupportTickets" ? "active" : "")" href="@Url.Action("SupportTickets", "Admin")">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Hỗ trợ</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Settings" ? "active" : "")" href="@Url.Action("Settings", "Admin")">
+                    <i class="fas fa-cog"></i>
+                    <span>Cấu hình</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "ActivityLogs" ? "active" : "")" href="@Url.Action("ActivityLogs", "Admin")">
+                    <i class="fas fa-history"></i>
+                    <span>Nhật ký</span>
+                </a>
+            </nav>
+
+            <div class="aero-admin-sidebar-footer">
+                <span>Đăng nhập với</span>
+                <strong id="sidebarAdminName">Admin</strong>
+            </div>
+        </aside>
+
+        <!-- Backdrop for mobile sidebar drawer -->
+        <div class="aero-admin-sidebar-overlay" id="sidebarOverlay"></div>
+
+        <div class="aero-admin-workspace">
+            <header class="aero-admin-topbar">
+                <button type="button" class="aero-admin-icon-btn" id="sidebarToggle" aria-label="Mở menu">
+                    <i class="fas fa-bars"></i>
+                </button>
+
+                <div class="aero-admin-page-title">
+                    <span>Hệ thống</span>
+                    <strong>@adminPageTitle</strong>
+                </div>
+
+                <div class="aero-admin-topbar-actions">
+                    <a href="@Url.Action("Index", "Home")" target="_blank" title="Mở website người dùng" class="aero-admin-ghost-link">
+                        <i class="fas fa-globe"></i>
+                        <span>Về website</span>
+                    </a>
+                    
+                    <button type="button" class="aero-admin-theme-toggle" id="themeToggle" title="Chuyển giao diện">
+                        <i class="fas fa-moon"></i>
+                    </button>
+
+                    <div class="aero-admin-user">
+                        <div class="aero-admin-avatar" id="topbarAvatar">AD</div>
+                        <div>
+                            <strong id="topbarAdminName">Administrator</strong>
+                            <span id="topbarAdminEmail">admin@aerocinema.vn</span>
+                        </div>
+                    </div>
+
+                    <button type="button" class="aero-admin-logout" id="logoutBtn" title="Đăng xuất">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Đăng xuất</span>
+                    </button>
+                </div>
+            </header>
+
+            <main class="aero-admin-content" role="main">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <div id="adminToastHost" class="aero-admin-toast-host" aria-live="polite"></div>
+
+    <script src="@Url.Content("~/Scripts/firebase-config.js")"></script>
+    <script type="module">
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import {
+            getFirestore,
+            doc,
+            getDoc,
+            collection,
+            addDoc,
+            serverTimestamp,
+            enableIndexedDbPersistence
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const app = getApps().length ? getApp() : initializeApp(window.firebaseConfig);
+        const auth = window.auth || getAuth(app);
+        const db = window.db || getFirestore(app);
+
+        // Enable offline persistence to optimize Firestore reads
+        enableIndexedDbPersistence(db).catch((err) => {
+            console.warn("Firestore offline persistence failed:", err.code);
+        });
+
+        window.firebaseApp = app;
+        window.auth = auth;
+        window.db = db;
+
+        const adminState = {
+            currentUser: null,
+            adminProfile: null,
+            ready: false,
+            theme: window.__AERO_ADMIN_INITIAL_THEME__ || "dark"
+        };
+
+        const THEME_STORAGE_KEY = "admin_theme";
+        const DEFAULT_THEME_STORAGE_KEY = "admin_theme_default";
+
+        function normalizeTheme(value) {
+            return value === "light" ? "light" : "dark";
+        }
+
+        function getStoredTheme() {
+            try {
+                const stored = localStorage.getItem(THEME_STORAGE_KEY);
+                return stored === "dark" || stored === "light" ? stored : "";
+            } catch (error) {
+                return "";
+            }
+        }
+
+        function updateAdminUI(user, data) {
+            const email = user.email || data.email || "admin@aerocinema.vn";
+            const name = data.fullName || data.name || "Administrator";
+            
+            const sidebarName = document.getElementById("sidebarAdminName");
+            if (sidebarName) sidebarName.textContent = name;
+            
+            const topbarName = document.getElementById("topbarAdminName");
+            if (topbarName) topbarName.textContent = name;
+            
+            const topbarEmail = document.getElementById("topbarAdminEmail");
+            if (topbarEmail) topbarEmail.textContent = email;
+            
+            const avatar = document.getElementById("topbarAvatar");
+            if (avatar) {
+                const initials = name.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase();
+                avatar.textContent = initials || "AD";
+            }
+        }
+
+        function showBoot(show) {
+            const boot = document.getElementById("adminBootScreen");
+            const shell = document.getElementById("adminShell");
+            if (show) {
+                boot.classList.remove("is-hidden");
+                shell.classList.add("is-locked");
+            } else {
+                boot.classList.add("is-hidden");
+                shell.classList.remove("is-locked");
+            }
+        }
+
+        let loaderTimeout = null;
+        function showLoader(show, text = "Đang xử lý...") {
+            const loader = document.getElementById("adminGlobalLoader");
+            const loaderText = document.getElementById("adminGlobalLoaderText");
+            if (loaderText) loaderText.textContent = text;
+            
+            if (show) {
+                loader.classList.remove("is-hidden");
+                if (loaderTimeout) clearTimeout(loaderTimeout);
+                loaderTimeout = setTimeout(() => {
+                    loader.classList.add("is-hidden");
+                    toast("error", "Hết thời gian", "Thao tác mất quá nhiều thời gian.");
+                }, 15000);
+            } else {
+                if (loaderTimeout) clearTimeout(loaderTimeout);
+                loader.classList.add("is-hidden");
+            }
+        }
+
+        function toast(type, title, message) {
+            const host = document.getElementById("adminToastHost");
+            if (!host) return;
+
+            while (host.children.length >= 3) {
+                host.removeChild(host.firstChild);
+            }
+
+            const toastCard = document.createElement("div");
+            toastCard.className = `aero-admin-toast ${type}`;
+            
+            let icon = "info-circle";
+            if (type === "success") icon = "check-circle";
+            else if (type === "error") icon = "exclamation-circle";
+            else if (type === "warning") icon = "exclamation-triangle";
+
+            toastCard.innerHTML = `
+                <i class="fas fa-${icon}"></i>
+                <div>
+                    <strong>${title}</strong>
+                    <span>${message}</span>
+                </div>
+            `;
+
+            host.appendChild(toastCard);
+
+            setTimeout(() => {
+                toastCard.classList.add("is-hiding");
+                toastCard.addEventListener("transitionend", () => {
+                    toastCard.remove();
+                });
+            }, 4000);
+        }
+
+        async function logActivity(actionName, collectionName, docId, oldData, newData) {
+            try {
+                const user = auth.currentUser;
+                const logData = {
+                    action: actionName,
+                    collection: collectionName,
+                    docId: docId || "",
+                    email: user?.email || "unknown@aerocinema.vn",
+                    uid: user?.uid || "",
+                    timestamp: serverTimestamp(),
+                    oldData: oldData ? JSON.parse(JSON.stringify(oldData)) : null,
+                    newData: newData ? JSON.parse(JSON.stringify(newData)) : null
+                };
+                await addDoc(collection(db, "activity_logs"), logData);
+            } catch (error) {
+                console.error("Failed to log activity:", error);
+            }
+        }
+
+        function setTheme(theme) {
+            theme = normalizeTheme(theme);
+            document.documentElement.setAttribute("data-admin-theme", theme);
+            document.documentElement.setAttribute("data-theme", theme);
+            document.documentElement.style.colorScheme = theme;
+            localStorage.setItem(THEME_STORAGE_KEY, theme);
+            adminState.theme = theme;
+            
+            const themeToggle = document.getElementById("themeToggle");
+            if (themeToggle) {
+                const icon = themeToggle.querySelector("i");
+                if (icon) {
+                    icon.className = theme === "light" ? "fas fa-sun" : "fas fa-moon";
+                }
+            }
+            
+            window.dispatchEvent(new CustomEvent("aero-admin-theme-change"));
+        }
+
+        function applyTheme(theme, options = { persist: false }) {
+            setTheme(theme);
+        }
+
+        function getThemeColors() {
+            const isLight = adminState.theme === "light";
+            return {
+                bg: isLight ? "#f8fafc" : "#0f172a",
+                card: isLight ? "#ffffff" : "#1e293b",
+                border: isLight ? "#e2e8f0" : "#334155",
+                text: isLight ? "#0f172a" : "#f8fafc",
+                muted: isLight ? "#475569" : "#cbd5e1",
+                primary: isLight ? "#c2410c" : "#f58220"
+            };
+        }
+
+        const chartRegistry = {};
+        let isUpdatingCharts = false;
+        let chartThemeTimer = null;
+
+        function applyChartTheme(chart) {
+            if (!chart || !chart.options) return;
+            const colors = getThemeColors();
+            
+            if (chart.options.scales) {
+                if (chart.options.scales.x) {
+                    chart.options.scales.x.ticks = chart.options.scales.x.ticks || {};
+                    chart.options.scales.x.ticks.color = colors.muted;
+                    chart.options.scales.x.grid = chart.options.scales.x.grid || {};
+                    chart.options.scales.x.grid.color = colors.border;
+                }
+                if (chart.options.scales.y) {
+                    chart.options.scales.y.ticks = chart.options.scales.y.ticks || {};
+                    chart.options.scales.y.ticks.color = colors.muted;
+                    chart.options.scales.y.grid = chart.options.scales.y.grid || {};
+                    chart.options.scales.y.grid.color = colors.border;
+                }
+            }
+            if (chart.options.plugins && chart.options.plugins.legend) {
+                chart.options.plugins.legend.labels = chart.options.plugins.legend.labels || {};
+                chart.options.plugins.legend.labels.color = colors.text;
+            }
+        }
+
+        function safeUpdateChartsForTheme() {
+            if (isUpdatingCharts) return;
+            if (!window.Chart?.instances) return;
+            const instances = Object.values(window.Chart.instances);
+            if (!instances.length) return;
+            isUpdatingCharts = true;
+            try {
+                instances.forEach(chart => {
+                    if (!chart || typeof chart.update !== "function") return;
+                    applyChartTheme(chart);
+                    chart.update("none");
+                });
+            } finally {
+                // Use rAF to ensure the guard is released after the current
+                // animation frame completes, preventing re-entrant calls
+                // from plugins or event handlers triggered by chart.update().
+                requestAnimationFrame(() => { isUpdatingCharts = false; });
+            }
+        }
+
+        function applyAllChartThemes() {
+            if (!window.Chart?.instances) return;
+            if (chartThemeTimer) clearTimeout(chartThemeTimer);
+            chartThemeTimer = setTimeout(safeUpdateChartsForTheme, 200);
+        }
+
+        async function guardAdmin(user) {
+            if (!user) {
+                throw new Error("Vui lòng đăng nhập.");
+            }
+            const userDocRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userDocRef);
+            if (!userSnap.exists()) {
+                throw new Error("Hồ sơ tài khoản không tồn tại trên Firestore.");
+            }
+            const data = userSnap.data();
+            const role = String(data.role || "").trim().toLowerCase();
+            const status = String(data.status || "active").trim().toLowerCase();
+
+            if (status !== "active") {
+                throw new Error(`Tài khoản đã bị khóa (${status}).`);
+            }
+
+            if (role !== "admin") {
+                throw new Error("Bạn không có quyền truy cập trang quản trị.");
+            }
+
+            adminState.currentUser = user;
+            adminState.adminProfile = data;
+            adminState.ready = true;
+
+            updateAdminUI(user, data);
+            showBoot(false);
+            window.dispatchEvent(new CustomEvent("aero-admin-ready"));
+        }
+
+        function bindLayoutEvents() {
+            const sidebarToggle = document.getElementById("sidebarToggle");
+            const adminSidebar = document.getElementById("adminSidebar");
+            const sidebarOverlay = document.getElementById("sidebarOverlay");
+            
+            if (sidebarToggle && adminSidebar && sidebarOverlay) {
+                sidebarToggle.addEventListener("click", () => {
+                    adminSidebar.classList.add("is-open");
+                    sidebarOverlay.classList.add("is-open");
+                    document.body.classList.add("sidebar-open");
+                });
+                
+                sidebarOverlay.addEventListener("click", () => {
+                    adminSidebar.classList.remove("is-open");
+                    sidebarOverlay.classList.remove("is-open");
+                    document.body.classList.remove("sidebar-open");
+                });
+            }
+            
+            const themeToggle = document.getElementById("themeToggle");
+            if (themeToggle) {
+                themeToggle.addEventListener("click", () => {
+                    const currentTheme = adminState.theme;
+                    const nextTheme = currentTheme === "light" ? "dark" : "light";
+                    setTheme(nextTheme);
+                });
+            }
+
+            const logoutBtn = document.getElementById("logoutBtn");
+            if (logoutBtn) {
+                logoutBtn.addEventListener("click", async () => {
+                    const res = await Swal.fire({
+                        title: "Đăng xuất?",
+                        text: "Bạn có chắc chắn muốn đăng xuất tài khoản quản trị?",
+                        icon: "question",
+                        showCancelButton: true,
+                        confirmButtonColor: "#dc2626",
+                        cancelButtonColor: "#475569",
+                        confirmButtonText: "Đăng xuất",
+                        cancelButtonText: "Hủy"
+                    });
+                    if (res.isConfirmed) {
+                        showLoader(true, "Đang đăng xuất...");
+                        try {
+                            await signOut(auth);
+                            window.location.href = "/Account/Login";
+                        } catch (error) {
+                            showLoader(false);
+                            toast("error", "Lỗi", error.message);
+                        }
+                    }
+                });
+            }
+        }
+
+        window.addEventListener("aero-admin-theme-change", applyAllChartThemes);
+
+        bindLayoutEvents();
+        const initialTheme = getStoredTheme() || "dark";
+        setTheme(initialTheme);
+        showBoot(true);
+
+        onAuthStateChanged(auth, (user) => {
+            guardAdmin(user).catch((error) => {
+                console.error("Admin auth guard error:", error);
+                showBoot(false);
+                Swal.fire({
+                    icon: "error",
+                    title: "Lỗi phân quyền",
+                    text: error.message || "Không thể kiểm tra quyền quản trị.",
+                    background: "#ffffff",
+                    color: "#333333",
+                    confirmButtonColor: "#f58220",
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+                window.setTimeout(() => {
+                    window.location.href = "/Account/Login";
+                }, 2000);
+            });
+        });
+
+        window.AeroAdmin = {
+            app,
+            auth,
+            db,
+            state: adminState,
+            toast,
+            showBoot,
+            showLoader,
+            logActivity,
+            setTheme,
+            applyTheme,
+            getThemeColors,
+            applyChartTheme,
+            applyAllChartThemes,
+            safeUpdateChartsForTheme,
+            chartRegistry
+        };
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>
