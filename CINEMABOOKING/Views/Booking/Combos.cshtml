@@ -1,0 +1,772 @@
+@{
+    ViewBag.Title = "Chọn Combo - AERO Cinema";
+}
+
+<style>
+    :root {
+        --combo-primary: #0f172a;
+        --combo-accent: #f97316;
+        --combo-muted: #64748b;
+        --combo-border: #e5e7eb;
+        --combo-card: #ffffff;
+        --combo-bg: #f8fafc;
+    }
+
+    body { background: var(--combo-bg) !important; }
+    .combo-page, .combo-wrapper { max-width: 1240px; margin: 36px auto 0; padding: 0 16px 180px !important; }
+    .booking-steps-bar { display: flex; justify-content: center; gap: 15px; margin-bottom: 32px; flex-wrap: wrap; }
+    .step-indicator { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; color: var(--combo-muted); text-transform: uppercase; }
+    .step-indicator.active { color: var(--combo-accent); }
+    .step-line { width: 48px; height: 2px; background: var(--combo-border); align-self: center; }
+    .step-line.active { background: var(--combo-accent); }
+    .combo-head { display: flex; align-items: end; justify-content: space-between; gap: 18px; margin-bottom: 22px; }
+    .combo-head h1 { margin: 0 0 6px; font-size: clamp(24px, 3vw, 36px); font-weight: 900; color: var(--combo-primary); text-transform: uppercase; }
+    .combo-head p { margin: 0; color: var(--combo-muted); max-width: 720px; }
+    .combo-search { width: min(320px, 100%); border: 1px solid var(--combo-border); border-radius: 8px; padding: 12px 14px; outline: none; background: #fff; }
+    .combo-tabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 24px; }
+    .combo-tab { flex: 1 1 auto; border: 1px solid var(--combo-border); background: #fff; color: var(--combo-primary); border-radius: 8px; padding: 10px 16px; font-weight: 800; cursor: pointer; white-space: nowrap; transition: all .25s ease; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .combo-tab.active { border-color: #f97316 !important; background: #fff7ed !important; color: #f97316 !important; font-weight: 700 !important; box-shadow: 0 8px 18px rgba(249, 115, 22, .12); }
+    .combo-tab:hover { border-color: var(--combo-accent); color: var(--combo-accent); }
+    .combo-section { margin-top: 26px; }
+    .combo-section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: var(--combo-primary); font-size: 18px; font-weight: 900; text-transform: uppercase; }
+    .combo-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+    .combo-card { background: var(--combo-card); border: 1px solid var(--combo-border); border-radius: 8px; overflow: hidden; box-shadow: 0 12px 26px rgba(15, 23, 42, .08); transition: transform .2s ease, box-shadow .2s ease; display: flex; flex-direction: column; min-height: 100%; animation: cardFadeIn 0.25s ease-out forwards; }
+    .combo-card:hover { transform: translateY(-4px); box-shadow: 0 18px 36px rgba(15, 23, 42, .14); }
+    
+    @@keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    @@media (max-width: 992px) {
+        .combo-tabs { display: flex; flex-wrap: wrap; }
+    }
+    
+    @@media (max-width: 640px) {
+        .combo-page, .combo-wrapper { padding-bottom: 240px !important; }
+        .combo-tabs { display: flex; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 8px; -webkit-overflow-scrolling: touch; }
+        .combo-tab { flex: 0 0 auto; }
+    }
+    .combo-img { width: 100%; aspect-ratio: 16/10; object-fit: cover; background: #111827; }
+    .combo-body { padding: 14px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+    .combo-title-row { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
+    .combo-title { margin: 0; color: var(--combo-primary); font-size: 16px; font-weight: 900; line-height: 1.25; }
+    .combo-tag { display: inline-flex; width: fit-content; border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 900; color: #fff; background: var(--combo-accent); }
+    .combo-desc { margin: 0; color: var(--combo-muted); font-size: 13px; line-height: 1.45; min-height: 38px; }
+    .combo-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; }
+    .combo-price { color: var(--combo-accent); font-size: 18px; font-weight: 900; }
+    .combo-stock { color: var(--combo-muted); font-size: 12px; font-weight: 700; }
+    .combo-card-actions { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .btn-combo-detail { border: 1px solid var(--combo-border); background: #fff; color: var(--combo-primary); border-radius: 6px; padding: 7px 12px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all .2s ease; display: inline-flex; align-items: center; gap: 5px; }
+    .btn-combo-detail:hover { border-color: var(--combo-accent); color: var(--combo-accent); }
+    .qty-control { display: grid; grid-template-columns: 36px 42px 36px; align-items: center; border: 1px solid var(--combo-border); border-radius: 8px; overflow: hidden; background: #fff; margin-left: auto; }
+    .qty-control button { height: 36px; border: 0; background: #fff; color: var(--combo-primary); font-weight: 900; cursor: pointer; }
+    .qty-control button:hover { background: rgba(249, 115, 22, .1); color: var(--combo-accent); }
+    .qty-control button:disabled { color: #cbd5e1; cursor: not-allowed; }
+    .qty-control span { text-align: center; font-weight: 900; color: var(--combo-primary); }
+    .combo-bottom-bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: rgba(15, 23, 42, .96); color: #fff; border-top: 1px solid rgba(255,255,255,.12); box-shadow: 0 -12px 30px rgba(15,23,42,.22); }
+    .combo-bottom-inner { max-width: 1240px; margin: 0 auto; padding: 14px 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; align-items: center; gap: 16px; }
+    .total-box { display: flex; flex-direction: column; gap: 2px; }
+    .total-box span { color: #cbd5e1; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .total-box strong { color: #fff; font-size: 18px; font-weight: 900; }
+    .total-box.grand strong { color: var(--combo-accent); font-size: 22px; }
+    .btn-checkout { border: 0; border-radius: 8px; background: var(--combo-accent); color: #fff; padding: 14px 20px; font-weight: 900; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; box-shadow: 0 10px 24px rgba(249, 115, 22, .28); }
+    .empty-state-combo { background: #fff; border: 1px dashed var(--combo-border); border-radius: 8px; padding: 34px 18px; text-align: center; color: var(--combo-muted); }
+    .skeleton { background: linear-gradient(90deg, #e5e7eb 25%, #f8fafc 50%, #e5e7eb 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: 8px; }
+    @@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+    /* === COMBO DETAIL MODAL === */
+    .combo-modal-overlay { display: none; position: fixed; inset: 0; z-index: 9000; background: rgba(15, 23, 42, .55); backdrop-filter: blur(6px); align-items: center; justify-content: center; }
+    .combo-modal-overlay.open { display: flex; }
+    .combo-modal { background: #fff; border-radius: 16px; max-width: 900px; width: 94vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 60px rgba(15, 23, 42, .3); position: relative; animation: modalSlideIn .25s ease; }
+    @@keyframes modalSlideIn { from { opacity: 0; transform: translateY(24px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .combo-modal-close { position: absolute; top: 14px; right: 14px; z-index: 10; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--combo-border); background: #fff; color: var(--combo-primary); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+    .combo-modal-close:hover { background: #f1f5f9; border-color: var(--combo-accent); color: var(--combo-accent); }
+    .combo-modal-img { width: 100%; max-height: 380px; object-fit: cover; border-radius: 16px 16px 0 0; background: #111827; }
+    .combo-modal-body { padding: 24px 28px 28px; }
+    .combo-modal-tag { display: inline-flex; border-radius: 999px; padding: 5px 12px; font-size: 11px; font-weight: 900; color: #fff; background: var(--combo-accent); margin-bottom: 10px; }
+    .combo-modal-name { margin: 0 0 6px; font-size: 24px; font-weight: 900; color: var(--combo-primary); }
+    .combo-modal-price { color: var(--combo-accent); font-size: 22px; font-weight: 900; margin-bottom: 16px; }
+    .combo-modal-desc { color: var(--combo-muted); font-size: 14px; line-height: 1.6; margin-bottom: 18px; }
+    .combo-modal-section-title { font-size: 13px; font-weight: 800; color: var(--combo-primary); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+    .combo-modal-items { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 6px; }
+    .combo-modal-items li { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--combo-muted); padding: 6px 10px; background: #f8fafc; border-radius: 6px; }
+    .combo-modal-items li::before { content: '\f00c'; font-family: 'Font Awesome 5 Free'; font-weight: 900; color: var(--combo-accent); font-size: 11px; }
+    .combo-modal-note { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #92400e; margin-bottom: 18px; display: flex; align-items: start; gap: 8px; }
+    .combo-modal-note i { color: #f59e0b; margin-top: 2px; }
+    .combo-modal-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--combo-border); padding-top: 20px; margin-top: 8px; flex-wrap: wrap; }
+    .combo-modal-qty { display: grid; grid-template-columns: 44px 56px 44px; align-items: center; border: 1px solid var(--combo-border); border-radius: 8px; overflow: hidden; }
+    .combo-modal-qty button { height: 44px; border: 0; background: #fff; color: var(--combo-primary); font-weight: 900; font-size: 18px; cursor: pointer; }
+    .combo-modal-qty button:hover { background: rgba(249, 115, 22, .1); color: var(--combo-accent); }
+    .combo-modal-qty span { text-align: center; font-weight: 900; font-size: 16px; color: var(--combo-primary); }
+    .combo-modal-subtotal { font-size: 14px; color: var(--combo-muted); font-weight: 700; }
+    .combo-modal-subtotal strong { color: var(--combo-accent); font-size: 20px; }
+    .btn-add-from-modal { border: 0; border-radius: 8px; background: var(--combo-accent); color: #fff; padding: 14px 28px; font-weight: 900; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 20px rgba(249, 115, 22, .25); transition: all .2s; }
+    .btn-add-from-modal:hover { background: #ea580c; transform: translateY(-2px); box-shadow: 0 12px 28px rgba(249, 115, 22, .35); }
+
+    @@media (max-width: 1024px) { .combo-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .combo-bottom-inner { grid-template-columns: repeat(3, 1fr); } .btn-checkout { grid-column: 1 / -1; } }
+    @@media (max-width: 640px) { .combo-head { flex-direction: column; align-items: stretch; } .combo-grid { grid-template-columns: 1fr; } .step-line { width: 28px; } .combo-bottom-inner { grid-template-columns: 1fr; } .total-box { flex-direction: row; justify-content: space-between; align-items: center; } .combo-modal-footer { flex-direction: column; align-items: stretch; } }
+</style>
+
+<div class="combo-wrapper">
+    <div class="booking-steps-bar">
+        <div class="step-indicator"><i class="fas fa-couch"></i> Chọn ghế</div>
+        <div class="step-line active"></div>
+        <div class="step-indicator active"><i class="fas fa-burger"></i> Combo</div>
+        <div class="step-line active"></div>
+        <div class="step-indicator"><i class="fas fa-credit-card"></i> Thanh toán</div>
+        <div class="step-line"></div>
+        <div class="step-indicator"><i class="fas fa-check-circle"></i> Hoàn tất</div>
+    </div>
+
+    <div class="combo-head">
+        <div>
+            <h1>Combo bắp nước</h1>
+            <p>Chọn thêm bắp, nước và snack cho suất chiếu. Không chọn combo vẫn có thể tiếp tục thanh toán.</p>
+        </div>
+        <input class="combo-search" id="comboSearch" type="search" placeholder="Tìm combo, tag, category..." />
+    </div>
+
+    <div class="combo-tabs" id="categoryTabs">
+        <button class="combo-tab active" data-category="all">All</button>
+        <button class="combo-tab" data-category="solo">Solo</button>
+        <button class="combo-tab" data-category="couple">Couple</button>
+        <button class="combo-tab" data-category="family">Family</button>
+        <button class="combo-tab" data-category="kids">Kids</button>
+        <button class="combo-tab" data-category="premium">Premium</button>
+        <button class="combo-tab" data-category="snack">Snack</button>
+        <button class="combo-tab" data-category="drink">Drink</button>
+    </div>
+
+    <section class="combo-section" id="featuredSection">
+        <div class="combo-section-title"><i class="fas fa-star"></i> Combo nổi bật</div>
+        <div class="combo-grid" id="featuredGrid">
+            <div class="skeleton" style="height: 280px;"></div>
+            <div class="skeleton" style="height: 280px;"></div>
+            <div class="skeleton" style="height: 280px;"></div>
+            <div class="skeleton" style="height: 280px;"></div>
+        </div>
+    </section>
+
+    <section class="combo-section" id="bestSellerSection">
+        <div class="combo-section-title"><i class="fas fa-fire"></i> Combo bán chạy</div>
+        <div class="combo-grid" id="bestSellerGrid"></div>
+    </section>
+
+    <section class="combo-section">
+        <div class="combo-section-title"><i class="fas fa-utensils"></i> Tất cả combo</div>
+        <div class="combo-grid" id="comboGrid"></div>
+    </section>
+</div>
+
+<!-- COMBO DETAIL MODAL -->
+<div class="combo-modal-overlay" id="comboModalOverlay" role="dialog" aria-modal="true" aria-label="Chi tiết combo">
+    <div class="combo-modal" id="comboModal">
+        <button class="combo-modal-close" id="comboModalClose" data-action="modal-close" aria-label="Đóng"><i class="fas fa-times"></i></button>
+        <img class="combo-modal-img" id="modalComboImg" src="" alt="Combo" />
+        <div class="combo-modal-body">
+            <span class="combo-modal-tag" id="modalComboTag"></span>
+            <h2 class="combo-modal-name" id="modalComboName"></h2>
+            <div class="combo-modal-price" id="modalComboPrice"></div>
+            <p class="combo-modal-desc" id="modalComboDesc"></p>
+
+            <div id="modalComboItemsSection" style="display:none;">
+                <div class="combo-modal-section-title">Thành phần combo</div>
+                <ul class="combo-modal-items" id="modalComboItems"></ul>
+            </div>
+
+            <div id="modalComboNoteSection" style="display:none;">
+                <div class="combo-modal-note">
+                    <i class="fas fa-info-circle"></i>
+                    <span id="modalComboNote"></span>
+                </div>
+            </div>
+
+            <div class="combo-modal-footer">
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <div class="combo-modal-qty">
+                        <button type="button" id="modalQtyMinus" data-action="modal-minus">−</button>
+                        <span id="modalQtyValue">1</span>
+                        <button type="button" id="modalQtyPlus" data-action="modal-plus">+</button>
+                    </div>
+                    <div class="combo-modal-subtotal">
+                        Tạm tính: <strong id="modalSubtotal">0đ</strong>
+                    </div>
+                </div>
+                <button class="btn-add-from-modal" id="modalAddBtn" data-action="modal-add">
+                    <i class="fas fa-plus"></i>
+                    <span>Thêm vào đơn</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="combo-bottom-bar">
+    <div class="combo-bottom-inner">
+        <div class="total-box">
+            <span>Tổng tiền vé</span>
+            <strong id="ticketTotalText">0đ</strong>
+        </div>
+        <div class="total-box">
+            <span>Tổng combo</span>
+            <strong id="comboTotalText">0đ</strong>
+        </div>
+        <div class="total-box grand">
+            <span>Tổng thanh toán</span>
+            <strong id="grandTotalText">0đ</strong>
+        </div>
+        <button class="btn-checkout" id="btnContinueCheckout">
+            <span>Tiếp tục thanh toán</span>
+            <i class="fas fa-arrow-right"></i>
+        </button>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { collection, getDocs, query, where, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const auth = window.auth;
+        const db = window.db;
+        const params = new URLSearchParams(window.location.search);
+        const showtimeId = params.get("showtimeId");
+        const seatsParam = params.get("seats") || sessionStorage.getItem("seats") || "";
+        const fallbackImg = "https://placehold.co/600x380/0f172a/f97316?text=AERO+Combo";
+        const state = { 
+            combos: [], 
+            filtered: [], 
+            filteredCombos: [], 
+            quantities: {}, 
+            activeCategory: "all", 
+            category: "", 
+            search: "", 
+            ticketTotal: Number(sessionStorage.getItem("total") || 0) 
+        };
+
+        const money = v => Number(v || 0).toLocaleString("vi-VN") + "đ";
+        const normalize = v => String(v || "").trim().toLowerCase();
+        const statusOf = x => normalize(x.status || (x.active === true ? "active" : "inactive"));
+        const availableStock = x => Number.isFinite(Number(x.stock)) ? Number(x.stock) : 999999;
+        const safe = (value, fallback = "") => value === undefined || value === null || value === "" ? fallback : value;
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function escapeAttr(value) {
+            return escapeHtml(value);
+        }
+
+        function sanitizeUrl(value) {
+            const url = String(value ?? "").trim();
+            if (!url) return "";
+            if (/^(javascript:|data:|vbscript:)/i.test(url)) return "";
+            return url;
+        }
+
+        function formatCurrency(value) {
+            const n = Number(value || 0);
+            return n.toLocaleString("vi-VN") + "đ";
+        }
+
+        // === Modal state ===
+        let modalComboId = null;
+        let modalQty = 1;
+
+        // === Auth guard: unsubscribe after first check ===
+        const unsubscribe = onAuthStateChanged(auth, async user => {
+            unsubscribe();
+            if (!user) {
+                const currentPath = window.location.pathname + window.location.search;
+                sessionStorage.setItem("aero_return_url", currentPath);
+                window.location.replace(`/Account/Login?returnUrl=${encodeURIComponent(currentPath)}`);
+                return;
+            }
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                const profile = userDoc.exists() ? userDoc.data() : null;
+
+                if (profile && String(profile.role || "").toLowerCase() === "admin") {
+                    window.location.replace("/Admin/Dashboard");
+                    return;
+                }
+
+                if (profile && String(profile.status || "").toLowerCase() === "blocked") {
+                    await signOut(auth);
+                    sessionStorage.removeItem("aero_auth_user");
+                    sessionStorage.removeItem("aero_user_role");
+                    sessionStorage.removeItem("aero_user_status");
+                    sessionStorage.removeItem("aero_user_name");
+                    window.location.replace("/Account/Login");
+                    return;
+                }
+            } catch (error) {
+                console.error("Error verifying user status in Combos:", error);
+            }
+
+            if (!showtimeId || !seatsParam) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Thiếu thông tin đặt vé",
+                    text: "Vui lòng chọn ghế trước khi chọn combo.",
+                    confirmButtonColor: "#f97316"
+                }).then(() => window.location.replace("/Showtimes"));
+                return;
+            }
+
+            initBookingPage();
+        });
+
+        async function initBookingPage() {
+            await loadCombos();
+            restoreSelection();
+            await loadTicketTotal();
+            render();
+        }
+
+        async function loadCombos() {
+            let docs = [];
+            try {
+                const comboQuery = query(collection(db, "food_combos"), where("status", "==", "active"));
+                const snap = await getDocs(comboQuery);
+                docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            } catch (error) {
+                console.warn("Targeted Firestore query failed, falling back to full fetch:", error);
+                try {
+                    const snap = await getDocs(collection(db, "food_combos"));
+                    docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                } catch (fallbackError) {
+                    console.error("All Firestore loading attempts failed:", fallbackError);
+                    document.getElementById("comboGrid").innerHTML = `<div class="empty-state-combo" style="grid-column:1/-1;"><i class="fas fa-exclamation-triangle"></i><p>Không thể tải combo. Vui lòng kiểm tra kết nối.</p></div>`;
+                }
+            }
+
+            state.combos = docs
+                .filter(x => statusOf(x) === "active")
+                .sort((a, b) => Number(a.displayOrder || 0) - Number(b.displayOrder || 0) || String(a.name || "").localeCompare(String(b.name || ""), "vi"));
+
+            filterAndRenderCombos();
+            updateCategoryCounts();
+        }
+
+        async function loadTicketTotal() {
+            if (!showtimeId || !seatsParam) {
+                state.ticketTotal = 0;
+                updateTotals();
+                return;
+            }
+
+            const selectedSeats = seatsParam.split(",").map(s => s.trim().toUpperCase()).filter(Boolean);
+            if (selectedSeats.length === 0) {
+                state.ticketTotal = 0;
+                updateTotals();
+                return;
+            }
+
+            try {
+                const showtimeRef = doc(db, "showtimes", showtimeId);
+                const showtimeSnap = await getDoc(showtimeRef);
+                if (showtimeSnap.exists()) {
+                    const showtime = showtimeSnap.data();
+                    
+                    const defaultVipRows = ["E", "F"];
+                    const defaultCoupleRows = ["G", "H"];
+                    
+                    const normalizeRows = (value) => {
+                        if (Array.isArray(value)) return value.map(row => String(row).trim().toUpperCase()).filter(Boolean);
+                        if (typeof value === "string") return value.split(",").map(row => row.trim().toUpperCase()).filter(Boolean);
+                        return [];
+                    };
+
+                    const configuredVipRows = normalizeRows(showtime.vipRows);
+                    const configuredCoupleRows = normalizeRows(showtime.coupleRows);
+                    
+                    const vipRows = new Set(configuredVipRows.length > 0 ? configuredVipRows : defaultVipRows);
+                    const coupleRows = new Set(configuredCoupleRows.length > 0 ? configuredCoupleRows : defaultCoupleRows);
+                    
+                    const standardPrice = Number(showtime.standardPrice || 90000);
+                    const vipPrice = Number(showtime.vipPrice || 110000);
+                    const couplePrice = Number(showtime.couplePrice || 135000);
+
+                    let calculatedTotal = 0;
+                    selectedSeats.forEach(seat => {
+                        const rowMatch = seat.match(/^[A-Z]+/i);
+                        const rowChar = rowMatch ? rowMatch[0].toUpperCase() : "";
+                        
+                        if (coupleRows.has(rowChar)) {
+                            calculatedTotal += couplePrice;
+                        } else if (vipRows.has(rowChar)) {
+                            calculatedTotal += vipPrice;
+                        } else {
+                            calculatedTotal += standardPrice;
+                        }
+                    });
+
+                    state.ticketTotal = calculatedTotal;
+                } else {
+                    console.warn(`Showtime document ${showtimeId} not found, falling back to standard price.`);
+                    state.ticketTotal = selectedSeats.length * 90000;
+                }
+            } catch (err) {
+                console.error("Error loading showtime to compute ticket total:", err);
+                state.ticketTotal = selectedSeats.length * 90000;
+            }
+
+            updateTotals();
+        }
+
+        function restoreSelection() {
+            try {
+                const saved = JSON.parse(sessionStorage.getItem("comboItems") || "[]");
+                saved.forEach(item => {
+                    if (item.comboId && Number(item.quantity || 0) > 0) {
+                        state.quantities[item.comboId] = Number(item.quantity);
+                    }
+                });
+            } catch (e) {
+                console.warn("Error restoring selection:", e);
+                state.quantities = {};
+            }
+        }
+
+        function filterCombos(category) {
+            state.activeCategory = category || "all";
+            const q = normalize(state.search);
+            const cat = normalize(state.activeCategory);
+
+            let temp = [...state.combos];
+            if (cat !== "all") {
+                temp = state.combos.filter(x => (x.category || "").toLowerCase() === cat);
+            }
+
+            if (q) {
+                temp = temp.filter(x => {
+                    const text = normalize([x.name, x.tag, x.category, x.description].join(" "));
+                    return text.includes(q);
+                });
+            }
+
+            state.filteredCombos = temp;
+            state.filtered = temp; // backward compatibility
+
+            renderCombos();
+            updateActiveTab();
+        }
+
+        function updateActiveTab() {
+            document.querySelectorAll(".combo-tab").forEach(btn => {
+                btn.classList.remove("active");
+                if (btn.dataset.category === state.activeCategory) {
+                    btn.classList.add("active");
+                }
+            });
+        }
+
+        function renderComboCard(combo) {
+            const id = escapeAttr(combo.id);
+            const name = escapeHtml(safe(combo.name, "Combo bắp nước"));
+            const desc = escapeHtml(safe(combo.description, "Combo bắp nước AERO Cinema."));
+            const img = sanitizeUrl(combo.imageUrl) || fallbackImg;
+            const price = Number(combo.price || 0);
+            const tag = escapeHtml(safe(combo.tag, combo.category || "Combo"));
+            const qty = Number(state.quantities[combo.id] || 0);
+            const stock = availableStock(combo);
+
+            return `
+                <article class="combo-card" data-combo-id="${id}">
+                    <img class="combo-img" src="${escapeAttr(img)}" alt="${name}" loading="lazy"
+                         onerror="this.src='${fallbackImg}'">
+                    <div class="combo-body">
+                        <div class="combo-title-row">
+                            <h3 class="combo-title">${name}</h3>
+                            ${tag ? `<span class="combo-tag">${tag}</span>` : ""}
+                        </div>
+                        <p class="combo-desc">${desc}</p>
+                        <div class="combo-meta">
+                            <div>
+                                <div class="combo-price">${formatCurrency(price)}</div>
+                                <div class="combo-stock">Tồn kho: ${stock >= 999999 ? "Không giới hạn" : stock.toLocaleString("vi-VN")}</div>
+                            </div>
+                            <div class="qty-control">
+                                <button type="button" data-action="minus" data-id="${id}" ${qty <= 0 ? "disabled" : ""}>-</button>
+                                <span>${qty}</span>
+                                <button type="button" data-action="plus" data-id="${id}" ${qty >= stock ? "disabled" : ""}>+</button>
+                            </div>
+                        </div>
+                        <div class="combo-card-actions">
+                            <button type="button" class="btn-combo-detail" data-action="detail" data-id="${id}">
+                                <i class="fas fa-eye"></i> Chi tiết
+                            </button>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderCard(combo) {
+            return renderComboCard(combo);
+        }
+
+        function renderGrid(targetId, items, emptyText) {
+            const target = document.getElementById(targetId);
+            if (!target) return;
+            target.innerHTML = items.length
+                ? items.map(renderComboCard).join("")
+                : `<div class="empty-state-combo" style="grid-column:1/-1;">${emptyText}</div>`;
+        }
+
+        function renderCombos() {
+            const container = document.getElementById("comboGrid");
+            if (!container) return;
+
+            if (state.filteredCombos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state-combo" style="grid-column: 1 / -1; width: 100%; text-align: center; padding: 40px 20px;">
+                        <i class="fas fa-burger" style="font-size: 36px; color: var(--combo-muted); margin-bottom: 12px; display: block;"></i>
+                        <h3 style="font-size: 16px; font-weight: 700; color: var(--combo-primary); margin-bottom: 4px;">Không có combo</h3>
+                        <p style="font-size: 13px; color: var(--combo-muted); margin: 0;">Danh mục này hiện chưa có sản phẩm phù hợp.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = state.filteredCombos.map(renderComboCard).join("");
+        }
+
+        function bindQty(container) {}
+        function bindDetail(container) {}
+
+        function render() {
+            filterCombos(state.activeCategory);
+            const featured = state.combos.filter(x => x.isFeatured === true).slice(0, 8);
+            const bestSeller = [...state.combos].sort((a, b) => Number(b.soldCount || 0) - Number(a.soldCount || 0)).slice(0, 8);
+
+            const isAll = state.activeCategory === "all";
+            document.getElementById("featuredSection").style.display = isAll && featured.length ? "" : "none";
+            document.getElementById("bestSellerSection").style.display = isAll && bestSeller.length ? "" : "none";
+
+            if (isAll && featured.length) renderGrid("featuredGrid", featured, "Chưa có combo nổi bật.");
+            if (isAll && bestSeller.length) renderGrid("bestSellerGrid", bestSeller, "Chưa có dữ liệu bán chạy.");
+        }
+
+        function updateCategoryCounts() {
+            document.querySelectorAll(".combo-tab").forEach(btn => {
+                const cat = btn.dataset.category;
+                let count = 0;
+                if (cat === "all") {
+                    count = state.combos.length;
+                } else {
+                    count = state.combos.filter(x => (x.category || "").toLowerCase() === cat).length;
+                }
+                const label = btn.innerText.split("(")[0].trim();
+                btn.innerHTML = `${label} <span style="font-weight: 700; opacity: 0.85;">(${count})</span>`;
+            });
+        }
+
+        function updateTabCounts() {
+            updateCategoryCounts();
+        }
+
+        function filterAndRenderCombos() {
+            render();
+        }
+
+        function changeQty(id, delta) {
+            const combo = state.combos.find(x => x.id === id);
+            if (!combo) return;
+            const next = Math.max(0, Math.min(availableStock(combo), Number(state.quantities[id] || 0) + delta));
+            if (next === 0) delete state.quantities[id];
+            else state.quantities[id] = next;
+            render();
+            updateTotals();
+        }
+
+        function addCombo(id) {
+            changeQty(id, 1);
+        }
+
+        function removeCombo(id) {
+            changeQty(id, -1);
+        }
+
+        // === COMBO DETAIL MODAL ===
+        function openComboDetail(comboId) {
+            const combo = state.combos.find(x => x.id === comboId);
+            if (!combo) return;
+
+            modalComboId = comboId;
+            modalQty = Math.max(1, Number(state.quantities[comboId] || 0) || 1);
+
+            const overlay = document.getElementById("comboModalOverlay");
+            document.getElementById("modalComboImg").src = combo.imageUrl || fallbackImg;
+            document.getElementById("modalComboImg").onerror = function() { this.src = fallbackImg; };
+            document.getElementById("modalComboTag").innerText = safe(combo.tag, combo.category || "Combo");
+            document.getElementById("modalComboName").innerText = safe(combo.name, "Combo bắp nước");
+            document.getElementById("modalComboPrice").innerText = formatCurrency(combo.price);
+            document.getElementById("modalComboDesc").innerText = safe(combo.description, "Combo bắp nước AERO Cinema.");
+
+            // Items list
+            const itemsSection = document.getElementById("modalComboItemsSection");
+            const itemsList = document.getElementById("modalComboItems");
+            const items = Array.isArray(combo.items) ? combo.items : [];
+            if (items.length > 0) {
+                itemsList.innerHTML = items.map(item => `<li>${escapeHtml(String(item))}</li>`).join("");
+                itemsSection.style.display = "";
+            } else {
+                itemsSection.style.display = "none";
+            }
+
+            // Note
+            const noteSection = document.getElementById("modalComboNoteSection");
+            const noteEl = document.getElementById("modalComboNote");
+            if (combo.note) {
+                noteEl.innerText = combo.note;
+                noteSection.style.display = "";
+            } else {
+                noteSection.style.display = "none";
+            }
+
+            // Quantity & subtotal
+            updateModalQty(combo);
+            overlay.classList.add("open");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeComboDetail() {
+            document.getElementById("comboModalOverlay").classList.remove("open");
+            document.body.style.overflow = "";
+            modalComboId = null;
+        }
+
+        function updateModalQty(combo) {
+            if (!combo) combo = state.combos.find(x => x.id === modalComboId);
+            if (!combo) return;
+            const price = Number(combo.price || 0);
+            document.getElementById("modalQtyValue").innerText = modalQty;
+            document.getElementById("modalSubtotal").innerText = formatCurrency(price * modalQty);
+            document.getElementById("modalQtyMinus").disabled = modalQty <= 1;
+            document.getElementById("modalQtyPlus").disabled = modalQty >= availableStock(combo);
+        }
+
+        function addComboFromDetail() {
+            if (!modalComboId) return;
+            const combo = state.combos.find(x => x.id === modalComboId);
+            if (!combo) return;
+
+            state.quantities[modalComboId] = modalQty;
+            closeComboDetail();
+            render();
+            updateTotals();
+
+            Swal.fire({
+                icon: "success",
+                title: "Đã thêm combo",
+                text: `${safe(combo.name, "Combo")} x${modalQty}`,
+                timer: 1200,
+                showConfirmButton: false,
+                background: "#ffffff",
+                color: "#0f172a"
+            });
+        }
+
+        // Event delegation setup
+        const wrapper = document.querySelector(".combo-wrapper");
+        if (wrapper) {
+            wrapper.addEventListener("click", function(e) {
+                const btn = e.target.closest("[data-action]");
+                if (!btn) return;
+
+                const id = btn.dataset.id;
+                const action = btn.dataset.action;
+
+                if (action === "detail") openComboDetail(id);
+                if (action === "plus") addCombo(id);
+                if (action === "minus") removeCombo(id);
+            });
+        }
+
+        // Modal event listeners
+        document.getElementById("comboModalClose").addEventListener("click", closeComboDetail);
+        document.getElementById("comboModalOverlay").addEventListener("click", (e) => {
+            if (e.target === e.currentTarget) closeComboDetail();
+        });
+        document.getElementById("modalQtyMinus").addEventListener("click", () => {
+            if (modalQty > 1) { modalQty--; updateModalQty(); }
+        });
+        document.getElementById("modalQtyPlus").addEventListener("click", () => {
+            const combo = state.combos.find(x => x.id === modalComboId);
+            if (combo && modalQty < availableStock(combo)) { modalQty++; updateModalQty(); }
+        });
+        document.getElementById("modalAddBtn").addEventListener("click", addComboFromDetail);
+
+        // ESC key to close
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && document.getElementById("comboModalOverlay").classList.contains("open")) {
+                closeComboDetail();
+            }
+        });
+
+        function selectedItems() {
+            return Object.entries(state.quantities).map(([id, quantity]) => {
+                const combo = state.combos.find(x => x.id === id);
+                if (!combo) return null;
+                const price = Number(combo.price || 0);
+                return {
+                    comboId: combo.id,
+                    name: combo.name || "Combo",
+                    quantity,
+                    price,
+                    total: price * quantity,
+                    imageUrl: combo.imageUrl || "",
+                    tag: combo.tag || "",
+                    category: combo.category || ""
+                };
+            }).filter(Boolean);
+        }
+
+        function updateTotals() {
+            const items = selectedItems();
+            const comboTotal = items.reduce((sum, item) => sum + item.total, 0);
+            const grandTotal = state.ticketTotal + comboTotal;
+            document.getElementById("ticketTotalText").innerText = formatCurrency(state.ticketTotal);
+            document.getElementById("comboTotalText").innerText = formatCurrency(comboTotal);
+            document.getElementById("grandTotalText").innerText = formatCurrency(grandTotal);
+            sessionStorage.setItem("comboItems", JSON.stringify(items));
+            sessionStorage.setItem("aero_selected_combos", JSON.stringify(items));
+            sessionStorage.setItem("comboTotal", comboTotal);
+            sessionStorage.setItem("ticketTotal", state.ticketTotal);
+            sessionStorage.setItem("grandTotal", grandTotal);
+        }
+
+        document.getElementById("comboSearch").addEventListener("input", event => {
+            state.search = event.target.value;
+            render();
+        });
+
+        document.querySelectorAll(".combo-tab").forEach(btn => {
+            btn.addEventListener("click", () => {
+                state.activeCategory = btn.dataset.category || "all";
+                filterAndRenderCombos();
+            });
+        });
+
+        document.getElementById("btnContinueCheckout").addEventListener("click", () => {
+            updateTotals();
+            window.location.href = `/Booking/Checkout?showtimeId=${showtimeId}&seats=${encodeURIComponent(seatsParam)}`;
+        });
+    </script>
+}

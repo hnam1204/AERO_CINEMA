@@ -572,6 +572,10 @@
             <i class="fas fa-couch"></i> Chọn ghế
         </div>
         <div class="step-line active"></div>
+        <div class="step-indicator">
+            <i class="fas fa-burger"></i> Combo
+        </div>
+        <div class="step-line active"></div>
         <div class="step-indicator active">
             <i class="fas fa-credit-card"></i> Thanh toán
         </div>
@@ -703,6 +707,14 @@
                     <span class="lbl">Phí dịch vụ</span>
                     <span class="val">0đ</span>
                 </div>
+
+                <div class="breakdown-row" id="comboRow" style="display: none;">
+                    <span class="lbl">Tiền combo</span>
+                    <span class="val" id="chkComboPrice">0đ</span>
+                </div>
+                <div id="comboItemsContainer" style="display: none; margin-bottom: 12px; font-size: 13px; color: var(--text-sub); border-left: 2px solid var(--accent-color); padding-left: 10px; display: flex; flex-direction: column; gap: 4px;">
+                    <!-- Combo items list -->
+                </div>
                 
                 <div class="breakdown-row" id="discountRow" style="display: none; color: #16a34a;">
                     <span class="lbl" style="color: #16a34a;">Khuyến mãi</span>
@@ -758,7 +770,7 @@
 @section scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module">
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { doc, getDoc, collection, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const auth = window.auth;
@@ -774,6 +786,8 @@
         let showtimeData = null;
         let movieData = null;
         let ticketPrice = 0;
+        let comboItems = [];
+        let comboTotal = 0;
         let discount = 0;
         let totalAmount = 0;
         let selectedMethod = "qr";
@@ -836,56 +850,65 @@
         }
 
         // 1. Enforce Authentication and Autofill
-        onAuthStateChanged(auth, async (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            unsubscribe();
             if (!user) {
-                window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
-            } else {
-                currentUser = user;
-                document.getElementById("txtEmail").value = user.email || "";
-                document.getElementById("txtFullName").value = user.displayName || "";
-                
-                // Fetch customer details from Firestore if available
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        if (String(userData.status || "active").toLowerCase() === "blocked") {
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Tài khoản đã bị khóa',
-                                text: 'Bạn không thể thanh toán khi tài khoản đang bị khóa.',
-                                background: '#ffffff',
-                                color: '#1f2937',
-                                confirmButtonColor: '#f58220'
-                            }).then(() => {
-                                window.location.href = '/';
-                            });
-                            return;
-                        }
-                        if (userData.phone) document.getElementById("txtPhone").value = userData.phone;
-                        if (userData.fullName && !user.displayName) {
-                            document.getElementById("txtFullName").value = userData.fullName;
-                        }
-                    }
-                } catch (e) {
-                    console.error("Error fetching user profile data: ", e);
+                const currentPath = window.location.pathname + window.location.search;
+                window.location.replace(`/Account/Login?returnUrl=${encodeURIComponent(currentPath)}`);
+                return;
+            }
+
+            currentUser = user;
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                const profile = userDoc.exists() ? userDoc.data() : null;
+
+                if (profile && String(profile.role || "").toLowerCase() === "admin") {
+                    window.location.replace("/Admin/Dashboard");
+                    return;
                 }
 
-                if (!showtimeId || !seatsParam) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Thông tin không hợp lệ',
-                        text: 'Lỗi truyền dữ liệu đặt vé. Vui lòng thử lại!',
-                        background: '#ffffff',
-                        color: '#1f2937',
-                        confirmButtonColor: '#f58220'
-                    }).then(() => {
-                        window.location.href = '/Showtimes';
-                    });
-                } else {
-                    loadCheckoutData();
+                if (profile && String(profile.status || "").toLowerCase() === "blocked") {
+                    await signOut(auth);
+                    sessionStorage.removeItem("aero_auth_user");
+                    sessionStorage.removeItem("aero_user_role");
+                    sessionStorage.removeItem("aero_user_status");
+                    sessionStorage.removeItem("aero_user_name");
+                    window.location.replace("/Account/Login");
+                    return;
                 }
+
+                if (profile) {
+                    if (profile.phone) document.getElementById("txtPhone").value = profile.phone;
+                    if (profile.fullName && !user.displayName) {
+                        document.getElementById("txtFullName").value = profile.fullName;
+                    }
+                }
+            } catch (e) {
+                console.error("Error verifying user profile data: ", e);
             }
+
+            document.getElementById("txtEmail").value = user.email || "";
+            if (!document.getElementById("txtFullName").value) {
+                document.getElementById("txtFullName").value = user.displayName || "";
+            }
+
+            if (!showtimeId || !seatsParam) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Thiếu thông tin đặt vé',
+                    text: 'Lỗi truyền dữ liệu đặt vé. Vui lòng thử lại!',
+                    background: '#ffffff',
+                    color: '#1f2937',
+                    confirmButtonColor: '#f58220'
+                }).then(() => {
+                    window.location.replace('/');
+                });
+                return;
+            }
+
+            loadCheckoutData();
         });
 
         // 2. Fetch data from Firestore
@@ -922,7 +945,17 @@
                 // Parse seats and price
                 const seatList = seatsParam.split(",");
                 ticketPrice = parseInt(sessionStorage.getItem("total")) || 0;
-                totalAmount = ticketPrice;
+                
+                // Parse combos
+                const comboItemsRaw = sessionStorage.getItem("aero_selected_combos") || sessionStorage.getItem("comboItems") || "[]";
+                try {
+                    comboItems = JSON.parse(comboItemsRaw);
+                } catch (e) {
+                    console.warn("Error parsing combo items:", e);
+                    comboItems = [];
+                }
+                comboTotal = parseInt(sessionStorage.getItem("comboTotal")) || 0;
+                totalAmount = ticketPrice + comboTotal;
 
                 // Render Summary UI
                 document.getElementById("chkMovieTitle").innerText = safeText(showtimeData.movieTitle, "AERO Cinema");
@@ -934,6 +967,28 @@
 
                 // Breakdown UI
                 document.getElementById("chkTicketPrice").innerText = formatCurrency(ticketPrice);
+
+                const comboRow = document.getElementById("comboRow");
+                const chkComboPrice = document.getElementById("chkComboPrice");
+                const comboItemsContainer = document.getElementById("comboItemsContainer");
+
+                if (comboItems && comboItems.length > 0) {
+                    comboRow.style.display = "flex";
+                    chkComboPrice.innerText = formatCurrency(comboTotal);
+                    comboItemsContainer.style.display = "flex";
+                    comboItemsContainer.innerHTML = comboItems.map(item => 
+                        `<div style="display: flex; justify-content: space-between; gap: 10px;">
+                            <span>+ ${item.name} (x${item.quantity})</span>
+                            <span style="font-weight: 700; color: var(--text-main);">${formatCurrency(item.total || (item.price * item.quantity))}</span>
+                         </div>`
+                    ).join("");
+                } else {
+                    comboRow.style.display = "flex";
+                    chkComboPrice.innerText = "Không chọn combo";
+                    comboItemsContainer.style.display = "none";
+                    comboItemsContainer.innerHTML = "";
+                }
+                
                 document.getElementById("chkTotal").innerText = formatCurrency(totalAmount);
                 updateBankQrBox();
 
@@ -962,16 +1017,17 @@
             const chkDiscount = document.getElementById("chkDiscount");
             const chkTotal = document.getElementById("chkTotal");
             
+            const basePrice = ticketPrice + comboTotal;
             if (promoCode === "DGCINE50") {
-                discount = Math.min(50000, ticketPrice);
+                discount = Math.min(50000, basePrice);
                 promoMsg.style.color = "#16a34a";
                 promoMsg.innerText = "Áp dụng thành công! Giảm 50.000đ";
                 discountRow.style.display = "flex";
                 chkDiscount.innerText = "-" + formatCurrency(discount);
             } else if (promoCode === "CINEMA10") {
-                discount = Math.floor(ticketPrice * 0.1);
+                discount = Math.floor(basePrice * 0.1);
                 promoMsg.style.color = "#16a34a";
-                promoMsg.innerText = "Áp dụng thành công! Giảm 10% giá vé";
+                promoMsg.innerText = "Áp dụng thành công! Giảm 10% tổng hóa đơn";
                 discountRow.style.display = "flex";
                 chkDiscount.innerText = "-" + formatCurrency(discount);
             } else {
@@ -981,7 +1037,7 @@
                 discountRow.style.display = "none";
             }
             
-            totalAmount = ticketPrice - discount;
+            totalAmount = basePrice - discount;
             chkTotal.innerText = formatCurrency(totalAmount);
             updateBankQrBox();
         };
@@ -1070,9 +1126,12 @@
                         date: safeText(showtimeData.date, ""),
                         time: safeText(showtimeData.time),
                         seats: seatList,
+                        ticketTotal: ticketPrice,
+                        comboItems: comboItems,
+                        comboTotal: comboTotal,
                         totalPrice: totalAmount,
                         paymentMethod: selectedMethod,
-                        status: "completed",
+                        status: "pending",
                         createdAt: serverTimestamp()
                     };
                     transaction.set(bookingRef, bookingDoc);
@@ -1086,8 +1145,10 @@
                         ticketCode: ticketCode,
                         movieTitle: safeText(showtimeData.movieTitle, "AERO Cinema"),
                         seats: seatList,
+                        comboItems: comboItems,
+                        comboTotal: comboTotal,
                         qrText: "AEROCINEMA-" + ticketCode,
-                        status: "active",
+                        status: "pending",
                         createdAt: serverTimestamp()
                     };
                     transaction.set(ticketRef, ticketDoc);
@@ -1098,8 +1159,10 @@
                         bookingId: bookingId,
                         userId: currentUser.uid,
                         amount: totalAmount,
+                        ticketTotal: ticketPrice,
+                        comboTotal: comboTotal,
                         method: selectedMethod,
-                        status: "success",
+                        status: "pending",
                         createdAt: serverTimestamp()
                     };
                     transaction.set(paymentRef, paymentDoc);
@@ -1108,12 +1171,18 @@
                 // Clear session storage values
                 sessionStorage.removeItem("totalPaid");
                 sessionStorage.removeItem("paymentMethod");
+                sessionStorage.removeItem("comboItems");
+                sessionStorage.removeItem("aero_selected_combos");
+                sessionStorage.removeItem("comboTotal");
+                sessionStorage.removeItem("grandTotal");
+                sessionStorage.removeItem("seats");
+                sessionStorage.removeItem("total");
 
                 // Success Redirect
                 Swal.fire({
                     icon: 'success',
                     title: 'Đặt vé thành công!',
-                    text: 'Hệ thống đã ghi nhận đơn đặt vé của bạn.',
+                    text: 'Đơn đặt vé đang chờ xác nhận thanh toán từ quản trị viên.',
                     background: '#ffffff',
                     color: '#1f2937',
                     confirmButtonColor: '#f58220',

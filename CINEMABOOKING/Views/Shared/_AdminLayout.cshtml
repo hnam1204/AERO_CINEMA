@@ -114,21 +114,17 @@
                     <i class="fas fa-credit-card"></i>
                     <span>Thanh toán</span>
                 </a>
-                <a class="aero-admin-menu-item @(adminActionName == "Reports" ? "active" : "")" href="@Url.Action("Reports", "Admin")">
-                    <i class="fas fa-chart-pie"></i>
-                    <span>Báo cáo</span>
-                </a>
                 <a class="aero-admin-menu-item @(adminActionName == "Users" ? "active" : "")" href="@Url.Action("Users", "Admin")">
                     <i class="fas fa-users"></i>
                     <span>Người dùng</span>
                 </a>
-                <a class="aero-admin-menu-item @(adminActionName == "Banners" ? "active" : "")" href="@Url.Action("Banners", "Admin")">
-                    <i class="fas fa-images"></i>
-                    <span>Banner</span>
-                </a>
                 <a class="aero-admin-menu-item @(adminActionName == "Promotions" ? "active" : "")" href="@Url.Action("Promotions", "Admin")">
                     <i class="fas fa-tags"></i>
                     <span>Khuyến mãi</span>
+                </a>
+                <a class="aero-admin-menu-item @(adminActionName == "FoodCombos" ? "active" : "")" href="@Url.Action("FoodCombos", "Admin")">
+                    <i class="fas fa-burger"></i>
+                    <span>Combo Bắp Nước</span>
                 </a>
                 <a class="aero-admin-menu-item @(adminActionName == "News" ? "active" : "")" href="@Url.Action("News", "Admin")">
                     <i class="fas fa-newspaper"></i>
@@ -137,10 +133,6 @@
                 <a class="aero-admin-menu-item @(adminActionName == "Reviews" ? "active" : "")" href="@Url.Action("Reviews", "Admin")">
                     <i class="fas fa-star"></i>
                     <span>Đánh giá</span>
-                </a>
-                <a class="aero-admin-menu-item @(adminActionName == "SupportTickets" ? "active" : "")" href="@Url.Action("SupportTickets", "Admin")">
-                    <i class="fas fa-question-circle"></i>
-                    <span>Hỗ trợ</span>
                 </a>
                 <a class="aero-admin-menu-item @(adminActionName == "Settings" ? "active" : "")" href="@Url.Action("Settings", "Admin")">
                     <i class="fas fa-cog"></i>
@@ -173,9 +165,9 @@
                 </div>
 
                 <div class="aero-admin-topbar-actions">
-                    <a href="@Url.Action("Index", "Home")" target="_blank" title="Mở website người dùng" class="aero-admin-ghost-link">
+                    <a href="/" target="_blank" rel="noopener noreferrer" title="Xem Website" class="aero-admin-ghost-link">
                         <i class="fas fa-globe"></i>
-                        <span>Về website</span>
+                        <span>Xem Website</span>
                     </a>
                     
                     <button type="button" class="aero-admin-theme-toggle" id="themeToggle" title="Chuyển giao diện">
@@ -448,26 +440,97 @@
             chartThemeTimer = setTimeout(safeUpdateChartsForTheme, 200);
         }
 
-        async function guardAdmin(user) {
+        let adminGuardResolved = false;
+
+        function getCachedUser() {
+            try {
+                const cachedStr = sessionStorage.getItem("aero_auth_user");
+                if (cachedStr) {
+                    return JSON.parse(cachedStr);
+                }
+            } catch (e) {
+                console.warn("[AdminLayout] Error reading cached user:", e);
+            }
+            return null;
+        }
+
+        async function handleAuthGuard(user) {
+            // Only guard if the path is indeed an admin route
+            const path = window.location.pathname.toLowerCase();
+            if (!path.startsWith("/admin")) {
+                console.log("[AdminLayout] Not an admin path, skipping guard:", path);
+                return;
+            }
+
+            if (adminGuardResolved) return;
+
+            // 1. Check cached user first for instant resolve
+            const cachedUser = getCachedUser();
+            if (user && cachedUser && cachedUser.uid === user.uid) {
+                const role = String(cachedUser.role || "").trim().toLowerCase();
+                const status = String(cachedUser.status || "active").trim().toLowerCase();
+
+                if (role === "admin" && status === "active") {
+                    console.log("[AdminLayout] Resolved via cache immediately");
+                    adminGuardResolved = true;
+                    adminState.currentUser = user;
+                    adminState.adminProfile = cachedUser;
+                    adminState.ready = true;
+
+                    updateAdminUI(user, cachedUser);
+                    showBoot(false);
+                    window.dispatchEvent(new CustomEvent("aero-admin-ready"));
+
+                    // Verify Firestore in the background
+                    verifyAdminFirestoreBackground(user);
+                    return;
+                }
+            }
+
+            // 2. Cache miss or invalid, do normal blocking verification
+            console.log("[AdminLayout] Cache miss/invalid, doing blocking Firestore verification");
+            try {
+                await verifyAdminFirestore(user);
+                adminGuardResolved = true;
+            } catch (error) {
+                handleGuardFailure(error);
+            }
+        }
+
+        async function verifyAdminFirestore(user) {
             if (!user) {
-                throw new Error("Vui lòng đăng nhập.");
+                throw new Error("unauthenticated");
             }
             const userDocRef = doc(db, "users", user.uid);
             const userSnap = await getDoc(userDocRef);
             if (!userSnap.exists()) {
-                throw new Error("Hồ sơ tài khoản không tồn tại trên Firestore.");
+                throw new Error("profile_missing");
             }
             const data = userSnap.data();
             const role = String(data.role || "").trim().toLowerCase();
             const status = String(data.status || "active").trim().toLowerCase();
 
             if (status !== "active") {
-                throw new Error(`Tài khoản đã bị khóa (${status}).`);
+                throw new Error("blocked");
             }
 
             if (role !== "admin") {
-                throw new Error("Bạn không có quyền truy cập trang quản trị.");
+                throw new Error("unauthorized");
             }
+
+            // Update cache
+            const authUser = {
+                uid: user.uid,
+                email: user.email,
+                role: role,
+                status: status,
+                fullName: data.fullName || user.email,
+                cachedAt: Date.now()
+            };
+            sessionStorage.setItem("aero_auth_user", JSON.stringify(authUser));
+            sessionStorage.setItem("aero_user_role", role);
+            sessionStorage.setItem("aero_user_status", status);
+            sessionStorage.setItem("aero_user_name", data.fullName || "");
 
             adminState.currentUser = user;
             adminState.adminProfile = data;
@@ -476,6 +539,103 @@
             updateAdminUI(user, data);
             showBoot(false);
             window.dispatchEvent(new CustomEvent("aero-admin-ready"));
+        }
+
+        async function verifyAdminFirestoreBackground(user) {
+            try {
+                console.log("[AdminLayout] Verifying admin status in background...");
+                const userDocRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userDocRef);
+                if (!userSnap.exists()) {
+                    throw new Error("profile_missing");
+                }
+                const data = userSnap.data();
+                const role = String(data.role || "").trim().toLowerCase();
+                const status = String(data.status || "active").trim().toLowerCase();
+
+                if (status !== "active") {
+                    throw new Error("blocked");
+                }
+
+                if (role !== "admin") {
+                    throw new Error("unauthorized");
+                }
+
+                // Update cache if out of sync
+                const cachedUser = getCachedUser();
+                if (!cachedUser || cachedUser.role !== role || cachedUser.status !== status || cachedUser.fullName !== data.fullName) {
+                    const authUser = {
+                        uid: user.uid,
+                        email: user.email,
+                        role: role,
+                        status: status,
+                        fullName: data.fullName || user.email,
+                        cachedAt: Date.now()
+                    };
+                    sessionStorage.setItem("aero_auth_user", JSON.stringify(authUser));
+                    sessionStorage.setItem("aero_user_role", role);
+                    sessionStorage.setItem("aero_user_status", status);
+                    sessionStorage.setItem("aero_user_name", data.fullName || "");
+
+                    updateAdminUI(user, data);
+                }
+                console.log("[AdminLayout] Background verification successful");
+            } catch (error) {
+                console.warn("[AdminLayout] Background verification failed:", error);
+                handleGuardFailure(error);
+            }
+        }
+
+        function handleGuardFailure(error) {
+            showBoot(false);
+
+            let title = "Lỗi phân quyền";
+            let text = "Có lỗi xảy ra khi xác thực quyền truy cập trang quản trị.";
+            let targetUrl = "/Account/Login";
+
+            if (error.message === "unauthenticated") {
+                title = "Yêu cầu đăng nhập";
+                text = "Vui lòng đăng nhập tài khoản quản trị.";
+                targetUrl = `/Account/Login?returnUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+            } else if (error.message === "profile_missing") {
+                title = "Lỗi tài khoản";
+                text = "Hồ sơ tài khoản không tồn tại trên hệ thống.";
+                targetUrl = "/Account/Login";
+            } else if (error.message === "blocked") {
+                title = "Tài khoản bị khóa";
+                text = "Tài khoản của bạn đã bị tạm khóa.";
+                targetUrl = "/Account/Login";
+            } else if (error.message === "unauthorized") {
+                title = "Access Denied";
+                text = "Bạn không có quyền truy cập trang quản trị.";
+                targetUrl = "/";
+            }
+
+            sessionStorage.removeItem("aero_auth_user");
+            sessionStorage.removeItem("aero_user_role");
+            sessionStorage.removeItem("aero_user_status");
+            sessionStorage.removeItem("aero_user_name");
+
+            if (error.message === "blocked") {
+                signOut(auth).catch(e => console.error("Error signing out blocked user:", e));
+            }
+
+            adminState.ready = false;
+
+            Swal.fire({
+                icon: "error",
+                title: title,
+                text: text,
+                background: "#ffffff",
+                color: "#333333",
+                confirmButtonColor: "#f58220",
+                timer: 2500,
+                showConfirmButton: false
+            });
+
+            window.setTimeout(() => {
+                window.location.replace(targetUrl);
+            }, 1500);
         }
 
         function bindLayoutEvents() {
@@ -523,7 +683,7 @@
                         showLoader(true, "Đang đăng xuất...");
                         try {
                             await signOut(auth);
-                            window.location.href = "/Account/Login";
+                            window.location.replace("/Account/Login");
                         } catch (error) {
                             showLoader(false);
                             toast("error", "Lỗi", error.message);
@@ -541,23 +701,7 @@
         showBoot(true);
 
         onAuthStateChanged(auth, (user) => {
-            guardAdmin(user).catch((error) => {
-                console.error("Admin auth guard error:", error);
-                showBoot(false);
-                Swal.fire({
-                    icon: "error",
-                    title: "Lỗi phân quyền",
-                    text: error.message || "Không thể kiểm tra quyền quản trị.",
-                    background: "#ffffff",
-                    color: "#333333",
-                    confirmButtonColor: "#f58220",
-                    timer: 3000,
-                    showConfirmButton: false
-                });
-                window.setTimeout(() => {
-                    window.location.href = "/Account/Login";
-                }, 2000);
-            });
+            handleAuthGuard(user);
         });
 
         window.AeroAdmin = {

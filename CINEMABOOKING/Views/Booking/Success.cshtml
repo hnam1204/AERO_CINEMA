@@ -257,6 +257,41 @@
         font-weight: 600;
     }
 
+    .ticket-combo-box {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    .ticket-combo-title {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--text-sub);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 10px;
+    }
+
+    .ticket-combo-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 13px;
+        margin-bottom: 8px;
+    }
+
+    .ticket-combo-item strong {
+        color: var(--text-main);
+    }
+
+    .combo-note {
+        margin: 12px 0 0;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--accent-color);
+        font-weight: 700;
+    }
+
     .btn-success-actions {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
@@ -410,6 +445,15 @@
                             </span>
                         </div>
                     </div>
+                    <div class="ticket-combo-box" id="successComboBox" style="display: none;">
+                        <div class="ticket-combo-title">Combo đã mua</div>
+                        <div id="successComboList"></div>
+                        <div class="ticket-combo-item">
+                            <span>Tổng combo</span>
+                            <strong id="successComboTotal">0đ</strong>
+                        </div>
+                        <p class="combo-note">Vui lòng đưa mã vé tại quầy để nhận combo.</p>
+                    </div>
                 </div>
             </div>
 
@@ -466,6 +510,10 @@
 
         function safeText(value, fallback = "Đang cập nhật") {
             return value === undefined || value === null || value === "" ? fallback : value;
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[ch]));
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -565,6 +613,20 @@
                 // Total Price
                 const totalVal = bookingData.totalPrice || 0;
                 document.getElementById("sucTotal").innerText = formatCurrency(totalVal);
+
+                const comboItems = Array.isArray(bookingData.comboItems) ? bookingData.comboItems : [];
+                const comboBox = document.getElementById("successComboBox");
+                const comboList = document.getElementById("successComboList");
+                if (comboItems.length && comboBox && comboList) {
+                    comboBox.style.display = "block";
+                    comboList.innerHTML = comboItems.map(item => `
+                        <div class="ticket-combo-item">
+                            <span>${escapeHtml(item.name || "Combo")} x${Number(item.quantity || 0)}</span>
+                            <strong>${formatCurrency(item.total || (Number(item.price || 0) * Number(item.quantity || 0)))}</strong>
+                        </div>
+                    `).join("");
+                    document.getElementById("successComboTotal").innerText = formatCurrency(bookingData.comboTotal || 0);
+                }
 
                 // Ticket Code & QR Code
                 document.getElementById("sucTicketCode").innerText = ticketCode;

@@ -1,0 +1,523 @@
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Quản lý Combo Bắp Nước";
+}
+
+<style>
+    .combo-thumb { width: 82px; height: 58px; object-fit: cover; border-radius: 8px; border: 1px solid var(--admin-border); background: var(--admin-muted); }
+    .combo-mini { display: flex; flex-direction: column; gap: 4px; }
+    .combo-tag { display: inline-flex; align-items: center; width: fit-content; border-radius: 999px; padding: 3px 8px; font-size: 11px; font-weight: 800; background: rgba(249, 115, 22, 0.12); color: #f97316; }
+    .combo-preview { display: grid; grid-template-columns: 140px 1fr; gap: 16px; align-items: center; padding: 14px; border: 1px solid var(--admin-border); border-radius: 10px; background: var(--admin-panel); }
+    .combo-preview img { width: 140px; aspect-ratio: 16/10; object-fit: cover; border-radius: 8px; }
+    .combo-view-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; text-align: left; }
+    .combo-view-grid div { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; }
+    .combo-view-grid span { display: block; color: #64748b; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; }
+    @@media (max-width: 768px) {
+        .combo-preview { grid-template-columns: 1fr; }
+        .combo-preview img { width: 100%; }
+    }
+</style>
+
+<div class="page">
+    <section class="hero" aria-labelledby="comboHeroTitle">
+        <div>
+            <h1 id="comboHeroTitle">Quản lý combo bắp nước</h1>
+            <p>CRUD realtime cho collection food_combos, đồng bộ tồn kho, trạng thái bán và thống kê doanh thu combo.</p>
+        </div>
+        <button class="admin-btn admin-btn-primary" id="btnAdd"><i class="fas fa-plus"></i> Thêm combo</button>
+    </section>
+
+    <div class="section-title">
+        <h2>Thống kê combo</h2>
+        <span>Realtime Firestore</span>
+    </div>
+    <section class="admin-stats-grid" style="grid-template-columns: repeat(5, minmax(0, 1fr));">
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-burger"></i></span>
+            <span class="stat-label">Tổng Combo</span>
+            <div class="stat-value skeleton" id="sTotal">0</div>
+            <div class="stat-note">Tất cả combo</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
+            <span class="stat-label">Combo Active</span>
+            <div class="stat-value skeleton" id="sActive">0</div>
+            <div class="stat-note">Đang hiển thị cho user</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-star"></i></span>
+            <span class="stat-label">Combo Nổi Bật</span>
+            <div class="stat-value skeleton" id="sFeatured">0</div>
+            <div class="stat-note">Được ghim nổi bật</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-cart-shopping"></i></span>
+            <span class="stat-label">Tổng Đã Bán</span>
+            <div class="stat-value skeleton" id="sSold">0</div>
+            <div class="stat-note">Từ comboItems và soldCount</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-coins"></i></span>
+            <span class="stat-label">Doanh Thu Combo</span>
+            <div class="stat-value skeleton" id="sRevenue">0đ</div>
+            <div class="stat-note">Từ booking đã thanh toán</div>
+        </div>
+    </section>
+
+    <section class="admin-toolbar" aria-label="Bộ lọc combo" style="grid-template-columns: minmax(260px, 1.2fr) repeat(2, 1fr);">
+        <div class="admin-field search-input">
+            <label for="q">Tìm kiếm</label>
+            <input class="admin-control" id="q" type="search" placeholder="Tên combo, tag, category..." />
+        </div>
+        <div class="admin-field">
+            <label for="statusFilter">Trạng thái</label>
+            <select class="admin-control" id="statusFilter">
+                <option value="">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+            </select>
+        </div>
+        <div class="admin-field">
+            <label for="categoryFilter">Danh mục</label>
+            <select class="admin-control" id="categoryFilter">
+                <option value="">All</option>
+                <option>Solo</option>
+                <option>Couple</option>
+                <option>Family</option>
+                <option>Kids</option>
+                <option>Premium</option>
+            </select>
+        </div>
+    </section>
+
+    <section class="admin-card">
+        <div class="panel-head p-3" style="border-bottom: 1px solid var(--admin-border); display: flex; align-items: center; justify-content: space-between;">
+            <h3 style="margin: 0; font-size: 15px; font-weight: 700;">Danh sách combo</h3>
+            <span id="count" style="font-size: 13px; color: var(--admin-subtle);">Đang tải...</span>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 100px;">Ảnh</th>
+                        <th><span class="sort-header" data-sort="name">Tên combo <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="category">Danh mục <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="price">Giá <i class="fas fa-sort"></i></span></th>
+                        <th>Tag</th>
+                        <th><span class="sort-header" data-sort="status">Trạng thái <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="stock">Tồn kho <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="soldCount">Đã bán <i class="fas fa-sort"></i></span></th>
+                        <th>Nổi bật</th>
+                        <th><span class="sort-header" data-sort="createdAt">Ngày tạo <i class="fas fa-sort"></i></span></th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="body">
+                    <tr><td colspan="11"><div class="empty-state"><span>Đang tải combo...</span></div></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div class="admin-modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="admin-modal-panel">
+        <div class="admin-modal-header">
+            <h3 id="modalTitle">Thêm combo</h3>
+            <button class="admin-btn admin-btn-secondary p-1" style="min-height:auto;border:0;background:transparent;" id="closeModal" type="button" aria-label="Đóng"><i class="fas fa-times" style="font-size:18px;"></i></button>
+        </div>
+        <form id="form">
+            <input type="hidden" id="docId" />
+            <div class="admin-modal-body">
+                <div class="admin-form-grid">
+                    <div class="admin-field">
+                        <label for="name">name *</label>
+                        <input class="admin-control" id="name" required placeholder="Combo Couple" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="price">price *</label>
+                        <input class="admin-control" id="price" type="number" min="1" step="1000" required value="99000" />
+                    </div>
+                    <div class="admin-field full">
+                        <label for="description">description</label>
+                        <textarea class="admin-control" id="description" style="min-height: 80px; resize: vertical;" placeholder="Mô tả combo"></textarea>
+                    </div>
+                    <div class="admin-field full">
+                        <label for="imageUrl">imageUrl</label>
+                        <input class="admin-control" id="imageUrl" placeholder="https://..." />
+                    </div>
+                    <div class="admin-field">
+                        <label for="category">category</label>
+                        <select class="admin-control" id="category">
+                            <option>Solo</option>
+                            <option>Couple</option>
+                            <option>Family</option>
+                            <option>Kids</option>
+                            <option>Premium</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="tag">tag</label>
+                        <input class="admin-control" id="tag" placeholder="Best seller" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="status">status</label>
+                        <select class="admin-control" id="status">
+                            <option value="active">active</option>
+                            <option value="inactive">inactive</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label for="stock">stock *</label>
+                        <input class="admin-control" id="stock" type="number" min="0" value="100" required />
+                    </div>
+                    <div class="admin-field">
+                        <label for="soldCount">soldCount</label>
+                        <input class="admin-control" id="soldCount" type="number" min="0" value="0" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="displayOrder">displayOrder</label>
+                        <input class="admin-control" id="displayOrder" type="number" value="0" />
+                    </div>
+                    <div class="admin-field">
+                        <label for="isFeatured">isFeatured</label>
+                        <select class="admin-control" id="isFeatured">
+                            <option value="false">false</option>
+                            <option value="true">true</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="combo-preview mt-3">
+                    <img id="previewImg" src="https://placehold.co/420x260/0f172a/f97316?text=AERO+Combo" alt="" />
+                    <div class="combo-mini">
+                        <strong id="previewName">Combo Couple</strong>
+                        <span id="previewDesc" style="color: var(--admin-subtle); font-size: 13px;">Mô tả combo</span>
+                        <span class="combo-tag" id="previewTag">Best seller</span>
+                        <strong id="previewPrice" style="color:#f97316;">99.000đ</strong>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-modal-footer">
+                <button class="admin-btn admin-btn-secondary" type="button" id="cancelModal">Hủy</button>
+                <button class="admin-btn admin-btn-primary" type="submit">Lưu combo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section scripts {
+<script type="module">
+    import { collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const db = window.AeroAdmin?.db || window.db;
+    const toast = window.AeroAdmin?.toast || ((type, title, msg) => alert(`${title}: ${msg}`));
+    const $ = id => document.getElementById(id);
+    const fallbackImg = "https://placehold.co/420x260/0f172a/f97316?text=AERO+Combo";
+    const state = { combos: [], bookings: [], filtered: [], sortKey: "displayOrder", sortDirection: "asc", unsubCombos: null, unsubBookings: null };
+    const el = { q: $("q"), status: $("statusFilter"), category: $("categoryFilter"), body: $("body"), count: $("count"), modal: $("modal"), form: $("form") };
+
+    const normalize = v => String(v || "").trim().toLowerCase();
+    const safe = (v, f = "-") => v === undefined || v === null || v === "" ? f : v;
+    const money = v => Number(v || 0).toLocaleString("vi-VN") + "đ";
+    const toDate = v => v?.toDate ? v.toDate() : (v ? new Date(v) : null);
+    const fmt = v => { const d = toDate(v); return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString("vi-VN") : "-"; };
+    const statusOf = x => normalize(x.status || (x.active === true ? "active" : "inactive"));
+    const isPaid = b => ["paid", "completed", "success"].includes(normalize(b.status));
+    const load = (show, text = "Đang xử lý...") => window.AeroAdmin?.showLoader?.(show, text);
+
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[ch]));
+    }
+
+    function comboSalesMap() {
+        const map = {};
+        state.bookings.filter(isPaid).forEach(b => {
+            (Array.isArray(b.comboItems) ? b.comboItems : []).forEach(item => {
+                const id = item.comboId || item.id || item.name || "unknown";
+                if (!map[id]) map[id] = { qty: 0, revenue: 0 };
+                map[id].qty += Number(item.quantity || 0);
+                map[id].revenue += Number(item.total || (Number(item.price || 0) * Number(item.quantity || 0)));
+            });
+        });
+        return map;
+    }
+
+    function stats() {
+        const sales = comboSalesMap();
+        const soldFromBookings = Object.values(sales).reduce((sum, x) => sum + x.qty, 0);
+        const soldFallback = state.combos.reduce((sum, x) => sum + Number(x.soldCount || 0), 0);
+        const revenueFromBookings = state.bookings.filter(isPaid).reduce((sum, b) => sum + Number(b.comboTotal || 0), 0);
+        const revenueFallback = state.combos.reduce((sum, x) => sum + Number(x.price || 0) * Number(x.soldCount || 0), 0);
+        setText("sTotal", state.combos.length.toLocaleString("vi-VN"));
+        setText("sActive", state.combos.filter(x => statusOf(x) === "active").length.toLocaleString("vi-VN"));
+        setText("sFeatured", state.combos.filter(x => x.isFeatured === true).length.toLocaleString("vi-VN"));
+        setText("sSold", (soldFromBookings || soldFallback).toLocaleString("vi-VN"));
+        setText("sRevenue", money(revenueFromBookings || revenueFallback));
+    }
+
+    function setText(id, value) {
+        const target = $(id);
+        if (target) {
+            target.innerText = value;
+            target.classList.remove("skeleton");
+        }
+    }
+
+    function sortData() {
+        const key = state.sortKey;
+        const dir = state.sortDirection === "asc" ? 1 : -1;
+        state.filtered.sort((a, b) => {
+            let av = key === "status" ? statusOf(a) : a[key];
+            let bv = key === "status" ? statusOf(b) : b[key];
+            if (["price", "stock", "soldCount", "displayOrder"].includes(key)) {
+                av = Number(av || 0);
+                bv = Number(bv || 0);
+            } else if (["createdAt", "updatedAt"].includes(key)) {
+                av = toDate(av)?.getTime() || 0;
+                bv = toDate(bv)?.getTime() || 0;
+            } else {
+                av = normalize(av);
+                bv = normalize(bv);
+            }
+            if (av < bv) return -1 * dir;
+            if (av > bv) return 1 * dir;
+            return 0;
+        });
+    }
+
+    function filter() {
+        const q = normalize(el.q.value);
+        const st = normalize(el.status.value);
+        const cat = normalize(el.category.value);
+        state.filtered = state.combos.filter(x => {
+            const text = normalize([x.name, x.tag, x.category, x.description].join(" "));
+            return (!q || text.includes(q)) && (!st || statusOf(x) === st) && (!cat || normalize(x.category) === cat);
+        });
+        sortData();
+        render();
+    }
+
+    function render() {
+        el.count.innerText = `Hiển thị ${state.filtered.length} combo`;
+        if (!state.filtered.length) {
+            el.body.innerHTML = `<tr><td colspan="11"><div class="empty-state"><span>Không có combo phù hợp.</span></div></td></tr>`;
+            return;
+        }
+        el.body.innerHTML = state.filtered.map(x => {
+            const img = escapeHtml(x.imageUrl || fallbackImg);
+            const badge = statusOf(x) === "active" ? "success" : "secondary";
+            const featured = x.isFeatured === true ? `<span class="admin-badge success">Có</span>` : `<span class="admin-badge secondary">Không</span>`;
+            return `<tr>
+                <td data-label="Ảnh"><img class="combo-thumb" src="${img}" alt="${escapeHtml(safe(x.name))}" onerror="this.src='${fallbackImg}'"></td>
+                <td data-label="Tên combo"><div class="combo-mini"><strong>${escapeHtml(safe(x.name))}</strong><span style="font-size:12px;color:var(--admin-subtle);">${escapeHtml(safe(x.description, "Không có mô tả"))}</span></div></td>
+                <td data-label="Danh mục">${escapeHtml(safe(x.category))}</td>
+                <td data-label="Giá"><strong>${money(x.price)}</strong></td>
+                <td data-label="Tag"><span class="combo-tag">${escapeHtml(safe(x.tag, "Combo"))}</span></td>
+                <td data-label="Trạng thái"><span class="admin-badge ${badge}">${statusOf(x)}</span></td>
+                <td data-label="Tồn kho">${Number(x.stock || 0).toLocaleString("vi-VN")}</td>
+                <td data-label="Đã bán">${Number(x.soldCount || 0).toLocaleString("vi-VN")}</td>
+                <td data-label="Nổi bật">${featured}</td>
+                <td data-label="Ngày tạo">${fmt(x.createdAt)}</td>
+                <td data-label="Actions" class="action-col">
+                    <div class="admin-actions">
+                        <button type="button" class="admin-icon-btn view btn-view" data-id="${x.id}" title="View"><i class="fas fa-eye"></i></button>
+                        <button type="button" class="admin-icon-btn btn-edit" data-id="${x.id}" title="Edit" style="color:var(--admin-warning);"><i class="fas fa-pen"></i></button>
+                        <button type="button" class="admin-icon-btn reject btn-delete" data-id="${x.id}" title="Delete"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>`;
+        }).join("");
+        el.body.querySelectorAll(".btn-view").forEach(btn => btn.addEventListener("click", () => viewItem(find(btn.dataset.id))));
+        el.body.querySelectorAll(".btn-edit").forEach(btn => btn.addEventListener("click", () => openForm(find(btn.dataset.id))));
+        el.body.querySelectorAll(".btn-delete").forEach(btn => btn.addEventListener("click", () => removeItem(find(btn.dataset.id))));
+    }
+
+    function find(id) { return state.combos.find(x => x.id === id); }
+
+    function preview() {
+        $("previewImg").src = $("imageUrl").value.trim() || fallbackImg;
+        $("previewName").innerText = $("name").value.trim() || "Combo Couple";
+        $("previewDesc").innerText = $("description").value.trim() || "Mô tả combo";
+        $("previewTag").innerText = $("tag").value.trim() || "Best seller";
+        $("previewPrice").innerText = money($("price").value);
+    }
+
+    function openModal() {
+        el.modal.classList.add("show");
+        document.body.style.overflow = "hidden";
+    }
+
+    function closeModal() {
+        el.modal.classList.remove("show");
+        document.body.style.overflow = "";
+    }
+
+    function openForm(item) {
+        el.form.reset();
+        $("docId").value = item?.id || "";
+        $("modalTitle").innerText = item ? "Sửa combo" : "Thêm combo";
+        $("name").value = item?.name || "";
+        $("description").value = item?.description || "";
+        $("imageUrl").value = item?.imageUrl || "";
+        $("price").value = Number(item?.price || 99000);
+        $("category").value = item?.category || "Solo";
+        $("tag").value = item?.tag || "";
+        $("status").value = statusOf(item || { status: "active" });
+        $("stock").value = Number(item?.stock ?? 100);
+        $("soldCount").value = Number(item?.soldCount || 0);
+        $("isFeatured").value = String(item?.isFeatured === true);
+        $("displayOrder").value = Number(item?.displayOrder || 0);
+        preview();
+        openModal();
+    }
+
+    function formData() {
+        return {
+            name: $("name").value.trim(),
+            description: $("description").value.trim(),
+            imageUrl: $("imageUrl").value.trim(),
+            price: Number($("price").value || 0),
+            category: $("category").value,
+            tag: $("tag").value.trim(),
+            status: $("status").value,
+            stock: Number($("stock").value || 0),
+            soldCount: Number($("soldCount").value || 0),
+            isFeatured: $("isFeatured").value === "true",
+            displayOrder: Number($("displayOrder").value || 0),
+            updatedAt: serverTimestamp()
+        };
+    }
+
+    function validate(data) {
+        if (!data.name) return "name required.";
+        if (data.price <= 0) return "price phải lớn hơn 0.";
+        if (data.stock < 0) return "stock phải lớn hơn hoặc bằng 0.";
+        if (data.soldCount < 0) return "soldCount phải lớn hơn hoặc bằng 0.";
+        return "";
+    }
+
+    async function save(event) {
+        event.preventDefault();
+        const id = $("docId").value;
+        const data = formData();
+        const error = validate(data);
+        if (error) {
+            toast("error", "Dữ liệu chưa hợp lệ", error);
+            return;
+        }
+        load(true);
+        try {
+            if (id) {
+                const oldData = find(id);
+                await updateDoc(doc(db, "food_combos", id), data);
+                await window.AeroAdmin?.logActivity?.("Update Combo", "food_combos", id, oldData, data);
+            } else {
+                data.createdAt = serverTimestamp();
+                const ref = await addDoc(collection(db, "food_combos"), data);
+                await window.AeroAdmin?.logActivity?.("Create Combo", "food_combos", ref.id, null, data);
+            }
+            closeModal();
+            toast("success", "Đã lưu combo", "Combo bắp nước đã được cập nhật.");
+        } catch (e) {
+            toast("error", "Không thể lưu combo", e.message || "Vui lòng kiểm tra Firestore Rules.");
+        } finally {
+            load(false);
+        }
+    }
+
+    async function removeItem(item) {
+        if (!item) return;
+        const result = await Swal.fire({
+            title: "Delete combo?",
+            text: `Bạn có chắc muốn xóa "${item.name || item.id}"?`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ef4444",
+            cancelButtonColor: "#475569",
+            confirmButtonText: "Delete",
+            cancelButtonText: "Hủy"
+        });
+        if (!result.isConfirmed) return;
+        load(true);
+        try {
+            await deleteDoc(doc(db, "food_combos", item.id));
+            await window.AeroAdmin?.logActivity?.("Delete Combo", "food_combos", item.id, item, null);
+            toast("success", "Đã xóa combo", "Combo đã được xóa khỏi Firestore.");
+        } catch (e) {
+            toast("error", "Không thể xóa combo", e.message);
+        } finally {
+            load(false);
+        }
+    }
+
+    function viewItem(item) {
+        if (!item) return;
+        Swal.fire({
+            title: item.name || "Combo",
+            html: `<img src="${escapeHtml(item.imageUrl || fallbackImg)}" onerror="this.src='${fallbackImg}'" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;margin-bottom:14px;" />
+                <div class="combo-view-grid">
+                    <div><span>Category</span><strong>${escapeHtml(safe(item.category))}</strong></div>
+                    <div><span>Price</span><strong>${money(item.price)}</strong></div>
+                    <div><span>Status</span><strong>${statusOf(item)}</strong></div>
+                    <div><span>Stock</span><strong>${Number(item.stock || 0).toLocaleString("vi-VN")}</strong></div>
+                    <div><span>Sold</span><strong>${Number(item.soldCount || 0).toLocaleString("vi-VN")}</strong></div>
+                    <div><span>Featured</span><strong>${item.isFeatured === true ? "Yes" : "No"}</strong></div>
+                </div>
+                <p style="text-align:left;margin:12px 0 0;color:#475569;">${escapeHtml(safe(item.description, "Không có mô tả."))}</p>`,
+            confirmButtonText: "Đóng",
+            confirmButtonColor: "#f97316"
+        });
+    }
+
+    function handleSorting(event) {
+        const header = event.target.closest(".sort-header");
+        if (!header) return;
+        const key = header.dataset.sort;
+        if (state.sortKey === key) {
+            state.sortDirection = state.sortDirection === "asc" ? "desc" : "asc";
+        } else {
+            state.sortKey = key;
+            state.sortDirection = "asc";
+        }
+        document.querySelectorAll(".sort-header i").forEach(icon => icon.className = "fas fa-sort");
+        const icon = header.querySelector("i");
+        if (icon) icon.className = state.sortDirection === "asc" ? "fas fa-sort-up" : "fas fa-sort-down";
+        filter();
+    }
+
+    function bind() {
+        $("btnAdd").addEventListener("click", () => openForm(null));
+        $("closeModal").addEventListener("click", closeModal);
+        $("cancelModal").addEventListener("click", closeModal);
+        el.form.addEventListener("submit", save);
+        ["name", "description", "imageUrl", "price", "tag"].forEach(id => $(id).addEventListener("input", preview));
+        [el.q, el.status, el.category].forEach(x => {
+            x.addEventListener("input", filter);
+            x.addEventListener("change", filter);
+        });
+        document.querySelectorAll(".sort-header").forEach(header => header.addEventListener("click", handleSorting));
+        el.modal.addEventListener("click", e => { if (e.target === el.modal) closeModal(); });
+        window.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+    }
+
+    function attach() {
+        state.unsubCombos?.();
+        state.unsubBookings?.();
+        state.unsubCombos = onSnapshot(collection(db, "food_combos"), snap => {
+            state.combos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            stats();
+            filter();
+        }, e => toast("error", "Không thể tải food_combos", e.message || "Kiểm tra Firestore Rules."));
+        state.unsubBookings = onSnapshot(collection(db, "bookings"), snap => {
+            state.bookings = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            stats();
+            filter();
+        }, e => console.warn("Combo booking stats failed:", e));
+    }
+
+    bind();
+    window.addEventListener("aero-admin-ready", attach, { once: true });
+    if (window.AeroAdmin?.state?.ready) attach();
+    window.addEventListener("beforeunload", () => { state.unsubCombos?.(); state.unsubBookings?.(); });
+</script>
+}

@@ -39,6 +39,24 @@
             <span class="stat-note">Doanh số thực tế tích lũy</span>
         </div>
         <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-ticket"></i></span>
+            <span class="stat-label">Doanh thu vé</span>
+            <strong class="stat-value skeleton" id="sTicketRevenue">0đ</strong>
+            <span class="stat-note">Tổng tiền vé</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-burger"></i></span>
+            <span class="stat-label">Doanh thu combo</span>
+            <strong class="stat-value skeleton" id="sComboRevenue">0đ</strong>
+            <span class="stat-note">Bắp nước bán kèm vé</span>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-fire"></i></span>
+            <span class="stat-label">Top combo</span>
+            <strong class="stat-value skeleton" id="sTopCombo">-</strong>
+            <span class="stat-note">Bán chạy nhất</span>
+        </div>
+        <div class="admin-stat-card">
             <span class="stat-icon"><i class="fas fa-ban"></i></span>
             <span class="stat-label">Tỷ lệ hủy vé</span>
             <strong class="stat-value skeleton" id="sCancelRate">0%</strong>
@@ -56,6 +74,7 @@
                 <option value="payment">Báo cáo giao dịch (Payment)</option>
                 <option value="user">Báo cáo người dùng (User)</option>
                 <option value="movie">Báo cáo doanh số phim (Movie)</option>
+                <option value="combo">Top 10 combo (Food Combo)</option>
             </select>
         </div>
         <div class="admin-field">
@@ -142,6 +161,7 @@
             users: [],
             movies: [],
             cinemas: [],
+            food_combos: [],
             charts: {},
             reportData: [],
             unsubs: []
@@ -166,10 +186,45 @@
         const getPaidPayments = () => state.payments.filter(p => ["paid", "success", "completed"].includes(normalize(p.status)));
         const getPaidBookings = () => state.bookings.filter(b => ["paid", "completed", "success"].includes(normalize(b.status)));
 
+        function getComboStats() {
+            const map = {};
+            let sold = 0;
+            let revenue = 0;
+            getPaidBookings().forEach(b => {
+                revenue += Number(b.comboTotal || 0);
+                (Array.isArray(b.comboItems) ? b.comboItems : []).forEach(item => {
+                    const key = item.comboId || item.id || item.name || "unknown";
+                    const name = item.name || key;
+                    const qty = Number(item.quantity || 0);
+                    const total = Number(item.total || (Number(item.price || 0) * qty));
+                    if (!map[key]) map[key] = { id: key, name, category: item.category || "-", qty: 0, revenue: 0 };
+                    map[key].qty += qty;
+                    map[key].revenue += total;
+                    sold += qty;
+                });
+            });
+            if (!sold && state.food_combos.length) {
+                state.food_combos.forEach(c => {
+                    const qty = Number(c.soldCount || 0);
+                    const total = Number(c.price || 0) * qty;
+                    if (!map[c.id]) map[c.id] = { id: c.id, name: c.name || c.id, category: c.category || "-", qty: 0, revenue: 0 };
+                    map[c.id].qty += qty;
+                    map[c.id].revenue += total;
+                    sold += qty;
+                    revenue += total;
+                });
+            }
+            const top = Object.values(map).sort((a, b) => b.qty - a.qty || b.revenue - a.revenue);
+            return { sold, revenue, top };
+        }
+
         // Statistics aggregator
         function calculateOverviewStats() {
             const paid = getPaidPayments();
             const totalRevenue = paid.reduce((sum, p) => sum + Number(p.amount || p.totalPrice || 0), 0);
+            const paidBookings = getPaidBookings();
+            const comboStats = getComboStats();
+            const ticketRevenue = paidBookings.reduce((sum, b) => sum + Number(b.ticketTotal ?? (Number(b.totalPrice || 0) - Number(b.comboTotal || 0))), 0);
             const activeTickets = state.tickets.filter(t => normalize(t.status) !== "cancelled" && normalize(t.status) !== "canceled");
             const cancelledTickets = state.tickets.filter(t => normalize(t.status) === "cancelled" || normalize(t.status) === "canceled");
             const cancelRate = state.tickets.length ? Math.round((cancelledTickets.length / state.tickets.length) * 100) + "%" : "0%";
@@ -178,6 +233,9 @@
             setTextElement("sBookings", state.bookings.length.toLocaleString("vi-VN"));
             setTextElement("sUsers", state.users.length.toLocaleString("vi-VN"));
             setTextElement("sRevenue", formatMoney(totalRevenue));
+            setTextElement("sTicketRevenue", formatMoney(ticketRevenue));
+            setTextElement("sComboRevenue", formatMoney(comboStats.revenue));
+            setTextElement("sTopCombo", comboStats.top[0] ? comboStats.top[0].name : "-");
             setTextElement("sCancelRate", cancelRate);
         }
 
@@ -299,7 +357,7 @@
 
             if (type === "revenue") {
                 titleEl.innerText = "Báo cáo doanh thu";
-                headers = ["Thời gian", "Mã Giao dịch", "Khách hàng", "Phương thức", "Số tiền", "Trạng thái"];
+                headers = ["Thời gian", "Mã Giao dịch", "Khách hàng", "Phương thức", "Doanh thu vé", "Doanh thu combo", "Tổng doanh thu", "Trạng thái"];
                 
                 const filteredPayments = state.payments.filter(p => {
                     const t = toDateObject(p.createdAt || p.updatedAt)?.getTime();
@@ -311,13 +369,15 @@
                     id: p.transactionCode || p.id,
                     customer: p.userId || "-",
                     method: p.method || "-",
+                    ticketTotal: formatMoney(p.ticketTotal || 0),
+                    comboTotal: formatMoney(p.comboTotal || 0),
                     amount: formatMoney(p.amount),
                     status: p.status || "pending"
                 }));
             } 
             else if (type === "booking") {
                 titleEl.innerText = "Báo cáo đặt vé";
-                headers = ["Mã đơn đặt", "Khách hàng", "Tên phim", "Rạp chiếu", "Ghế ngồi", "Tổng tiền", "Trạng thái", "Thời gian"];
+                headers = ["Mã đơn đặt", "Khách hàng", "Tên phim", "Rạp chiếu", "Ghế ngồi", "Combo", "Tiền vé", "Tiền combo", "Tổng tiền", "Trạng thái", "Thời gian"];
                 
                 const filteredBookings = state.bookings.filter(b => {
                     const t = toDateObject(b.createdAt)?.getTime();
@@ -330,6 +390,9 @@
                     movie: b.movieTitle || "-",
                     cinema: b.cinemaName || "-",
                     seats: Array.isArray(b.seats) ? b.seats.join(", ") : String(b.seats || ""),
+                    combos: Array.isArray(b.comboItems) && b.comboItems.length ? b.comboItems.map(x => `${x.name || "Combo"} x${Number(x.quantity || 0)}`).join(", ") : "-",
+                    ticketTotal: formatMoney(b.ticketTotal ?? (Number(b.totalPrice || 0) - Number(b.comboTotal || 0))),
+                    comboTotal: formatMoney(b.comboTotal || 0),
                     total: formatMoney(b.totalPrice),
                     status: b.status || "pending",
                     date: formatFullDateTime(b.createdAt)
@@ -337,7 +400,7 @@
             } 
             else if (type === "payment") {
                 titleEl.innerText = "Báo cáo giao dịch thanh toán";
-                headers = ["Mã thanh toán", "Mã booking", "Khách hàng", "Số tiền", "Phương thức", "Trạng thái", "Thời gian"];
+                headers = ["Mã thanh toán", "Mã booking", "Khách hàng", "Tiền vé", "Tiền combo", "Số tiền", "Phương thức", "Trạng thái", "Thời gian"];
 
                 const filteredPayments = state.payments.filter(p => {
                     const t = toDateObject(p.createdAt || p.updatedAt)?.getTime();
@@ -348,6 +411,8 @@
                     id: p.id,
                     bookingId: p.bookingId || "-",
                     customer: p.userId || "-",
+                    ticketTotal: formatMoney(p.ticketTotal || 0),
+                    comboTotal: formatMoney(p.comboTotal || 0),
                     amount: formatMoney(p.amount),
                     method: p.method || "-",
                     status: p.status || "pending",
@@ -418,6 +483,18 @@
                     bookings: m.bookings,
                     seats: m.seats,
                     revenue: formatMoney(m.revenue)
+                }));
+            }
+            else if (type === "combo") {
+                titleEl.innerText = "Top 10 combo bán chạy";
+                headers = ["Hạng", "Combo", "Danh mục", "Số lượng bán", "Doanh thu combo"];
+
+                rows = getComboStats().top.slice(0, 10).map((c, idx) => ({
+                    rank: idx + 1,
+                    name: c.name,
+                    category: c.category || "-",
+                    quantity: c.qty.toLocaleString("vi-VN"),
+                    revenue: formatMoney(c.revenue)
                 }));
             }
 
@@ -531,7 +608,7 @@
             state.unsubs.forEach(unsub => unsub());
             state.unsubs = [];
 
-            const collectionsList = ["bookings", "tickets", "payments", "users", "movies", "cinemas"];
+            const collectionsList = ["bookings", "tickets", "payments", "users", "movies", "cinemas", "food_combos"];
             collectionsList.forEach(coll => {
                 const unsub = onSnapshot(collection(db, coll), (snap) => {
                     state[coll] = snap.docs.map(docSnap => ({

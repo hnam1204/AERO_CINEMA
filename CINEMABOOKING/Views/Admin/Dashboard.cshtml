@@ -42,6 +42,24 @@
             <div class="stat-value skeleton" id="statTickets">0</div>
             <div class="stat-note" id="statTicketsSub">Đang cập nhật...</div>
         </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-burger"></i></span>
+            <span class="stat-label">Doanh thu combo</span>
+            <div class="stat-value skeleton" id="statComboRevenue">0đ</div>
+            <div class="stat-note" id="statComboRevenueSub">Đang cập nhật...</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-cart-shopping"></i></span>
+            <span class="stat-label">Combo đã bán</span>
+            <div class="stat-value skeleton" id="statComboSold">0</div>
+            <div class="stat-note" id="statComboSoldSub">Đang cập nhật...</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-fire"></i></span>
+            <span class="stat-label">Top combo</span>
+            <div class="stat-value skeleton" id="statTopCombo">-</div>
+            <div class="stat-note" id="statTopComboSub">Bán chạy nhất</div>
+        </div>
     </section>
 
     <!-- Main Grid: Main panel (Left) + Sidebar widgets (Right) -->
@@ -58,6 +76,7 @@
                         <button type="button" class="chart-tab-btn" data-chart="bookingTrend">Xu hướng đặt vé</button>
                         <button type="button" class="chart-tab-btn" data-chart="ticketTrend">Xu hướng bán vé</button>
                         <button type="button" class="chart-tab-btn" data-chart="topMovies">Top 10 phim</button>
+                        <button type="button" class="chart-tab-btn" data-chart="topCombos">Top combo</button>
                         <button type="button" class="chart-tab-btn" data-chart="topCinemas">Top 10 rạp</button>
                         <button type="button" class="chart-tab-btn" data-chart="payments">Cổng thanh toán</button>
                         <button type="button" class="chart-tab-btn" data-chart="userGrowth">Tăng trưởng user</button>
@@ -148,7 +167,7 @@
                 </div>
                 <div class="health-status-row">
                     <div class="health-status-label"><i class="fas fa-signal"></i> Active Listeners</div>
-                    <div class="health-status-value" id="healthListeners">9 listeners</div>
+                    <div class="health-status-value" id="healthListeners">10 listeners</div>
                 </div>
             </article>
 
@@ -190,7 +209,7 @@
             <!-- Top List Widget -->
             <article class="sidebar-widget" aria-labelledby="topWidgetTitle">
                 <div class="sidebar-widget-header">
-                    <h3 id="topWidgetTitle">Top rạp & Khuyến mãi</h3>
+                    <h3 id="topWidgetTitle">Top rạp & combo</h3>
                     <span>Xếp hạng doanh thu</span>
                 </div>
                 <div class="top-items-list" id="topCinemasList">
@@ -213,7 +232,7 @@
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Active collection tracking
-        const collections = ["users", "movies", "showtimes", "bookings", "tickets", "payments", "promotions", "news", "activity_logs", "cinemas"];
+        const collections = ["users", "movies", "showtimes", "bookings", "tickets", "payments", "promotions", "news", "activity_logs", "cinemas", "food_combos"];
         const state = {
             users: [],
             movies: [],
@@ -225,6 +244,7 @@
             news: [],
             activity_logs: [],
             cinemas: [],
+            food_combos: [],
             loaded: new Set(),
             unsubscribers: [],
             currentActiveChartTab: "revenue30",
@@ -275,6 +295,38 @@
         const getCompletedBookings = () => {
             return state.bookings.filter(b => normalizeValue(b.status) === "paid" || normalizeValue(b.status) === "completed" || normalizeValue(b.status) === "success");
         };
+
+        function getComboStats() {
+            const map = {};
+            let sold = 0;
+            let revenue = 0;
+            getCompletedBookings().forEach(b => {
+                revenue += Number(b.comboTotal || 0);
+                (Array.isArray(b.comboItems) ? b.comboItems : []).forEach(item => {
+                    const key = item.comboId || item.id || item.name || "unknown";
+                    const name = item.name || key;
+                    const qty = Number(item.quantity || 0);
+                    const total = Number(item.total || (Number(item.price || 0) * qty));
+                    if (!map[key]) map[key] = { id: key, name, qty: 0, revenue: 0 };
+                    map[key].qty += qty;
+                    map[key].revenue += total;
+                    sold += qty;
+                });
+            });
+            if (!sold && state.food_combos.length) {
+                state.food_combos.forEach(c => {
+                    const qty = Number(c.soldCount || 0);
+                    const total = Number(c.price || 0) * qty;
+                    if (!map[c.id]) map[c.id] = { id: c.id, name: c.name || c.id, qty: 0, revenue: 0 };
+                    map[c.id].qty += qty;
+                    map[c.id].revenue += total;
+                    sold += qty;
+                    revenue += total;
+                });
+            }
+            const top = Object.values(map).sort((a, b) => b.qty - a.qty || b.revenue - a.revenue);
+            return { sold, revenue, top, map };
+        }
 
         function getStatusText(status) {
             const value = normalizeValue(status);
@@ -332,6 +384,15 @@
             });
             setTextElement("statTickets", ticketCount.toLocaleString("vi-VN"));
             setTextElement("statTicketsSub", `Đơn đặt: ${state.bookings.length} | Hủy: ${state.bookings.filter(b => normalizeValue(b.status) === "cancelled").length}`);
+
+            const comboStats = getComboStats();
+            const topCombo = comboStats.top[0];
+            setTextElement("statComboRevenue", formatMoney(comboStats.revenue));
+            setTextElement("statComboRevenueSub", `${comboStats.top.length} combo có doanh số`);
+            setTextElement("statComboSold", comboStats.sold.toLocaleString("vi-VN"));
+            setTextElement("statComboSoldSub", `Tổng combo đã bán`);
+            setTextElement("statTopCombo", topCombo ? topCombo.name : "-");
+            setTextElement("statTopComboSub", topCombo ? `${topCombo.qty.toLocaleString("vi-VN")} phần | ${formatMoney(topCombo.revenue)}` : "Chưa có dữ liệu");
         }
 
         function setTextElement(id, text) {
@@ -435,6 +496,20 @@
                 if (!sortedCinemas.length) {
                     cinemasList.innerHTML = `<div class="empty-state"><span>Chưa có dữ liệu rạp.</span></div>`;
                 } else {
+                    const topCombos = getComboStats().top.slice(0, 5);
+                    const comboHtml = topCombos.length ? `
+                        <div style="margin:14px 0 8px;font-size:12px;font-weight:800;color:var(--admin-subtle);text-transform:uppercase;">Top combo bán chạy</div>
+                        ${topCombos.map((c, idx) => `
+                            <div class="top-item">
+                                <div class="top-item-avatar">${idx + 1}</div>
+                                <div class="top-item-info">
+                                    <p class="top-item-title">${safeString(c.name)}</p>
+                                    <p class="top-item-subtitle">${c.qty.toLocaleString("vi-VN")} phần đã bán</p>
+                                </div>
+                                <div class="top-item-value">${formatMoney(c.revenue)}</div>
+                            </div>
+                        `).join("")}
+                    ` : "";
                     cinemasList.innerHTML = sortedCinemas.map((c, idx) => `
                         <div class="top-item">
                             <div class="top-item-avatar">${idx + 1}</div>
@@ -444,13 +519,13 @@
                             </div>
                             <div class="top-item-value">${formatMoney(c.revenue)}</div>
                         </div>
-                    `).join("");
+                    `).join("") + comboHtml;
                 }
             }
 
             // 4. Usage Metrics Calculations (simulate based on dataset doc sizes + basic rules)
             // Firebase limits simulation: reads (50k/day for free tier), writes (20k/day), storage (5GB)
-            const totalDocs = state.users.length + state.movies.length + state.showtimes.length + state.bookings.length + state.tickets.length + state.payments.length + state.promotions.length + state.news.length + state.activity_logs.length + state.cinemas.length;
+            const totalDocs = state.users.length + state.movies.length + state.showtimes.length + state.bookings.length + state.tickets.length + state.payments.length + state.promotions.length + state.news.length + state.activity_logs.length + state.cinemas.length + state.food_combos.length;
             
             // Reads = current reads count, writes = bookings + logs * 1.5, storage = movies count * 0.4MB + banners
             state.firestoreReadCount = totalDocs;
@@ -661,6 +736,25 @@
                             label: "Vé bán ra",
                             data: sorted.map(m => m.count),
                             backgroundColor: ["#f97316", "#3b82f6", "#10b981", "#8b5cf6", "#ec4899", "#f59e0b", "#14b8a6", "#6366f1", "#a855f7", "#06b6d4"],
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        indexAxis: "y"
+                    }
+                };
+            }
+
+            if (tabName === "topCombos") {
+                const sorted = getComboStats().top.slice(0, 10);
+                return {
+                    type: "bar",
+                    data: {
+                        labels: sorted.map(c => c.name.length > 18 ? c.name.substring(0, 18) + "..." : c.name),
+                        datasets: [{
+                            label: "Combo đã bán",
+                            data: sorted.map(c => c.qty),
+                            backgroundColor: "#f97316",
                             borderRadius: 6
                         }]
                     },

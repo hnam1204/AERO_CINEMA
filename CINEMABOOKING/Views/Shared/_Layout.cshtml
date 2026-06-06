@@ -402,12 +402,12 @@
 
         <!-- MAIN HEADER NAVIGATION -->
         <nav class="header-nav" id="headerNav">
-            <a href="@Url.Action("Index", "Showtimes")" class="@(controllerName == "Showtimes" ? "active" : "")">Mua Vé</a>
-            <a href="@Url.Action("Index", "Movies")" class="@(controllerName == "Movies" ? "active" : "")">Phim</a>
-            <a href="@Url.Action("Promotions", "Home")" class="@(controllerName == "Home" && actionName == "Promotions" ? "active" : "")">Ưu Đãi</a>
-            <a href="@Url.Action("Services", "Home")" class="@(controllerName == "Home" && actionName == "Services" ? "active" : "")">Sự Kiện</a>
-            <a href="@Url.Action("Cinemas", "Home")" class="@(controllerName == "Home" && actionName == "Cinemas" ? "active" : "")">Rạp</a>
-            <a href="@Url.Action("Membership", "Home")" class="@(controllerName == "Home" && actionName == "Membership" ? "active" : "")">Thành Viên</a>
+            <a id="nav-booking-link" href="@Url.Action("Index", "Showtimes")" class="@(controllerName == "Showtimes" ? "active" : "")">Mua Vé</a>
+            <a id="nav-movies-link" href="@Url.Action("Index", "Movies")" class="@(controllerName == "Movies" ? "active" : "")">Phim</a>
+            <a id="nav-promotions-link" href="@Url.Action("Promotions", "Home")" class="@(controllerName == "Home" && actionName == "Promotions" ? "active" : "")">Ưu Đãi</a>
+            <a id="nav-services-link" href="@Url.Action("Services", "Home")" class="@(controllerName == "Home" && actionName == "Services" ? "active" : "")">Sự Kiện</a>
+            <a id="nav-cinemas-link" href="@Url.Action("Cinemas", "Home")" class="@(controllerName == "Home" && actionName == "Cinemas" ? "active" : "")">Rạp</a>
+            <a id="nav-membership-link" href="@Url.Action("Membership", "Home")" class="@(controllerName == "Home" && actionName == "Membership" ? "active" : "")">Thành Viên</a>
             <a id="nav-admin-link" href="@Url.Action("Dashboard", "Admin")" class="@(controllerName == "Admin" ? "active" : "")" style="display: none; color: var(--accent-color);">Quản Trị</a>
         </nav>
 
@@ -560,76 +560,277 @@
         const auth = window.auth;
         const db = window.db;
 
+        // Global Role Guard Helpers
+        window.AeroRoleGuard = {
+            safeRedirect(url) {
+                if (window.__aeroRedirecting) return;
+                window.__aeroRedirecting = true;
+                window.location.replace(url);
+            },
+
+            isAdminProfile(profile) {
+                return profile
+                    && String(profile.role || "").toLowerCase() === "admin"
+                    && String(profile.status || "active").toLowerCase() === "active";
+            },
+
+            isBlocked(profile) {
+                return String(profile?.status || "").toLowerCase() === "blocked";
+            },
+
+            getCurrentPath() {
+                return window.location.pathname + window.location.search;
+            },
+
+            isAdminRoute(path) {
+                return String(path || window.location.pathname).toLowerCase().startsWith("/admin");
+            },
+
+            isBookingRoute(path) {
+                const p = String(path || window.location.pathname).toLowerCase();
+                return p.startsWith("/booking")
+                    || p.startsWith("/account/profile")
+                    || p.startsWith("/account/tickethistory");
+            }
+        };
+
+        // MutationObserver to dynamically disable booking actions for admin
+        let adminObserver = null;
+
+        function disableBookingForAdmin() {
+            const selectors = [
+                '.btn-card-buy', 
+                '.btn-primary-action', 
+                '.btn-checkout', 
+                '.btn-checkout-submit',
+                '.btn-booking',
+                '.book-btn',
+                '.btn-action-booking',
+                'a[href*="/Booking"]',
+                'a[href*="#booking-section"]'
+            ];
+            
+            document.querySelectorAll(selectors.join(',')).forEach(el => {
+                el.classList.add('admin-disabled-btn');
+                el.setAttribute('disabled', 'true');
+                el.style.pointerEvents = 'none';
+                el.style.opacity = '0.5';
+                el.removeAttribute('href');
+                el.onclick = (e) => {
+                    e.preventDefault();
+                    return false;
+                };
+            });
+
+            // Warn banner insertion
+            if (!document.getElementById('admin-warning-banner')) {
+                const banner = document.createElement('div');
+                banner.id = 'admin-warning-banner';
+                banner.style.cssText = 'background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 12px; margin: 15px 40px; border-radius: 8px; font-weight: 700; text-align: center; font-size: 14px;';
+                banner.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Bạn đang đăng nhập bằng tài khoản quản trị. Vui lòng dùng tài khoản người dùng để đặt vé.';
+                
+                const mainWrapper = document.querySelector('.site-wrapper');
+                if (mainWrapper) {
+                    mainWrapper.insertBefore(banner, mainWrapper.firstChild);
+                }
+            }
+        }
+
+        function startAdminObserver() {
+            disableBookingForAdmin();
+            if (adminObserver) adminObserver.disconnect();
+            adminObserver = new MutationObserver(() => {
+                disableBookingForAdmin();
+            });
+            adminObserver.observe(document.body, { childList: true, subtree: true });
+        }
+
+        function enableBookingForUser() {
+            if (adminObserver) {
+                adminObserver.disconnect();
+                adminObserver = null;
+            }
+            const banner = document.getElementById('admin-warning-banner');
+            if (banner) banner.remove();
+        }
+
+        // Add style tag dynamically for admin-disabled-btn
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .admin-disabled-btn {
+                pointer-events: none !important;
+                cursor: not-allowed !important;
+                opacity: 0.5 !important;
+            }
+        `;
+        document.head.appendChild(style);
+
         // Listen to Auth State
         onAuthStateChanged(auth, async (user) => {
             const authLinks = document.getElementById("auth-links");
             const adminLink = document.getElementById("nav-admin-link");
+            const navBooking = document.getElementById("nav-booking-link");
+            const navMovies = document.getElementById("nav-movies-link");
+            const navPromotions = document.getElementById("nav-promotions-link");
+            const navServices = document.getElementById("nav-services-link");
+            const navMembership = document.getElementById("nav-membership-link");
 
             if (user) {
-                let userData = null;
-                let isAdmin = false;
+                let role = sessionStorage.getItem("aero_user_role");
+                let status = sessionStorage.getItem("aero_user_status");
+                let fullName = sessionStorage.getItem("aero_user_name");
 
+                // Check unified cache
                 try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    userData = userDoc.exists() ? userDoc.data() : null;
-                    const role = String(userData?.role || "").trim().toLowerCase();
-                    const status = String(userData?.status || "active").trim().toLowerCase();
-                    isAdmin = role === "admin" && status === "active";
-
-                    console.log("AERO LAYOUT AUTH - UID:", user.uid);
-                    console.log("AERO LAYOUT AUTH - Document path:", `users/${user.uid}`);
-                    console.log("AERO LAYOUT AUTH - User data:", userData);
-                } catch (error) {
-                    console.error("Error fetching user role: ", error);
+                    const cachedStr = sessionStorage.getItem("aero_auth_user");
+                    if (cachedStr) {
+                        const cached = JSON.parse(cachedStr);
+                        if (cached && cached.uid === user.uid) {
+                            role = cached.role || role;
+                            status = cached.status || status;
+                            fullName = cached.fullName || fullName;
+                        }
+                    }
+                } catch (e) {
+                    console.warn("[Layout] Error reading cached user:", e);
                 }
 
-                const displayName = userData?.fullName || user.displayName || user.email || "TÀI KHOẢN";
+                if (!role || !status || !fullName) {
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            role = String(userData.role || "").trim().toLowerCase();
+                            status = String(userData.status || "active").trim().toLowerCase();
+                            fullName = userData.fullName || "";
+
+                            // Set unified cache as well as legacy cache
+                            const authUser = {
+                                uid: user.uid,
+                                email: user.email,
+                                role: role,
+                                status: status,
+                                fullName: fullName,
+                                cachedAt: Date.now()
+                            };
+                            sessionStorage.setItem("aero_auth_user", JSON.stringify(authUser));
+                            sessionStorage.setItem("aero_user_role", role);
+                            sessionStorage.setItem("aero_user_status", status);
+                            sessionStorage.setItem("aero_user_name", fullName);
+                        }
+                    } catch (error) {
+                        console.error("Error fetching user role: ", error);
+                    }
+                }
+
+                const isAdmin = role === "admin" && status === "active";
+                const isBlocked = status === "blocked";
+
+                if (isBlocked) {
+                    sessionStorage.removeItem("aero_auth_user");
+                    sessionStorage.removeItem("aero_user_role");
+                    sessionStorage.removeItem("aero_user_status");
+                    sessionStorage.removeItem("aero_user_name");
+                    await signOut(auth);
+                    window.AeroRoleGuard.safeRedirect("/Account/Login");
+                    return;
+                }
+
+                if (isAdmin) {
+                    if (navBooking) navBooking.style.display = "none";
+                    if (navMovies) navMovies.style.display = "none";
+                    if (navPromotions) navPromotions.style.display = "none";
+                    if (navServices) navServices.style.display = "none";
+                    if (navMembership) navMembership.style.display = "none";
+                    if (adminLink) adminLink.style.display = "inline-block";
+
+                    // Prevent Admin from entering booking / details / account pages
+                    const path = window.location.pathname.toLowerCase();
+                    if (window.AeroRoleGuard.isBookingRoute() || path.startsWith("/movies/details")) {
+                        window.AeroRoleGuard.safeRedirect("/Admin/Dashboard");
+                        return;
+                    }
+
+                    // Enable background block for booking actions on public pages
+                    startAdminObserver();
+                } else {
+                    if (navBooking) navBooking.style.display = "";
+                    if (navMovies) navMovies.style.display = "";
+                    if (navPromotions) navPromotions.style.display = "";
+                    if (navServices) navServices.style.display = "";
+                    if (navMembership) navMembership.style.display = "";
+                    if (adminLink) adminLink.style.display = "none";
+
+                    enableBookingForUser();
+                }
+
+                const displayName = fullName || user.displayName || user.email || "TÀI KHOẢN";
                 const roleLabel = isAdmin ? "Admin" : "Thành viên";
 
-                authLinks.innerHTML = `
-                    <a href="@Url.Action("Profile", "Account")" style="color: var(--primary-color); font-weight: 700;">${displayName.toUpperCase()} · ${roleLabel}</a>
-                    <span style="color:#ddd">|</span>
-                    <a href="#" id="nav-logout-btn">Đăng xuất</a>
-                `;
+                if (authLinks) {
+                    authLinks.innerHTML = `
+                        <a href="@Url.Action("Profile", "Account")" style="color: var(--primary-color); font-weight: 700;">${displayName.toUpperCase()} · ${roleLabel}</a>
+                        <span style="color:#ddd">|</span>
+                        <a href="#" id="nav-logout-btn">Đăng xuất</a>
+                    `;
 
-                // Add logout handler
-                const logoutBtn = document.getElementById("nav-logout-btn");
-                if (logoutBtn) {
-                    logoutBtn.addEventListener("click", async (e) => {
-                        e.preventDefault();
-                        Swal.fire({
-                            title: 'Bạn có chắc chắn muốn đăng xuất?',
-                            icon: 'question',
-                            showCancelButton: true,
-                            confirmButtonColor: 'var(--primary-color)',
-                            cancelButtonColor: '#aaa',
-                            confirmButtonText: 'Đăng xuất',
-                            cancelButtonText: 'Hủy',
-                            background: '#ffffff',
-                            color: '#333'
-                        }).then(async (result) => {
-                            if (result.isConfirmed) {
-                                try {
-                                    await signOut(auth);
-                                    window.location.href = "@Url.Action("Login", "Account")";
-                                } catch (error) {
-                                    console.error("Error signing out: ", error);
+                    const logoutBtn = document.getElementById("nav-logout-btn");
+                    if (logoutBtn) {
+                        logoutBtn.addEventListener("click", async (e) => {
+                            e.preventDefault();
+                            Swal.fire({
+                                title: 'Bạn có chắc chắn muốn đăng xuất?',
+                                icon: 'question',
+                                showCancelButton: true,
+                                confirmButtonColor: 'var(--primary-color)',
+                                cancelButtonColor: '#aaa',
+                                confirmButtonText: 'Đăng xuất',
+                                cancelButtonText: 'Hủy',
+                                background: '#ffffff',
+                                color: '#333'
+                            }).then(async (result) => {
+                                if (result.isConfirmed) {
+                                    try {
+                                        enableBookingForUser();
+                                        sessionStorage.removeItem("aero_auth_user");
+                                        sessionStorage.removeItem("aero_user_role");
+                                        sessionStorage.removeItem("aero_user_status");
+                                        sessionStorage.removeItem("aero_user_name");
+                                        await signOut(auth);
+                                        window.location.replace("@Url.Action("Login", "Account")");
+                                    } catch (error) {
+                                        console.error("Error signing out: ", error);
+                                    }
                                 }
-                            }
+                            });
                         });
-                    });
-                }
-
-                if (adminLink) {
-                    adminLink.style.display = isAdmin ? "inline-block" : "none";
+                    }
                 }
             } else {
-                authLinks.innerHTML = `
-                    <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
-                    <span style="color:#ddd">|</span>
-                    <a href="@Url.Action("Register", "Account")">Đăng ký</a>
-                `;
-                adminLink.style.display = "none";
+                enableBookingForUser();
+
+                // If guest attempts to access booking / account profile / history routes
+                const currentPath = window.AeroRoleGuard.getCurrentPath();
+                if (window.AeroRoleGuard.isBookingRoute()) {
+                    sessionStorage.setItem("aero_return_url", currentPath);
+                    window.AeroRoleGuard.safeRedirect(`/Account/Login?returnUrl=${encodeURIComponent(currentPath)}`);
+                    return;
+                }
+
+                if (navBooking) navBooking.style.display = "";
+                if (navMovies) navMovies.style.display = "";
+                if (navPromotions) navPromotions.style.display = "";
+                if (navServices) navServices.style.display = "";
+                if (navMembership) navMembership.style.display = "";
+                if (adminLink) adminLink.style.display = "none";
+
+                if (authLinks) {
+                    authLinks.innerHTML = `
+                        <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
+                        <span style="color:#ddd">|</span>
+                        <a href="@Url.Action("Register", "Account")">Đăng ký</a>
+                    `;
+                }
             }
         });
     </script>

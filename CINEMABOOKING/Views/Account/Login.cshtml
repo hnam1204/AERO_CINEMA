@@ -61,7 +61,8 @@
             setPersistence,
             browserLocalPersistence,
             browserSessionPersistence,
-            signOut
+            signOut,
+            onAuthStateChanged
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import {
             doc,
@@ -78,6 +79,10 @@
         const emailRegex = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
         const loginSubmitBtn = document.getElementById("loginSubmitBtn");
         const loginSubmitText = document.getElementById("loginSubmitText");
+
+        // === Anti-delay flags ===
+        let isLoggingIn = false;
+        let hasRedirected = false;
 
         function setError(id, show) {
             document.getElementById(id).classList.toggle("show", show);
@@ -107,12 +112,20 @@
             return response.ok ? response.json() : { success: false };
         }
 
-        function getReturnUrl() {
-            return new URLSearchParams(window.location.search).get("returnUrl") || "";
+        // === Safe Return URL resolution ===
+        function getSafeReturnUrl() {
+            const params = new URLSearchParams(window.location.search);
+            let url = params.get("returnUrl") || sessionStorage.getItem("aero_return_url");
+
+            if (!url) return null;
+            if (!url.startsWith("/") || url.startsWith("//") || url.includes("://")) return null;
+            if (url.toLowerCase().startsWith("/admin")) return null;
+
+            return url;
         }
 
         function isSafeLocalUrl(url) {
-            return typeof url === "string" && url.startsWith("/") && !url.startsWith("//");
+            return typeof url === "string" && url.startsWith("/") && !url.startsWith("//") && !url.includes("://");
         }
 
         async function findUserDocumentByEmail(email) {
@@ -140,7 +153,7 @@
                     }
                 }
             } catch (error) {
-                console.warn("AERO ADMIN DEBUG - Query users by email failed. Firestore Rules may not allow this for non-admin users.", error);
+                // Silently handle email lookup failure — Firestore Rules may not allow this for non-admin users
             }
 
             return [];
@@ -153,16 +166,6 @@
             const userData = userSnap.exists() ? userSnap.data() : null;
             const emailMatches = userData ? [] : await findUserDocumentByEmail(user.email);
 
-            console.log("AERO ADMIN DEBUG - Auth UID:", user.uid);
-            console.log("AERO ADMIN DEBUG - Email:", user.email);
-            console.log("AERO ADMIN DEBUG - Document path đang đọc:", userDocPath);
-            console.log("AERO ADMIN DEBUG - User data Firestore:", userData);
-            console.log("AERO ADMIN DEBUG - Role:", userData?.role);
-            console.log("AERO ADMIN DEBUG - Status:", userData?.status);
-            if (emailMatches.length > 0) {
-                console.warn("AERO ADMIN DEBUG - Tìm thấy document theo email nhưng sai UID:", emailMatches);
-            }
-
             return {
                 exists: userSnap.exists(),
                 path: userDocPath,
@@ -172,40 +175,95 @@
         }
 
         async function redirectByRole(user, loginEmail) {
+            console.log("[Login] loading profile...");
             const result = await loadUserDocumentAfterLogin(user);
 
             if (!result.exists) {
+                console.warn("[Login] profile not found");
                 await signOut(auth);
-
-                const wrongDocHint = result.emailMatches.length > 0
-                    ? ` Firestore đang có document theo email tại ${result.emailMatches.map(item => item.path).join(", ")} nhưng document ID không trùng Auth UID ${user.uid}. Hãy đổi/tạo lại document users/${user.uid}.`
-                    : "";
-
-                throw new Error(`Không tìm thấy hồ sơ Firestore tại ${result.path}.${wrongDocHint}`);
+                throw new Error("Không tìm thấy hồ sơ người dùng.");
             }
 
-            const role = String(result.data.role || "").trim().toLowerCase();
-            const status = String(result.data.status || "active").trim().toLowerCase();
+            console.log("[Login] profile loaded");
+            const profile = result.data;
+            const role = String(profile.role || "").trim().toLowerCase();
+            const status = String(profile.status || "active").trim().toLowerCase();
+            const fullName = profile.fullName || "";
 
             if (status !== "active") {
+                console.warn("[Login] user blocked");
                 await signOut(auth);
+                if (status === "blocked") {
+                    throw new Error("Tài khoản đã bị khóa.");
+                }
                 throw new Error(`Tài khoản đang có status = "${status}". Chỉ tài khoản active mới được đăng nhập.`);
             }
 
+            // Cache auth user
+            const authUser = {
+                uid: user.uid,
+                email: user.email,
+                role: role,
+                status: status,
+                fullName: fullName || user.email,
+                cachedAt: Date.now()
+            };
+            sessionStorage.setItem("aero_auth_user", JSON.stringify(authUser));
+            sessionStorage.setItem("aero_user_role", role);
+            sessionStorage.setItem("aero_user_status", status);
+            sessionStorage.setItem("aero_user_name", fullName);
+
             if (role === "admin") {
+                console.log("[Login] role admin -> redirect Admin");
+                sessionStorage.removeItem("aero_return_url");
                 return "/Admin/Dashboard";
             }
 
-            const returnUrl = getReturnUrl();
-            if (isSafeLocalUrl(returnUrl) && !returnUrl.toLowerCase().startsWith("/admin")) {
+            console.log("[Login] role user -> redirect User");
+            const returnUrl = getSafeReturnUrl();
+            if (returnUrl) {
                 return returnUrl;
             }
 
-            return "/Account/Profile";
+            return "/";
         }
+
+        // === Safe redirect (only once) ===
+        function safeRedirect(url) {
+            if (hasRedirected) return;
+            hasRedirected = true;
+            sessionStorage.removeItem("aero_return_url");
+            
+            if (url.toLowerCase().startsWith("/admin")) {
+                window.location.replace(url);
+            } else {
+                window.location.href = url;
+            }
+        }
+
+        // === Auto redirect if already authenticated ===
+        let loginAuthChecked = false;
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (loginAuthChecked) return;
+            loginAuthChecked = true;
+            unsubscribe();
+
+            if (!user) return;
+
+            console.log("[Login] start (auto check)");
+            try {
+                const redirectUrl = await redirectByRole(user, user.email);
+                safeRedirect(redirectUrl);
+            } catch (error) {
+                console.warn("[Login] auto-redirect check failed:", error);
+            }
+        });
 
         document.getElementById("loginForm").addEventListener("submit", async (e) => {
             e.preventDefault();
+
+            // Prevent double submit
+            if (isLoggingIn) return;
 
             const email = document.getElementById("email").value.trim();
             const password = document.getElementById("password").value;
@@ -220,8 +278,10 @@
                 return;
             }
 
+            isLoggingIn = true;
             loginSubmitBtn.disabled = true;
             loginSubmitText.textContent = "Đang đăng nhập...";
+            console.log("[Login] start");
 
             Swal.fire({
                 title: "Đang đăng nhập...",
@@ -232,14 +292,37 @@
                 color: "#333333"
             });
 
+            // === Timeout 10s fallback ===
+            const timeoutId = setTimeout(() => {
+                if (!hasRedirected) {
+                    isLoggingIn = false;
+                    loginSubmitBtn.disabled = false;
+                    loginSubmitText.textContent = "Đăng nhập";
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Đăng nhập chậm",
+                        text: "Kết nối chậm, vui lòng thử lại.",
+                        background: "#ffffff",
+                        color: "#333333",
+                        confirmButtonColor: "#f58220"
+                    });
+                }
+            }, 10000);
+
             try {
                 await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                console.log("[Login] auth success");
                 const redirectUrl = await redirectByRole(userCredential.user, email);
+
+                clearTimeout(timeoutId);
 
                 postForm("/Otp/SendLoginAlert", { email }).catch((error) => {
                     console.warn("Login alert email skipped:", error);
                 });
+
+                if (hasRedirected) return;
+                hasRedirected = true;
 
                 Swal.fire({
                     icon: "success",
@@ -251,9 +334,11 @@
                     timer: 900,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location.href = redirectUrl;
+                    hasRedirected = false;
+                    safeRedirect(redirectUrl);
                 });
             } catch (error) {
+                clearTimeout(timeoutId);
                 console.error("Error signing in:", error);
 
                 let message = error.message || "Email hoặc mật khẩu không chính xác.";
@@ -270,7 +355,8 @@
                 }
 
                 showError("Đăng nhập thất bại", message);
-            } finally {
+                
+                isLoggingIn = false;
                 loginSubmitBtn.disabled = false;
                 loginSubmitText.textContent = "Đăng nhập";
             }

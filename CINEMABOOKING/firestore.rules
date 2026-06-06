@@ -1,0 +1,188 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated()
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'active';
+    }
+
+    // Deny by default catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 1. Users Profile Collection
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow create: if isAuthenticated() && (request.auth.uid == userId)
+        && request.resource.data.role == 'user'
+        && request.resource.data.status == 'active'
+        && request.resource.data.get('points', 0) == 0
+        && request.resource.data.get('memberRank', 'Member') == 'Member';
+      allow update: if isAuthenticated() && (
+        isAdmin() || (
+          request.auth.uid == userId
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.status == resource.data.status
+          && request.resource.data.get('points', 0) == resource.data.get('points', 0)
+          && request.resource.data.get('memberRank', 'Member') == resource.data.get('memberRank', 'Member')
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 2. Movies Collection
+    match /movies/{movieId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 3. Cinemas Collection
+    match /cinemas/{cinemaId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 4. Rooms Collection
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 5. Showtimes Collection
+    match /showtimes/{showtimeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 6. Banners Collection
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 7. Promotions Collection
+    match /promotions/{promoId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 8. News Collection
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 9. Combos & Food Combos Collections
+    match /combos/{comboId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /food_combos/{comboId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 10. Bookings Collection
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && (
+        isAdmin() || (
+          request.resource.data.userId == request.auth.uid
+          && request.resource.data.status == 'pending'
+        )
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() || (
+          resource.data.userId == request.auth.uid
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.status == resource.data.status
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 11. Tickets Collection
+    match /tickets/{ticketId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && (
+        isAdmin() || (
+          request.resource.data.userId == request.auth.uid
+          && request.resource.data.status == 'pending'
+        )
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() || (
+          resource.data.userId == request.auth.uid
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.status == resource.data.status
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 12. Payments Collection
+    match /payments/{paymentId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && (
+        isAdmin() || (
+          request.resource.data.userId == request.auth.uid
+          && request.resource.data.status == 'pending'
+        )
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin() || (
+          resource.data.userId == request.auth.uid
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.status == resource.data.status
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 13. Reviews Collection
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        isAdmin() || (
+          resource.data.userId == request.auth.uid
+          && request.resource.data.userId == resource.data.userId
+          && request.resource.data.get('approved', false) == resource.data.get('approved', false)
+        )
+      );
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    // 14. Support Tickets Collection
+    match /support_tickets/{ticketId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        isAdmin() || (
+          resource.data.userId == request.auth.uid
+          && request.resource.data.userId == resource.data.userId
+        )
+      );
+      allow delete: if isAdmin();
+    }
+
+    // 15. Activity Logs Collection
+    match /activity_logs/{logId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // 16. App Settings Collection
+    match /app_settings/{docId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

@@ -68,6 +68,11 @@ namespace CINEMABOOKING.Controllers
             return View();
         }
 
+        public ActionResult FoodCombos()
+        {
+            return View();
+        }
+
         public ActionResult News()
         {
             return View();

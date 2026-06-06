@@ -1,0 +1,6 @@
+// FILE NAY KHONG DUOC DEPLOY
+// Rules chinh nam tai: CINEMABOOKING/CINEMABOOKING/firestore.rules
+// firebase.json trong CINEMABOOKING/CINEMABOOKING/ tro toi file do.
+//
+// File nay la phien ban cu/phu, da duoc merge vao file chinh.
+// Vui long khong sua file nay.

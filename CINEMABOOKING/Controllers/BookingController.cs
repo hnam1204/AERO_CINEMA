@@ -18,6 +18,11 @@ namespace CINEMABOOKING.Controllers
             return View();
         }
 
+        public ActionResult Combos()
+        {
+            return View();
+        }
+
         public ActionResult Success()
         {
             return View();

@@ -598,7 +598,7 @@
 @section scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module">
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { doc, getDoc, collection, query, where, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const auth = window.auth;
@@ -631,6 +631,18 @@
             return value === undefined || value === null || value === "" ? fallback : value;
         }
 
+        function escapeHtml(value) {
+            return String(value ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[ch]));
+        }
+
+        function getTimeValue(value) {
+            if (!value) return 0;
+            if (typeof value.toMillis === "function") return value.toMillis();
+            if (typeof value.toDate === "function") return value.toDate().getTime();
+            const d = new Date(value);
+            return isNaN(d.getTime()) ? 0 : d.getTime();
+        }
+
         async function getCachedMovies() {
             const cached = AERO_CACHE && AERO_CACHE.get ? AERO_CACHE.get("moviesTicketHistory") : null;
             if (cached) return cached;
@@ -643,12 +655,36 @@
 
         onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
-            } else {
-                currentUser = user;
-                await loadLoyaltyCard();
-                await loadTicketHistory();
+                const returnUrl = window.location.pathname + window.location.search;
+                window.location.replace(`/Account/Login?returnUrl=${encodeURIComponent(returnUrl)}`);
+                return;
             }
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                const profile = userDoc.exists() ? userDoc.data() : null;
+
+                if (profile && String(profile.role || "").toLowerCase() === "admin") {
+                    window.location.replace("/Admin/Dashboard");
+                    return;
+                }
+
+                if (profile && String(profile.status || "").toLowerCase() === "blocked") {
+                    await signOut(auth);
+                    sessionStorage.removeItem("aero_auth_user");
+                    sessionStorage.removeItem("aero_user_role");
+                    sessionStorage.removeItem("aero_user_status");
+                    sessionStorage.removeItem("aero_user_name");
+                    window.location.replace("/Account/Login");
+                    return;
+                }
+            } catch (error) {
+                console.error("Error verifying user status in TicketHistory:", error);
+            }
+
+            currentUser = user;
+            await loadLoyaltyCard();
+            await loadTicketHistory();
         });
 
         // Load Left Sidebar Card details
@@ -703,26 +739,45 @@
             
             try {
                 // Fetch bookings, tickets, and movies
-                const bookingsQuery = query(collection(db, "bookings"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"), limit(20));
-                const ticketsQuery = query(collection(db, "tickets"), where("userId", "==", currentUser.uid), limit(20));
+                let bookingsList = [];
+                try {
+                    const bookingsQuery = query(collection(db, "bookings"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"), limit(20));
+                    const snap = await getDocs(bookingsQuery);
+                    bookingsList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                } catch (error) {
+                    console.warn("Ticket history indexed query failed, fallback client sort:", error);
+                    const fallbackQ = query(collection(db, "bookings"), where("userId", "==", currentUser.uid));
+                    const fallbackSnap = await getDocs(fallbackQ);
+                    bookingsList = fallbackSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+                    
+                    bookingsList.sort((a, b) => getTimeValue(b.createdAt) - getTimeValue(a.createdAt));
+                    if (bookingsList.length > 20) {
+                        bookingsList = bookingsList.slice(0, 20);
+                    }
+                }
 
-                const [bookingsSnap, ticketsSnap, moviesList] = await Promise.all([
-                    getDocs(bookingsQuery),
-                    getDocs(ticketsQuery),
-                    getCachedMovies()
-                ]);
-
-                if (bookingsSnap.empty) {
+                if (bookingsList.length === 0) {
                     container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-ticket-alt"></i>
-                            <h3>Bạn chưa có giao dịch nào</h3>
+                            <h3>Bạn chưa có giao dịch đặt vé nào.</h3>
                             <p>Hãy chọn những bộ phim bom tấn và đặt vé ngay hôm nay!</p>
                             <a href="/Showtimes" class="btn-cinema">Đặt Vé Ngay</a>
                         </div>
                     `;
                     return;
                 }
+
+                let ticketsList = [];
+                try {
+                    const ticketsQuery = query(collection(db, "tickets"), where("userId", "==", currentUser.uid), limit(50));
+                    const ticketsSnap = await getDocs(ticketsQuery);
+                    ticketsList = ticketsSnap.docs.map(d => d.data());
+                } catch (tError) {
+                    console.warn("Could not fetch tickets list:", tError);
+                }
+
+                const moviesList = await getCachedMovies();
 
                 // Map Movies
                 const moviesMap = {};
@@ -732,24 +787,10 @@
 
                 // Map Tickets by Booking ID
                 const ticketsMap = {};
-                ticketsSnap.forEach(docSnap => {
-                    const ticketData = docSnap.data();
+                ticketsList.forEach(ticketData => {
                     if (ticketData.bookingId) {
                         ticketsMap[ticketData.bookingId] = ticketData;
                     }
-                });
-
-                // Map Bookings
-                const bookingsList = [];
-                bookingsSnap.forEach(docSnap => {
-                    bookingsList.push({ id: docSnap.id, ...docSnap.data() });
-                });
-
-                // Sort bookings by date client-side desc
-                bookingsList.sort((a, b) => {
-                    const timeA = a.createdAt?.seconds || 0;
-                    const timeB = b.createdAt?.seconds || 0;
-                    return timeB - timeA;
                 });
 
                 // Render List
@@ -763,9 +804,27 @@
                     const timeString = `${safeText(booking.time)} - ${dateFormatted}`;
                     const seatsString = Array.isArray(booking.seats) ? booking.seats.join(", ") : safeText(booking.seats);
                     
-                    const ticketCode = ticket.ticketCode || "AERO-PENDING";
-                    const qrText = ticket.qrText || "AEROCINEMA-PENDING";
+                    const ticketCode = ticket.ticketCode || booking.ticketCode || "AERO-PENDING";
+                    const qrText = ticket.qrText || booking.qrText || "AEROCINEMA-PENDING";
                     const priceFormatted = formatCurrency(booking.totalPrice);
+                    const comboItems = Array.isArray(booking.comboItems) ? booking.comboItems : [];
+                    const comboTotalFormatted = formatCurrency(booking.comboTotal || 0);
+                    const ticketTotalFormatted = formatCurrency(booking.ticketTotal || (booking.totalPrice - (booking.comboTotal || 0)));
+                    
+                    const comboHtml = comboItems.length ? `
+                        <div class="ticket-meta-item" style="grid-column: 1 / -1;">
+                            <i class="fas fa-cookie-bite"></i>
+                            <span>Bắp nước: ${comboItems.map(item => `${escapeHtml(item.name || "Combo")} x${Number(item.quantity || 0)}`).join(", ")}</span>
+                        </div>
+                        <div class="ticket-meta-item">
+                            <i class="fas fa-ticket-alt"></i>
+                            <span>Tiền vé: ${ticketTotalFormatted}</span>
+                        </div>
+                        <div class="ticket-meta-item">
+                            <i class="fas fa-ice-cream"></i>
+                            <span>Tiền combo: ${comboTotalFormatted}</span>
+                        </div>
+                    ` : "";
 
                     // Determine payment method label
                     let payMethod = "Tiền mặt tại quầy";
@@ -778,11 +837,11 @@
                                 <img src="${poster}" alt="Poster" />
                             </div>
                             <div class="ticket-details">
-                                <h3>${booking.movieTitle}</h3>
+                                <h3>${escapeHtml(booking.movieTitle || movie.title || "Phim")}</h3>
                                 <div class="ticket-meta-grid">
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-video"></i>
-                                        <span>Rạp: ${booking.cinemaName} (${booking.roomName})</span>
+                                        <span>Rạp: ${escapeHtml(safeText(booking.cinemaName))} (${escapeHtml(safeText(booking.roomName))})</span>
                                     </div>
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-calendar-alt"></i>
@@ -790,25 +849,26 @@
                                     </div>
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-couch"></i>
-                                        <span>Ghế: <span style="font-weight: 700; color: var(--primary-color);">${seatsString}</span></span>
+                                        <span>Ghế: <span style="font-weight: 700; color: var(--primary-color);">${escapeHtml(seatsString)}</span></span>
                                     </div>
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-tag"></i>
-                                        <span>Mã vé: <span style="font-weight: 700; color: var(--primary-color);">${ticketCode}</span></span>
+                                        <span>Mã vé: <span style="font-weight: 700; color: var(--primary-color);">${escapeHtml(ticketCode)}</span></span>
                                     </div>
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-wallet"></i>
-                                        <span>Thanh toán: ${payMethod}</span>
+                                        <span>Thanh toán: ${escapeHtml(payMethod)}</span>
                                     </div>
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-info-circle"></i>
                                         <span>Trạng thái: <span class="badge bg-success" style="font-size: 10px; padding: 4px 8px; border-radius: 12px; text-transform: uppercase;">Thành công</span></span>
                                     </div>
+                                    ${comboHtml}
                                 </div>
                             </div>
                             <div class="ticket-action-box">
                                 <span class="ticket-price-display">${priceFormatted}</span>
-                                <button class="btn-view-qr" onclick="showTicketQrModal('${ticketCode}', '${qrText}', '${booking.movieTitle.replace(/'/g, "\\'")}', '${safeText(booking.cinemaName)}', '${safeText(booking.roomName)}', '${safeText(booking.time)}', '${safeText(booking.date, '')}', '${seatsString}')">
+                                <button class="btn-view-qr" onclick="showTicketQrModal('${escapeHtml(ticketCode)}', '${escapeHtml(qrText)}', '${escapeHtml(booking.movieTitle || '').replace(/'/g, "\\'")}', '${escapeHtml(safeText(booking.cinemaName))}', '${escapeHtml(safeText(booking.roomName))}', '${escapeHtml(safeText(booking.time))}', '${escapeHtml(safeText(booking.date, ''))}', '${escapeHtml(seatsString)}')">
                                     <i class="fas fa-qrcode"></i> Vé QR Code
                                 </button>
                             </div>
@@ -830,6 +890,8 @@
                 `;
             }
         }
+
+        window.loadTicketHistory = loadTicketHistory;
 
         // View ticket modal handler
         window.showTicketQrModal = function(ticketCode, qrText, movieTitle, cinemaName, roomName, time, date, seats) {

@@ -65,6 +65,8 @@
     <div class="booking-steps-bar">
         <div class="step-indicator active"><i class="fas fa-couch"></i> Chọn Ghế</div>
         <div class="step-line active"></div>
+        <div class="step-indicator"><i class="fas fa-burger"></i> Combo</div>
+        <div class="step-line"></div>
         <div class="step-indicator"><i class="fas fa-credit-card"></i> Thanh Toán</div>
         <div class="step-line"></div>
         <div class="step-indicator"><i class="fas fa-check-circle"></i> Hoàn Tất</div>
@@ -121,7 +123,7 @@
 
 @section scripts {
     <script type="module">
-        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const auth = window.auth;
@@ -133,17 +135,53 @@
         let selectedSeats = [];
         let totalPrice = 0;
 
-        onAuthStateChanged(auth, async (user) => {
+        // === Auth guard: unsubscribe after first check ===
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            unsubscribe(); // Only run once
+
             if (!user) {
+                // Save current URL for return after login (relative path only)
+                const currentPath = window.location.pathname + window.location.search;
+                sessionStorage.setItem("aero_return_url", currentPath);
+
+                // Save booking draft if showtimeId exists
+                if (showtimeId) {
+                    let draft = {
+                        showtimeId: showtimeId,
+                        movieId: "",
+                        cinemaId: "",
+                        roomId: "",
+                        date: "",
+                        time: "",
+                        selectedSeats: [],
+                        ticketTotal: 0,
+                        createdAt: new Date().toISOString()
+                    };
+                    try {
+                        const showtimeDoc = await getDoc(doc(db, "showtimes", showtimeId));
+                        if (showtimeDoc.exists()) {
+                            const showtime = showtimeDoc.data();
+                            draft.movieId = showtime.movieId || "";
+                            draft.cinemaId = showtime.cinemaId || showtime.cinemaName || "";
+                            draft.roomId = showtime.roomId || showtime.roomName || "";
+                            draft.date = showtime.date || "";
+                            draft.time = showtime.time || "";
+                        }
+                    } catch (e) {
+                        console.warn("Failed to fetch showtime for draft", e);
+                    }
+                    sessionStorage.setItem("aero_booking_draft", JSON.stringify(draft));
+                }
+
                 Swal.fire({
                     icon: "warning",
                     title: "Yêu cầu đăng nhập",
-                    text: "Bạn cần đăng nhập để tiến hành đặt vé.",
+                    text: "Bạn cần đăng nhập để đặt vé xem phim.",
                     background: "#ffffff",
                     color: "#333333",
                     confirmButtonColor: "#f58220"
                 }).then(() => {
-                    window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
+                    window.location.replace(`/Account/Login?returnUrl=${encodeURIComponent(currentPath)}`);
                 });
                 return;
             }
@@ -152,18 +190,20 @@
 
             try {
                 const userDoc = await getDoc(doc(db, "users", user.uid));
-                const userStatus = userDoc.exists() ? String(userDoc.data().status || "active").toLowerCase() : "active";
-                if (userStatus === "blocked") {
-                    Swal.fire({
-                        icon: "error",
-                        title: "Tài khoản đã bị khóa",
-                        text: "Bạn không thể đặt vé khi tài khoản đang bị khóa.",
-                        background: "#ffffff",
-                        color: "#333333",
-                        confirmButtonColor: "#f58220"
-                    }).then(() => {
-                        window.location.href = "/";
-                    });
+                const profile = userDoc.exists() ? userDoc.data() : null;
+
+                if (profile && String(profile.role || "").toLowerCase() === "admin") {
+                    window.location.replace("/Admin/Dashboard");
+                    return;
+                }
+
+                if (profile && String(profile.status || "").toLowerCase() === "blocked") {
+                    await signOut(auth);
+                    sessionStorage.removeItem("aero_auth_user");
+                    sessionStorage.removeItem("aero_user_role");
+                    sessionStorage.removeItem("aero_user_status");
+                    sessionStorage.removeItem("aero_user_name");
+                    window.location.replace("/Account/Login");
                     return;
                 }
             } catch (error) {
@@ -179,13 +219,17 @@
                     color: "#333333",
                     confirmButtonColor: "#f58220"
                 }).then(() => {
-                    window.location.href = "/Showtimes";
+                    window.location.replace("/Showtimes");
                 });
                 return;
             }
 
-            loadBookingData();
+            initBookingPage();
         });
+
+        function initBookingPage() {
+            loadBookingData();
+        }
 
         function showSeatError(title, message) {
             document.getElementById("seatMapGrid").innerHTML = `
@@ -224,9 +268,73 @@
                 sessionStorage.setItem("movieId", showtime.movieId || "");
 
                 renderSeats(showtime);
+
+                // === Restore draft seats after login ===
+                restoreDraftSeats(showtime);
             } catch (error) {
                 console.error("Error loading showtime details: ", error);
                 showSeatError("Lỗi kết nối", "Không thể tải thông tin chi tiết suất chiếu: " + error.message);
+            }
+        }
+
+        // === Restore draft booking after login redirect ===
+        function restoreDraftSeats(showtime) {
+            try {
+                const draftJson = sessionStorage.getItem("aero_booking_draft");
+                if (!draftJson) return;
+
+                const draft = JSON.parse(draftJson);
+                // Only restore if same showtime
+                if (draft.showtimeId !== showtimeId) {
+                    sessionStorage.removeItem("aero_booking_draft");
+                    return;
+                }
+
+                const draftSeats = draft.selectedSeats || [];
+                if (draftSeats.length === 0) {
+                    sessionStorage.removeItem("aero_booking_draft");
+                    return;
+                }
+
+                const soldSeats = new Set(normalizeSeatCodes(showtime.soldSeats));
+                const restoredSeats = [];
+                const lostSeats = [];
+
+                draftSeats.forEach(seat => {
+                    const seatCode = String(seat.id || "").toUpperCase();
+                    if (soldSeats.has(seatCode)) {
+                        lostSeats.push(seatCode);
+                    } else {
+                        // Find the seat element and select it
+                        const seatEl = document.querySelector(`.seat-element[data-id="${seatCode}"]`);
+                        if (seatEl && !seatEl.classList.contains("sold")) {
+                            seatEl.classList.add("selected");
+                            const price = Number(seatEl.getAttribute("data-price") || seat.price || 0);
+                            selectedSeats.push({ id: seatCode, price });
+                            totalPrice += price;
+                            restoredSeats.push(seatCode);
+                        }
+                    }
+                });
+
+                updateSummary();
+
+                if (lostSeats.length > 0) {
+                    Swal.fire({
+                        icon: "info",
+                        title: "Một số ghế đã được đặt",
+                        text: `Ghế ${lostSeats.join(", ")} đã được người khác đặt trước. Vui lòng chọn ghế khác.`,
+                        background: "#ffffff",
+                        color: "#333333",
+                        confirmButtonColor: "#f58220"
+                    });
+                }
+
+                // Clean up draft
+                sessionStorage.removeItem("aero_booking_draft");
+            } catch (e) {
+                console.warn("Cannot restore draft seats:", e);
+                sessionStorage.removeItem("aero_booking_draft");
             }
         }
 
@@ -400,7 +508,26 @@
             const seatIds = selectedSeats.map(seat => seat.id).join(",");
             sessionStorage.setItem("seats", seatIds);
             sessionStorage.setItem("total", totalPrice);
-            window.location.href = `/Booking/Checkout?showtimeId=${showtimeId}&seats=${seatIds}`;
+            sessionStorage.removeItem("comboItems");
+            sessionStorage.removeItem("comboTotal");
+
+            // Save draft in case user navigates back
+            const dtRaw = sessionStorage.getItem("datetime") || "";
+            const dtParts = dtRaw.split(" - ");
+            const draft = {
+                showtimeId: showtimeId,
+                movieId: sessionStorage.getItem("movieId") || "",
+                cinemaId: sessionStorage.getItem("cinema") || "",
+                roomId: sessionStorage.getItem("room") || "",
+                date: dtParts[1] || "",
+                time: dtParts[0] || "",
+                selectedSeats: selectedSeats.map(s => ({ id: s.id, price: s.price })),
+                ticketTotal: totalPrice,
+                createdAt: new Date().toISOString()
+            };
+            sessionStorage.setItem("aero_booking_draft", JSON.stringify(draft));
+
+            window.location.href = `/Booking/Combos?showtimeId=${showtimeId}&seats=${seatIds}`;
         };
     </script>
 }

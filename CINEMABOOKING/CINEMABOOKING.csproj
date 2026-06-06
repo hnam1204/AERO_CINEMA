@@ -122,6 +122,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="favicon.ico" />
     <Content Include="Content\bootstrap-grid.css" />
     <Content Include="Content\bootstrap-grid.min.css" />
     <Content Include="Content\bootstrap-grid.rtl.css" />
@@ -140,7 +141,6 @@
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
     <Content Include="Content\responsive.css" />
-    <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -188,6 +188,7 @@
     <Content Include="Views\Admin\Movies.cshtml" />
     <Content Include="Views\Admin\News.cshtml" />
     <Content Include="Views\Admin\Promotions.cshtml" />
+    <Content Include="Views\Admin\FoodCombos.cshtml" />
     <Content Include="Views\Admin\Reviews.cshtml" />
     <Content Include="Views\Admin\Rooms.cshtml" />
     <Content Include="Views\Admin\Settings.cshtml" />
@@ -198,6 +199,7 @@
     <Content Include="Views\Admin\Reports.cshtml" />
     <Content Include="Views\Admin\Users.cshtml" />
     <Content Include="Views\Booking\Checkout.cshtml" />
+    <Content Include="Views\Booking\Combos.cshtml" />
     <Content Include="Views\Booking\Seats.cshtml" />
     <Content Include="Views\Booking\Success.cshtml" />
     <Content Include="Views\Movies\Index.cshtml" />
