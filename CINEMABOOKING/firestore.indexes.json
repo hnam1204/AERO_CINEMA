@@ -44,6 +44,15 @@
       "collectionGroup": "showtimes",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "roomId", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "showtimes",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "movieId", "order": "ASCENDING" },
         { "fieldPath": "startTime", "order": "ASCENDING" }
       ]
