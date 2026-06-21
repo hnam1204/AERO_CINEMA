@@ -1127,7 +1127,7 @@
                     cinemasData,
                     showtimesData
                 ] = await Promise.all([
-                    getCachedDocs("movies", query(collection(db, "movies"), limit(12))),
+                    getCachedDocs("movies", query(collection(db, "movies"), limit(30))),
                     getCachedDocs("banners", query(collection(db, "banners"), limit(5))),
                     getCachedDocs("promotions", query(collection(db, "promotions"), limit(6))),
                     getCachedDocs("news", query(collection(db, "news"), limit(6))),
@@ -1284,17 +1284,61 @@
             window.dots[window.activeSlideIdx].classList.add("active");
         };
 
+        // =====================================================
+        // normalizeMovieStatus: chuẩn hoá mọi variant status
+        // Trả về: "now_showing" | "coming_soon" | "ended"
+        // =====================================================
+        const normalizeMovieStatus = (movie) => {
+            const raw = (movie.status || "").toString().trim().toLowerCase();
+            const NOW_SHOWING_VARIANTS = [
+                "now_showing", "showing", "active", "released",
+                "dang_chieu", "đang chiếu", "nowshowing", "now-showing",
+                "published", "open"
+            ];
+            const COMING_SOON_VARIANTS = [
+                "coming_soon", "upcoming", "sap_chieu", "sắp chiếu",
+                "comingsoon", "coming-soon", "pre-release", "announced"
+            ];
+
+            if (NOW_SHOWING_VARIANTS.includes(raw)) return "now_showing";
+            if (COMING_SOON_VARIANTS.includes(raw)) return "coming_soon";
+
+            // Nếu status rỗng nhưng releaseDate <= hôm nay → xem là đang chiếu
+            if (!raw) {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const rd = movie.releaseDate;
+                if (rd) {
+                    let releaseDate = null;
+                    try {
+                        if (typeof rd === "string") {
+                            releaseDate = new Date(rd);
+                        } else if (rd.toDate) {
+                            releaseDate = rd.toDate();
+                        } else {
+                            releaseDate = new Date(rd);
+                        }
+                        releaseDate.setHours(0, 0, 0, 0);
+                        if (releaseDate <= today) return "now_showing";
+                        if (releaseDate > today) return "coming_soon";
+                    } catch {}
+                }
+            }
+
+            return "ended";
+        };
+
         // Populate Quick Booking Movies select dropdown
         const populateQbMovies = () => {
             const select = document.getElementById("qbMovie");
             select.innerHTML = '<option value="" disabled selected>Chọn Phim</option>';
 
-            // Load only now showing movies in the selector
-            const nowShowingList = cachedMovies.filter(m => m.status === "now_showing");
+            // Load only now showing movies in the selector (dùng normalizeMovieStatus)
+            const nowShowingList = cachedMovies.filter(m => normalizeMovieStatus(m) === "now_showing");
             nowShowingList.forEach(m => {
                 const opt = document.createElement("option");
                 opt.value = m.id;
-                opt.innerText = m.title;
+                opt.innerText = m.title || "Đang cập nhật";
                 select.appendChild(opt);
             });
         };
@@ -1437,13 +1481,28 @@
         // Render movies grid based on selected tab
         const renderMovieGrid = () => {
             const container = document.getElementById("moviesGridDisplay");
-            const filteredMovies = cachedMovies.filter(m => m.status === currentTab);
+
+            // ✅ FIX: Dùng normalizeMovieStatus thay vì so sánh cứng m.status === currentTab
+            const allMovies = cachedMovies;
+            const nowShowingMovies = allMovies.filter(m => normalizeMovieStatus(m) === "now_showing");
+            const comingSoonMovies = allMovies.filter(m => normalizeMovieStatus(m) === "coming_soon");
+
+            // ✅ DEBUG LOG — xóa sau khi xác nhận OK
+            console.log("[AERO DEBUG] All movies loaded:", allMovies.length);
+            console.log("[AERO DEBUG] Now showing:", nowShowingMovies.length);
+            console.log("[AERO DEBUG] Coming soon:", comingSoonMovies.length);
+            console.log("[AERO DEBUG] Movie status list:", allMovies.map(m => ({ title: m.title, status: m.status, releaseDate: m.releaseDate })));
+
+            const filteredMovies = currentTab === "now_showing" ? nowShowingMovies : comingSoonMovies;
 
             if (filteredMovies.length === 0) {
+                const emptyMsg = currentTab === "now_showing"
+                    ? "Hiện chưa có phim đang chiếu."
+                    : "Hiện chưa có phim sắp chiếu.";
                 container.innerHTML = `
-                    <div style="grid-column: span 4; text-align: center; padding: 40px; color: var(--text-sub);">
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-sub);">
                         <i class="far fa-folder-open fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
-                        <span>Không tìm thấy phim nào phù hợp.</span>
+                        <span>${emptyMsg}</span>
                     </div>
                 `;
                 return;
@@ -1451,22 +1510,30 @@
 
             let html = "";
             filteredMovies.forEach(m => {
-                const ratingClass = "badge-" + (m.rating ? m.rating.toLowerCase() : "p");
-                const buyBtnHtml = m.status === "now_showing" 
+                const normalizedStatus = normalizeMovieStatus(m);
+                const ratingVal = m.rating || "P";
+                const ratingClass = "badge-" + ratingVal.toLowerCase().replace(/[^a-z0-9]/g, "");
+                const posterSrc = m.posterUrl || m.imageUrl || m.bannerUrl || "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85";
+                const titleVal = m.title || "Đang cập nhật";
+                const genreVal = (m.genre || "Đang cập nhật").split(",")[0].trim();
+                const durationVal = m.duration ? `${m.duration} Phút` : "Đang cập nhật";
+
+                const buyBtnHtml = normalizedStatus === "now_showing"
                     ? `<a href="/Movies/Details?id=${m.id}#booking-section" class="btn-card-buy"><i class="fas fa-ticket-alt"></i> Đặt Vé</a>`
                     : `<button class="btn-card-buy" style="background-color:#999; border-color:#999; cursor:not-allowed;"><i class="far fa-bell"></i> Sắp Chiếu</button>`;
 
                 html += `
                     <div class="movie-display-card">
                         <div class="card-poster-wrapper">
-                            <span class="card-rating-tag ${ratingClass}">${m.rating || 'P'}</span>
-                            <img src="${m.posterUrl}" alt="${m.title}" loading="lazy" decoding="async" onerror="this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
+                            <span class="card-rating-tag ${ratingClass}">${ratingVal}</span>
+                            <img src="${posterSrc}" alt="${titleVal}" loading="lazy" decoding="async"
+                                onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
                         </div>
                         <div class="card-details">
-                            <h3 class="card-movie-title" title="${m.title}">${m.title}</h3>
+                            <h3 class="card-movie-title" title="${titleVal}">${titleVal}</h3>
                             <div class="card-movie-meta">
-                                <span>${(m?.genre || "Đang cập nhật").split(",")[0]}</span>
-                                <span><i class="far fa-clock"></i> ${m.duration} Phút</span>
+                                <span>${genreVal}</span>
+                                <span><i class="far fa-clock"></i> ${durationVal}</span>
                             </div>
                             <div class="card-actions-row">
                                 <a href="/Movies/Details?id=${m.id}" class="btn-card-detail">Chi Tiết</a>
