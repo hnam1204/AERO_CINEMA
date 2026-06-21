@@ -329,6 +329,23 @@
                     relatedTickets(p.bookingId).forEach(t =>
                         tx.update(doc(db, "tickets", t.id), { status: "unused", updatedAt: serverTimestamp() }));
                 });
+                if (p.bookingId) {
+                    try {
+                        const idToken = await (window.AeroAdmin?.auth || window.auth || auth).currentUser.getIdToken();
+                        $.ajax({
+                            url: '/Booking/SendTicketEmail',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            headers: {
+                                'Authorization': 'Bearer ' + idToken
+                            },
+                            data: JSON.stringify({ bookingId: p.bookingId }),
+                            error: function (err) { console.warn("Lỗi gửi yêu cầu gửi email vé (Admin Payments): ", err); }
+                        });
+                    } catch (e) {
+                        console.warn("Lỗi chuẩn bị gửi email (Admin Payments): ", e);
+                    }
+                }
                 await window.AeroAdmin?.logActivity?.("approve_payment", "payments", p.id, p, { status: "paid" });
                 toast("success", "Đã xác nhận", "Booking đã chuyển paid, ticket chuyển unused.");
             } catch (e) {

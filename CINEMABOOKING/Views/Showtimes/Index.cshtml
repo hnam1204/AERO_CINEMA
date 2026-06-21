@@ -405,6 +405,7 @@
 @section scripts {
     <script type="module">
         import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { autoUpdateStatuses } from "/Scripts/aero-status-updater.js";
 
         const db = window.db;
         const AERO_CACHE = window.AERO_CACHE;
@@ -543,23 +544,24 @@
                     q = query(
                         collection(db, "showtimes"),
                         where("cinemaId", "==", selectedCinemaId),
-                        where("date", "==", selectedDate),
-                        where("status", "==", "active")
+                        where("date", "==", selectedDate)
                     );
                 } else {
                     q = query(
                         collection(db, "showtimes"),
                         where("cinemaId", "==", selectedCinemaId),
                         where("date", "==", selectedDate),
-                        where("movieId", "==", selectedMovieId),
-                        where("status", "==", "active")
+                        where("movieId", "==", selectedMovieId)
                     );
                 }
 
                 const querySnapshot = await getDocs(q);
                 const showtimesList = [];
                 querySnapshot.forEach((docSnap) => {
-                    showtimesList.push({ id: docSnap.id, ...docSnap.data() });
+                    const data = docSnap.data();
+                    if (["active", "upcoming", "showing"].includes(data.status)) {
+                        showtimesList.push({ id: docSnap.id, ...data });
+                    }
                 });
 
                 if (showtimesList.length === 0) {
@@ -667,6 +669,7 @@
 
         // DOM Loaded Init
         window.addEventListener('DOMContentLoaded', async () => {
+            await autoUpdateStatuses(db);
             initDateFilter();
             await loadCinemas();
             await loadMovies();

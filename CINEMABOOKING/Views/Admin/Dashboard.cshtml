@@ -60,6 +60,24 @@
             <div class="stat-value skeleton" id="statTopCombo">-</div>
             <div class="stat-note" id="statTopComboSub">Bán chạy nhất</div>
         </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-clock"></i></span>
+            <span class="stat-label">Ghế đang giữ</span>
+            <div class="stat-value skeleton" id="statHeldSeats">0</div>
+            <div class="stat-note" id="statHeldSeatsSub">Đang được giữ tạm thời</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-couch"></i></span>
+            <span class="stat-label">Ghế đã bán</span>
+            <div class="stat-value skeleton" id="statSoldSeats">0</div>
+            <div class="stat-note" id="statSoldSeatsSub">Trong các suất chiếu</div>
+        </div>
+        <div class="admin-stat-card">
+            <span class="stat-icon"><i class="fas fa-play-circle"></i></span>
+            <span class="stat-label">Suất chiếu đang diễn ra</span>
+            <div class="stat-value skeleton" id="statActiveShowtimes">0</div>
+            <div class="stat-note" id="statActiveShowtimesSub">Đang chiếu tại rạp</div>
+        </div>
     </section>
 
     <!-- Main Grid: Main panel (Left) + Sidebar widgets (Right) -->
@@ -230,6 +248,7 @@
             orderBy,
             limit
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { autoUpdateStatuses } from "/Scripts/aero-status-updater.js";
 
         // Active collection tracking
         const collections = ["users", "movies", "showtimes", "bookings", "tickets", "payments", "promotions", "news", "activity_logs", "cinemas", "food_combos"];
@@ -393,6 +412,48 @@
             setTextElement("statComboSoldSub", `Tổng combo đã bán`);
             setTextElement("statTopCombo", topCombo ? topCombo.name : "-");
             setTextElement("statTopComboSub", topCombo ? `${topCombo.qty.toLocaleString("vi-VN")} phần | ${formatMoney(topCombo.revenue)}` : "Chưa có dữ liệu");
+
+            // Held Seats
+            let heldSeatsCount = 0;
+            const nowTime = now.getTime();
+            state.showtimes.forEach(st => {
+                const holds = Array.isArray(st.holdSeats) ? st.holdSeats : [];
+                holds.forEach(hold => {
+                    if (hold.expiresAt) {
+                        const expireTime = new Date(hold.expiresAt).getTime();
+                        if (expireTime >= nowTime) {
+                            heldSeatsCount++;
+                        }
+                    }
+                });
+            });
+            setTextElement("statHeldSeats", heldSeatsCount.toLocaleString("vi-VN"));
+            setTextElement("statHeldSeatsSub", `${state.showtimes.filter(s => Array.isArray(s.holdSeats) && s.holdSeats.length > 0).length} suất chiếu có giữ ghế`);
+
+            // Sold Seats
+            let soldSeatsCount = 0;
+            state.showtimes.forEach(st => {
+                const solds = Array.isArray(st.soldSeats) ? st.soldSeats : [];
+                soldSeatsCount += solds.length;
+            });
+            setTextElement("statSoldSeats", soldSeatsCount.toLocaleString("vi-VN"));
+            setTextElement("statSoldSeatsSub", `Ghế đã bán thanh toán thành công`);
+
+            // Active Showtimes
+            let activeShowtimesCount = 0;
+            state.showtimes.forEach(st => {
+                if (st.status === "showing") {
+                    activeShowtimesCount++;
+                } else if (st.startAt && st.endAt) {
+                    const start = new Date(st.startAt).getTime();
+                    const end = new Date(st.endAt).getTime();
+                    if (start <= nowTime && nowTime <= end && st.status !== "inactive" && st.status !== "disabled") {
+                        activeShowtimesCount++;
+                    }
+                }
+            });
+            setTextElement("statActiveShowtimes", activeShowtimesCount.toLocaleString("vi-VN"));
+            setTextElement("statActiveShowtimesSub", `${state.showtimes.filter(s => s.status === "upcoming").length} suất sắp chiếu tiếp theo`);
         }
 
         function setTextElement(id, text) {
@@ -956,11 +1017,17 @@
         }
 
         // Attach listeners to firestore collections
-        function attachRealtimeListeners() {
+        async function attachRealtimeListeners() {
             const db = window.AeroAdmin?.db || window.db;
             if (!db) {
                 window.AeroAdmin?.toast?.("error", "Firebase chưa sẵn sàng", "Không thể khởi tạo listeners.");
                 return;
+            }
+
+            try {
+                await autoUpdateStatuses(db);
+            } catch (statusError) {
+                console.error("Auto-updating status failed:", statusError);
             }
 
             // Measure response times

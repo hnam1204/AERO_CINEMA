@@ -12,77 +12,77 @@
         <div class="auth-card register-card">
             <div class="auth-header">
                 <div class="auth-logo">AERO<span>Cinema</span></div>
-                <h1 class="auth-title">TẠO TÀI KHOẢN</h1>
-                <div class="auth-subtitle">Đăng ký thành viên để nhận ưu đãi.</div>
+                <h1 class="auth-title" data-translate="reg_title">TẠO TÀI KHOẢN</h1>
+                <div class="auth-subtitle" data-translate="reg_subtitle">Đăng ký thành viên để nhận ưu đãi.</div>
             </div>
 
             <form id="registerForm">
                 <div class="form-group">
-                    <label for="fullname">Họ tên</label>
+                    <label for="fullname" data-translate="reg_name_label">Họ tên</label>
                     <div class="form-input-wrap">
-                        <input type="text" id="fullname" class="form-input" placeholder="Nguyễn Văn A" required autocomplete="name" />
+                        <input type="text" id="fullname" class="form-input" data-translate-placeholder="reg_name_placeholder" placeholder="Nhập họ tên của bạn" required autocomplete="name" />
                     </div>
-                    <span class="field-error" id="nameError">Vui lòng nhập họ tên</span>
+                    <span class="field-error" id="nameError" data-translate="error_invalid_name">Vui lòng nhập họ tên</span>
                 </div>
 
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email" data-translate="reg_email_label">Email</label>
                     <div class="form-input-wrap">
-                        <input type="email" id="email" class="form-input" placeholder="name@domain.com" required autocomplete="email" />
+                        <input type="email" id="email" class="form-input" data-translate-placeholder="reg_email_placeholder" placeholder="Nhập email của bạn" required autocomplete="email" />
                     </div>
-                    <span class="field-error" id="emailError">Email không hợp lệ</span>
+                    <span class="field-error" id="emailError" data-translate="error_invalid_email">Email không hợp lệ</span>
                 </div>
 
                 <div class="form-group">
-                    <label for="phone">Số điện thoại</label>
+                    <label for="phone" data-translate="reg_phone_label">Số điện thoại</label>
                     <div class="form-input-wrap">
-                        <input type="tel" id="phone" class="form-input" placeholder="0901234567" required autocomplete="tel" />
+                        <input type="tel" id="phone" class="form-input" data-translate-placeholder="reg_phone_placeholder" placeholder="Nhập số điện thoại" required autocomplete="tel" />
                     </div>
-                    <span class="field-error" id="phoneError">Số điện thoại không hợp lệ</span>
+                    <span class="field-error" id="phoneError" data-translate="error_invalid_phone">Số điện thoại không hợp lệ</span>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Mật khẩu</label>
+                    <label for="password" data-translate="reg_pass_label">Mật khẩu</label>
                     <div class="form-input-wrap">
-                        <input type="password" id="password" class="form-input" placeholder="Ít nhất 8 ký tự" required autocomplete="new-password" />
+                        <input type="password" id="password" class="form-input" data-translate-placeholder="reg_pass_placeholder" placeholder="Nhập mật khẩu" required autocomplete="new-password" />
                     </div>
-                    <span class="field-error" id="passwordError">Mật khẩu chưa đủ mạnh</span>
+                    <span class="field-error" id="passwordError" data-translate="error_weak_password">Mật khẩu chưa đủ mạnh</span>
                 </div>
 
                 <div class="form-group">
-                    <label for="confirmPassword">Xác nhận mật khẩu</label>
+                    <label for="confirmPassword" data-translate="reg_confirm_label">Xác nhận mật khẩu</label>
                     <div class="form-input-wrap">
-                        <input type="password" id="confirmPassword" class="form-input" placeholder="Nhập lại mật khẩu" required autocomplete="new-password" />
+                        <input type="password" id="confirmPassword" class="form-input" data-translate-placeholder="reg_confirm_placeholder" placeholder="Nhập lại mật khẩu" required autocomplete="new-password" />
                     </div>
-                    <span class="field-error" id="confirmPasswordError">Mật khẩu xác nhận không khớp</span>
+                    <span class="field-error" id="confirmPasswordError" data-translate="error_invalid_confirm">Mật khẩu xác nhận không khớp</span>
                 </div>
 
                 <div class="terms-check">
                     <label for="agreeTerms">
                         <input type="checkbox" id="agreeTerms" />
-                        <span>Tôi đồng ý <a href="/Home/Terms" target="_blank" rel="noopener">Điều khoản dịch vụ</a> và <a href="/Home/Privacy" target="_blank" rel="noopener">Chính sách bảo mật</a>.</span>
+                        <span data-translate="reg_terms_html">Tôi đồng ý <a href="/Home/Terms" target="_blank" rel="noopener">Điều khoản dịch vụ</a> và <a href="/Home/Privacy" target="_blank" rel="noopener">Chính sách bảo mật</a>.</span>
                     </label>
-                    <span class="field-error" id="termsError">Vui lòng đồng ý điều khoản</span>
+                    <span class="field-error" id="termsError" data-translate="error_require_terms">Vui lòng đồng ý điều khoản</span>
                 </div>
 
                 <div class="otp-section" id="otpSection">
                     <div class="form-group">
-                        <label for="otpCode">Mã OTP</label>
+                        <label for="otpCode" data-translate="reg_otp_label">Mã OTP</label>
                         <div class="form-input-wrap">
-                            <input type="text" id="otpCode" class="form-input" placeholder="Nhập 6 số" maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
+                            <input type="text" id="otpCode" class="form-input" data-translate-placeholder="reg_otp_placeholder" placeholder="Nhập 6 số" maxlength="6" inputmode="numeric" autocomplete="one-time-code" />
                         </div>
-                        <div class="otp-hint" id="otpHint">Mã OTP có hiệu lực trong 5 phút.</div>
-                        <span class="field-error" id="otpError">Mã OTP không hợp lệ</span>
+                        <div class="otp-hint" id="otpHint" data-translate="otp_hint">Mã OTP có hiệu lực trong 5 phút.</div>
+                        <span class="field-error" id="otpError" data-translate="error_invalid_otp">Mã OTP không hợp lệ</span>
                     </div>
                 </div>
 
                 <button type="submit" class="btn-auth-submit" id="registerSubmitBtn">
-                    <span id="registerSubmitText">Gửi mã</span>
+                    <span id="registerSubmitText" data-translate="reg_otp_btn">Gửi mã</span>
                 </button>
             </form>
 
             <div class="auth-footer">
-                Đã có tài khoản? <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
+                <span data-translate="reg_has_acc">Đã có tài khoản?</span> <a href="@Url.Action("Login", "Account")" data-translate="reg_login_now">Đăng nhập ngay</a>
             </div>
         </div>
     </div>
@@ -164,12 +164,13 @@
         }
 
         async function sendRegisterOtp(data) {
+            const isEn = localStorage.getItem("language") === "en";
             submitBtn.disabled = true;
-            submitText.textContent = "Đang gửi...";
+            submitText.textContent = isEn ? "Sending..." : "Đang gửi...";
 
             Swal.fire({
-                title: "Đang gửi mã...",
-                text: "Vui lòng chờ trong giây lát",
+                title: isEn ? "Sending code..." : "Đang gửi mã...",
+                text: isEn ? "Please wait a moment" : "Vui lòng chờ trong giây lát",
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading(),
                 background: "#ffffff",
@@ -177,13 +178,14 @@
             });
 
             try {
-                const result = await postForm("/Otp/SendRegisterOtp", { email: data.email });
+                const currentLang = localStorage.getItem("language") || "vi";
+                const result = await postForm("/Otp/SendRegisterOtp", { email: data.email, lang: currentLang });
 
                 if (!result.success) {
                     Swal.fire({
                         icon: "error",
-                        title: "Lỗi",
-                        text: result.message || "Không thể gửi mã xác nhận.",
+                        title: isEn ? "Error" : "Lỗi",
+                        text: result.message || (isEn ? "Failed to send verification code." : "Không thể gửi mã xác nhận."),
                         background: "#ffffff",
                         color: "#333333",
                         confirmButtonColor: "#f58220"
@@ -195,13 +197,13 @@
                 pendingEmail = data.email;
                 emailInput.readOnly = true;
                 otpSection.classList.add("show");
-                otpHint.textContent = "Mã OTP đã được gửi đến " + data.email + ".";
-                submitText.textContent = "Xác nhận đăng ký";
+                otpHint.textContent = isEn ? "OTP verification code sent to " + data.email + "." : "Mã OTP đã được gửi đến " + data.email + ".";
+                submitText.textContent = isEn ? "Confirm Register" : "Xác nhận đăng ký";
 
                 Swal.fire({
                     icon: "success",
-                    title: "Đã gửi mã",
-                    text: "Vui lòng kiểm tra email.",
+                    title: isEn ? "Code Sent" : "Đã gửi mã",
+                    text: isEn ? "Please check your email." : "Vui lòng kiểm tra email.",
                     background: "#ffffff",
                     color: "#333333",
                     confirmButtonColor: "#f58220"
@@ -210,19 +212,20 @@
                 console.error("Send register OTP error:", error);
                 Swal.fire({
                     icon: "error",
-                    title: "Lỗi",
-                    text: "Không thể gửi mã xác nhận.",
+                    title: isEn ? "Error" : "Lỗi",
+                    text: isEn ? "Failed to send verification code." : "Không thể gửi mã xác nhận.",
                     background: "#ffffff",
                     color: "#333333",
                     confirmButtonColor: "#f58220"
                 });
             } finally {
                 submitBtn.disabled = false;
-                if (!otpSent) submitText.textContent = "Gửi mã";
+                if (!otpSent) submitText.textContent = isEn ? "Get OTP" : "Gửi mã";
             }
         }
 
         async function verifyOtpAndRegister(data) {
+            const isEn = localStorage.getItem("language") === "en";
             const otpInvalid = !/^[0-9]{6}$/.test(data.otpCode);
             setError("otpError", otpInvalid);
             if (otpInvalid) return;
@@ -230,8 +233,8 @@
             if (data.email !== pendingEmail) {
                 Swal.fire({
                     icon: "error",
-                    title: "Lỗi",
-                    text: "Email đã thay đổi. Vui lòng gửi lại mã OTP.",
+                    title: isEn ? "Error" : "Lỗi",
+                    text: isEn ? "Email has changed. Please request another OTP." : "Email đã thay đổi. Vui lòng gửi lại mã OTP.",
                     background: "#ffffff",
                     color: "#333333",
                     confirmButtonColor: "#f58220"
@@ -240,11 +243,11 @@
             }
 
             submitBtn.disabled = true;
-            submitText.textContent = "Đang xác nhận...";
+            submitText.textContent = isEn ? "Confirming..." : "Đang xác nhận...";
 
             Swal.fire({
-                title: "Đang xác nhận...",
-                text: "Vui lòng chờ trong giây lát",
+                title: isEn ? "Verifying..." : "Đang xác nhận...",
+                text: isEn ? "Please wait a moment" : "Vui lòng chờ trong giây lát",
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading(),
                 background: "#ffffff",
@@ -252,16 +255,18 @@
             });
 
             try {
+                const currentLang = localStorage.getItem("language") || "vi";
                 const verifyResult = await postForm("/Otp/VerifyRegisterOtp", {
                     email: data.email,
-                    code: data.otpCode
+                    code: data.otpCode,
+                    lang: currentLang
                 });
 
                 if (!verifyResult.success) {
                     Swal.fire({
                         icon: "error",
-                        title: "Lỗi",
-                        text: verifyResult.message || "Mã xác nhận không đúng hoặc đã hết hạn.",
+                        title: isEn ? "Error" : "Lỗi",
+                        text: verifyResult.message || (isEn ? "Invalid or expired verification code." : "Mã xác nhận không đúng hoặc đã hết hạn."),
                         background: "#ffffff",
                         color: "#333333",
                         confirmButtonColor: "#f58220"
@@ -284,14 +289,15 @@
                     memberRank: "Member",
                     points: 0,
                     emailVerifiedByOtp: true,
+                    language: currentLang,
                     createdAt: serverTimestamp(),
                     updatedAt: serverTimestamp()
                 });
 
                 Swal.fire({
                     icon: "success",
-                    title: "Đăng ký thành công",
-                    text: "Bạn có thể đăng nhập ngay.",
+                    title: isEn ? "Registration Successful" : "Đăng ký thành công",
+                    text: isEn ? "You can login now." : "Bạn có thể đăng nhập ngay.",
                     background: "#ffffff",
                     color: "#333333",
                     confirmButtonColor: "#f58220",
@@ -303,18 +309,18 @@
             } catch (error) {
                 console.error("Registration error:", error);
 
-                let message = "Đăng ký thất bại. Vui lòng thử lại.";
+                let message = isEn ? "Registration failed. Please try again." : "Đăng ký thất bại. Vui lòng thử lại.";
                 if (error.code === "auth/email-already-in-use") {
-                    message = "Email này đã được sử dụng.";
+                    message = isEn ? "This email is already in use." : "Email này đã được sử dụng.";
                 } else if (error.code === "auth/invalid-email") {
-                    message = "Email không hợp lệ.";
+                    message = isEn ? "Invalid email address." : "Email không hợp lệ.";
                 } else if (error.code === "auth/weak-password") {
-                    message = "Mật khẩu chưa đủ mạnh.";
+                    message = isEn ? "Password is too weak." : "Mật khẩu chưa đủ mạnh.";
                 }
 
                 Swal.fire({
                     icon: "error",
-                    title: "Lỗi",
+                    title: isEn ? "Error" : "Lỗi",
                     text: message,
                     background: "#ffffff",
                     color: "#333333",
@@ -322,7 +328,7 @@
                 });
             } finally {
                 submitBtn.disabled = false;
-                submitText.textContent = "Xác nhận đăng ký";
+                submitText.textContent = isEn ? "Confirm Register" : "Xác nhận đăng ký";
             }
         }
 

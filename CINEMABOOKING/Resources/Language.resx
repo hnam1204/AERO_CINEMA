@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="0" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="RegisterOtpSubject" xml:space="preserve">
+    <value>Mã xác nhận đăng ký AERO Cinema</value>
+  </data>
+  <data name="InvalidEmail" xml:space="preserve">
+    <value>Email không hợp lệ.</value>
+  </data>
+  <data name="OtpSent" xml:space="preserve">
+    <value>Mã xác nhận đã được gửi đến email của bạn.</value>
+  </data>
+  <data name="OtpSendFailed" xml:space="preserve">
+    <value>Không thể gửi email xác nhận. Vui lòng kiểm tra cấu hình SMTP.</value>
+  </data>
+  <data name="OtpInvalidOrExpired" xml:space="preserve">
+    <value>Mã xác nhận không đúng hoặc đã hết hạn.</value>
+  </data>
+  <data name="VerificationSuccess" xml:space="preserve">
+    <value>Xác nhận thành công.</value>
+  </data>
+  <data name="RegisterOtpBody" xml:space="preserve">
+    <value>Xin chào,
+
+Mã xác nhận đăng ký tài khoản AERO Cinema của bạn là:
+
+{0}
+
+Mã có hiệu lực trong 5 phút.
+
+Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email.
+
+AERO Cinema</value>
+  </data>
+  <data name="ForgotOtpSubject" xml:space="preserve">
+    <value>Mã xác nhận khôi phục mật khẩu AERO Cinema</value>
+  </data>
+  <data name="ForgotOtpBody" xml:space="preserve">
+    <value>Xin chào,
+
+Mã xác nhận khôi phục mật khẩu AERO Cinema của bạn là:
+
+{0}
+
+Mã có hiệu lực trong 5 phút.
+
+Nếu bạn không yêu cầu khôi phục mật khẩu, vui lòng bỏ qua email này.
+
+AERO Cinema</value>
+  </data>
+  <data name="TicketEmailSubject" xml:space="preserve">
+    <value>AERO Cinema - Xác nhận đặt vé thành công</value>
+  </data>
+  <data name="EmailGreeting" xml:space="preserve">
+    <value>Xin chào</value>
+  </data>
+  <data name="EmailThankYou" xml:space="preserve">
+    <value>Cảm ơn bạn đã sử dụng dịch vụ của AERO Cinema. Dưới đây là thông tin vé điện tử của bạn:</value>
+  </data>
+  <data name="PdfHeader" xml:space="preserve">
+    <value>AERO CINEMA</value>
+  </data>
+  <data name="PdfSubHeader" xml:space="preserve">
+    <value>VÉ XEM PHIM ĐIỆN TỬ</value>
+  </data>
+  <data name="EmailMovie" xml:space="preserve">
+    <value>Phim</value>
+  </data>
+  <data name="EmailCinema" xml:space="preserve">
+    <value>Rạp</value>
+  </data>
+  <data name="EmailRoom" xml:space="preserve">
+    <value>Phòng chiếu</value>
+  </data>
+  <data name="EmailShowDate" xml:space="preserve">
+    <value>Ngày chiếu</value>
+  </data>
+  <data name="EmailShowTime" xml:space="preserve">
+    <value>Suất chiếu</value>
+  </data>
+  <data name="EmailSeats" xml:space="preserve">
+    <value>Ghế ngồi</value>
+  </data>
+  <data name="EmailTotal" xml:space="preserve">
+    <value>Tổng thanh toán</value>
+  </data>
+  <data name="EmailBookingCode" xml:space="preserve">
+    <value>Mã đặt vé</value>
+  </data>
+  <data name="EmailTicketCode" xml:space="preserve">
+    <value>Mã vé</value>
+  </data>
+  <data name="EmailInstruction" xml:space="preserve">
+    <value>VUI LÒNG QUÉT MÃ TẠI RẠP ĐỂ NHẬN VÉ</value>
+  </data>
+  <data name="EmailDisclaimer" xml:space="preserve">
+    <value>Lưu ý: Vui lòng không chia sẻ mã QR này với bất kỳ ai để bảo mật thông tin đặt vé của bạn.</value>
+  </data>
+  <data name="EmailEnjoy" xml:space="preserve">
+    <value>Chúc quý khách xem phim vui vẻ!</value>
+  </data>
+  <data name="AutoSentMessage" xml:space="preserve">
+    <value>Hệ thống gửi vé điện tử tự động.</value>
+  </data>
+</root>

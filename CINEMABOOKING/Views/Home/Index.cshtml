@@ -1057,6 +1057,7 @@
 @section scripts {
     <script type="module">
         import { collection, getDocs, query, where, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { autoUpdateStatuses } from "/Scripts/aero-status-updater.js";
 
         const db = window.db;
         const AERO_CACHE = window.AERO_CACHE;
@@ -1115,6 +1116,9 @@
         // Load Homepage Main Data
         const loadHomeContent = async () => {
             try {
+                // Auto update movie and showtime statuses
+                await autoUpdateStatuses(db);
+
                 const [
                     moviesData,
                     bannersData,
@@ -1128,7 +1132,7 @@
                     getCachedDocs("promotions", query(collection(db, "promotions"), limit(6))),
                     getCachedDocs("news", query(collection(db, "news"), limit(6))),
                     getCachedDocs("cinemas", query(collection(db, "cinemas"), limit(12))),
-                    getCachedDocs("showtimesHome", query(collection(db, "showtimes"), where("status", "==", "active"), limit(80)))
+                    getCachedDocs("showtimesHome", query(collection(db, "showtimes"), limit(150)))
                 ]);
 
                 cachedMovies = moviesData;
@@ -1136,7 +1140,8 @@
                 cachedPromotions = promotionsData;
                 cachedNews = newsData;
                 cachedCinemas = cinemasData;
-                cachedShowtimes = showtimesData;
+                // Filter client side
+                cachedShowtimes = showtimesData.filter(st => ["active", "upcoming", "showing"].includes(st.status)).slice(0, 80);
 
                 // 1. Render Hero Banner (Fade Slider)
                 renderHeroSlider();
@@ -1312,9 +1317,10 @@
             submitBtn.disabled = true;
 
             // Load cinemas that have showtimes for this movie
+            const activeCinemaIds = cachedCinemas.filter(c => c.status !== "inactive").map(c => c.id);
             const validCinemas = {};
             cachedShowtimes.forEach(st => {
-                if (st.movieId === movieId && st.status === "active") {
+                if (st.movieId === movieId && ["active", "upcoming", "showing"].includes(st.status) && activeCinemaIds.includes(st.cinemaId)) {
                     validCinemas[st.cinemaId] = st.cinemaName;
                 }
             });
@@ -1350,7 +1356,7 @@
             // Get valid dates
             const validDates = {};
             cachedShowtimes.forEach(st => {
-                if (st.movieId === movieId && st.cinemaId === cinemaId && st.status === "active") {
+                if (st.movieId === movieId && st.cinemaId === cinemaId && ["active", "upcoming", "showing"].includes(st.status)) {
                     validDates[st.date] = st.date;
                 }
             });
@@ -1388,7 +1394,7 @@
             // Get valid showtimes slots
             const slots = [];
             cachedShowtimes.forEach(st => {
-                if (st.movieId === movieId && st.cinemaId === cinemaId && st.date === dateStr && st.status === "active") {
+                if (st.movieId === movieId && st.cinemaId === cinemaId && st.date === dateStr && ["active", "upcoming", "showing"].includes(st.status)) {
                     slots.push({ id: st.id, time: st.time });
                 }
             });
@@ -1537,7 +1543,8 @@
         // Populate system cinemas
         const renderCinemas = () => {
             const container = document.getElementById("cinemasGrid");
-            if (cachedCinemas.length === 0) {
+            const activeCinemas = cachedCinemas.filter(c => c.status !== "inactive");
+            if (activeCinemas.length === 0) {
                 container.innerHTML = `
                     <div style="grid-column: span 2; text-align: center; padding: 40px; color: var(--text-sub);">
                         <i class="fas fa-film fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
@@ -1548,7 +1555,7 @@
             }
 
             let html = "";
-            cachedCinemas.forEach(c => {
+            activeCinemas.forEach(c => {
                 html += `
                     <div class="cinema-card">
                         <div>

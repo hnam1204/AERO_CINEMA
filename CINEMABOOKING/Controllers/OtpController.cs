@@ -15,64 +15,87 @@ namespace CINEMABOOKING.Controllers
     {
         private const int OtpLifetimeMinutes = 5;
 
-        [HttpPost]
-        public JsonResult Send(string email)
+        private void SetCulture(string lang)
         {
-            return SendRegisterOtp(email);
+            if (!string.IsNullOrEmpty(lang))
+            {
+                try
+                {
+                    var cultureName = string.Equals(lang, "en", StringComparison.OrdinalIgnoreCase) ? "en-US" : "vi-VN";
+                    var culture = CultureInfo.GetCultureInfo(cultureName);
+                    System.Threading.Thread.CurrentThread.CurrentCulture = culture;
+                    System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
+                }
+                catch { }
+            }
         }
 
         [HttpPost]
-        public JsonResult Verify(string email, string code)
+        public JsonResult Send(string email, string lang = "vi")
         {
-            return VerifyRegisterOtp(email, code);
+            return SendRegisterOtp(email, lang);
         }
 
         [HttpPost]
-        public JsonResult SendRegisterOtp(string email)
+        public JsonResult Verify(string email, string code, string lang = "vi")
         {
+            return VerifyRegisterOtp(email, code, lang);
+        }
+
+        [HttpPost]
+        public JsonResult SendRegisterOtp(string email, string lang = "vi")
+        {
+            SetCulture(lang);
             return SendOtp(
                 email,
                 "REGISTER_OTP_EMAIL",
                 "REGISTER_OTP_CODE",
                 "REGISTER_OTP_EXPIRE_AT",
-                "Mã xác nhận đăng ký AERO Cinema",
-                BuildRegisterOtpBody);
+                Resources.Language.RegisterOtpSubject,
+                BuildRegisterOtpBody,
+                lang);
         }
 
         [HttpPost]
-        public JsonResult VerifyRegisterOtp(string email, string code)
+        public JsonResult VerifyRegisterOtp(string email, string code, string lang = "vi")
         {
+            SetCulture(lang);
             return VerifyOtp(
                 email,
                 code,
                 "REGISTER_OTP_EMAIL",
                 "REGISTER_OTP_CODE",
                 "REGISTER_OTP_EXPIRE_AT",
-                "REGISTER_OTP_VERIFIED_EMAIL");
+                "REGISTER_OTP_VERIFIED_EMAIL",
+                lang);
         }
 
         [HttpPost]
-        public JsonResult SendForgotPasswordOtp(string email)
+        public JsonResult SendForgotPasswordOtp(string email, string lang = "vi")
         {
+            SetCulture(lang);
             return SendOtp(
                 email,
                 "FORGOT_OTP_EMAIL",
                 "FORGOT_OTP_CODE",
                 "FORGOT_OTP_EXPIRE_AT",
-                "Mã xác nhận khôi phục mật khẩu AERO Cinema",
-                BuildForgotPasswordOtpBody);
+                Resources.Language.ForgotOtpSubject,
+                BuildForgotPasswordOtpBody,
+                lang);
         }
 
         [HttpPost]
-        public JsonResult VerifyForgotPasswordOtp(string email, string code)
+        public JsonResult VerifyForgotPasswordOtp(string email, string code, string lang = "vi")
         {
+            SetCulture(lang);
             return VerifyOtp(
                 email,
                 code,
                 "FORGOT_OTP_EMAIL",
                 "FORGOT_OTP_CODE",
                 "FORGOT_OTP_EXPIRE_AT",
-                "FORGOT_OTP_VERIFIED_EMAIL");
+                "FORGOT_OTP_VERIFIED_EMAIL",
+                lang);
         }
 
         [HttpPost]
@@ -120,13 +143,15 @@ namespace CINEMABOOKING.Controllers
             string codeSessionKey,
             string expireSessionKey,
             string subject,
-            Func<string, string> bodyBuilder)
+            Func<string, string> bodyBuilder,
+            string lang)
         {
+            SetCulture(lang);
             var normalizedEmail = NormalizeEmail(email);
 
             if (!IsValidEmail(normalizedEmail))
             {
-                return Json(new { success = false, message = "Email không hợp lệ." });
+                return Json(new { success = false, message = Resources.Language.InvalidEmail });
             }
 
             SmtpSettings smtpSettings;
@@ -145,7 +170,7 @@ namespace CINEMABOOKING.Controllers
             try
             {
                 SendEmail(smtpSettings, normalizedEmail, subject, bodyBuilder(otpCode));
-                return Json(new { success = true, message = "Mã xác nhận đã được gửi đến email của bạn." });
+                return Json(new { success = true, message = Resources.Language.OtpSent });
             }
             catch (Exception ex)
             {
@@ -153,7 +178,7 @@ namespace CINEMABOOKING.Controllers
                 return Json(new
                 {
                     success = false,
-                    message = "Không thể gửi email xác nhận. Vui lòng kiểm tra cấu hình SMTP.",
+                    message = Resources.Language.OtpSendFailed,
                     detail = ex.Message
                 });
             }
@@ -165,8 +190,10 @@ namespace CINEMABOOKING.Controllers
             string emailSessionKey,
             string codeSessionKey,
             string expireSessionKey,
-            string verifiedSessionKey)
+            string verifiedSessionKey,
+            string lang)
         {
+            SetCulture(lang);
             var normalizedEmail = NormalizeEmail(email);
             var inputCode = (code ?? string.Empty).Trim();
             var sessionEmail = Session[emailSessionKey] as string;
@@ -179,7 +206,7 @@ namespace CINEMABOOKING.Controllers
                 string.IsNullOrWhiteSpace(sessionCode) ||
                 !(expireObj is DateTime))
             {
-                return Json(new { success = false, message = "Mã xác nhận không đúng hoặc đã hết hạn." });
+                return Json(new { success = false, message = Resources.Language.OtpInvalidOrExpired });
             }
 
             var expireAt = (DateTime)expireObj;
@@ -187,19 +214,19 @@ namespace CINEMABOOKING.Controllers
             if (DateTime.UtcNow > expireAt)
             {
                 ClearOtpSession(emailSessionKey, codeSessionKey, expireSessionKey);
-                return Json(new { success = false, message = "Mã xác nhận không đúng hoặc đã hết hạn." });
+                return Json(new { success = false, message = Resources.Language.OtpInvalidOrExpired });
             }
 
             if (!string.Equals(sessionEmail, normalizedEmail, StringComparison.OrdinalIgnoreCase) ||
                 !string.Equals(sessionCode, inputCode, StringComparison.Ordinal))
             {
-                return Json(new { success = false, message = "Mã xác nhận không đúng hoặc đã hết hạn." });
+                return Json(new { success = false, message = Resources.Language.OtpInvalidOrExpired });
             }
 
             Session[verifiedSessionKey] = normalizedEmail;
             ClearOtpSession(emailSessionKey, codeSessionKey, expireSessionKey);
 
-            return Json(new { success = true, message = "Xác nhận thành công." });
+            return Json(new { success = true, message = Resources.Language.VerificationSuccess });
         }
 
         private static string BuildRegisterOtpBody(string otpCode)

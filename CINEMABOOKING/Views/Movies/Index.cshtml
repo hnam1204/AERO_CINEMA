@@ -397,20 +397,20 @@
     
     <!-- PAGE TITLE -->
     <div class="page-header-premium">
-        <h1 class="page-title-premium">Phim Đang Chiếu & Sắp Chiếu</h1>
+        <h1 class="page-title-premium" data-translate="movies_page_title">Phim Đang Chiếu & Sắp Chiếu</h1>
     </div>
 
     <!-- SEARCH & FILTER BAR -->
     <div class="search-filter-row">
         <div class="search-box-wrap">
-            <input type="text" id="searchInput" placeholder="Tìm kiếm tên phim..." autocomplete="off" />
+            <input type="text" id="searchInput" data-translate-placeholder="search_placeholder" placeholder="Tìm kiếm tên phim..." autocomplete="off" />
             <i class="fas fa-search"></i>
         </div>
 
         <div class="filter-tabs">
-            <button class="filter-tab active" id="tabAll" onclick="switchFilter('all')">Tất cả</button>
-            <button class="filter-tab" id="tabNow" onclick="switchFilter('now_showing')">Đang Chiếu</button>
-            <button class="filter-tab" id="tabSoon" onclick="switchFilter('coming_soon')">Sắp Chiếu</button>
+            <button class="filter-tab active" id="tabAll" data-translate="movies_all" onclick="switchFilter('all')">Tất cả</button>
+            <button class="filter-tab" id="tabNow" data-translate="movies_now_showing" onclick="switchFilter('now_showing')">Đang Chiếu</button>
+            <button class="filter-tab" id="tabSoon" data-translate="movies_coming_soon" onclick="switchFilter('coming_soon')">Sắp Chiếu</button>
         </div>
     </div>
 
@@ -476,6 +476,7 @@
 @section scripts {
     <script type="module">
         import { collection, getDocs, query, limit } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { autoUpdateStatuses } from "/Scripts/aero-status-updater.js";
 
         const db = window.db;
         const AERO_CACHE = window.AERO_CACHE;
@@ -494,14 +495,12 @@
         // Fetch movies from Firestore
         const fetchMovies = async () => {
             try {
-                const cachedMovies = AERO_CACHE && AERO_CACHE.get ? AERO_CACHE.get("moviesIndex") : null;
-                if (cachedMovies) {
-                    allMovies = cachedMovies;
-                } else {
-                    const querySnapshot = await getDocs(query(collection(db, "movies"), limit(24)));
-                    allMovies = querySnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-                    if (AERO_CACHE && AERO_CACHE.set) AERO_CACHE.set("moviesIndex", allMovies);
-                }
+                await autoUpdateStatuses(db);
+                if (AERO_CACHE && AERO_CACHE.set) AERO_CACHE.set("moviesIndex", null);
+
+                const querySnapshot = await getDocs(query(collection(db, "movies"), limit(24)));
+                allMovies = querySnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+                if (AERO_CACHE && AERO_CACHE.set) AERO_CACHE.set("moviesIndex", allMovies);
 
                 // Apply initial state
                 filterAndRender();
@@ -518,7 +517,8 @@
         };
 
         // Filter and Render logic
-        const filterAndRender = () => {
+        window.filterAndRender = () => {
+            const isEn = localStorage.getItem("language") === "en";
             const searchText = document.getElementById("searchInput").value.toLowerCase().trim();
             const grid = document.getElementById("moviesGrid");
             grid.innerHTML = "";
@@ -533,7 +533,7 @@
                 grid.innerHTML = `
                     <div style="grid-column: span 4; text-align: center; padding: 50px 20px; color: var(--text-sub);">
                         <i class="far fa-folder-open fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
-                        <span>Không tìm thấy phim phù hợp yêu cầu.</span>
+                        <span>${isEn ? "No matching movies found." : "Không tìm thấy phim phù hợp yêu cầu."}</span>
                     </div>
                 `;
                 return;
@@ -543,7 +543,7 @@
             filtered.forEach(m => {
                 const ratingClass = "badge-" + (m.rating ? m.rating.toLowerCase() : "p");
                 const isNowShowing = m.status === "now_showing";
-                const releaseDateFormatted = m.releaseDate ? m.releaseDate.split("-").reverse().slice(0, 2).join("/") : "Sắp chiếu";
+                const releaseDateFormatted = m.releaseDate ? m.releaseDate.split("-").reverse().slice(0, 2).join("/") : (isEn ? "Coming Soon" : "Sắp chiếu");
                 const youtubeId = window.getYoutubeId(m.trailerUrl);
 
                 html += `
@@ -562,14 +562,14 @@
                             <div>
                                 <h3 class="card-movie-title" title="${m.title}">${m.title}</h3>
                                 <div class="card-movie-meta-row">
-                                    <span>${(m?.genre || "Đang cập nhật").split(",")[0]}</span>
-                                    <span><i class="far fa-clock"></i> ${m.duration} Phút</span>
+                                    <span>${(m?.genre || (isEn ? "Updating" : "Đang cập nhật")).split(",")[0]}</span>
+                                    <span><i class="far fa-clock"></i> ${m.duration} ${isEn ? "Mins" : "Phút"}</span>
                                 </div>
                             </div>
                             <div class="card-action-buttons">
-                                <a href="/Movies/Details?id=${m.id}" class="btn-secondary-action">Chi Tiết</a>
+                                <a href="/Movies/Details?id=${m.id}" class="btn-secondary-action">${isEn ? "Details" : "Chi Tiết"}</a>
                                 ${isNowShowing
-                                    ? `<a href="/Movies/Details?id=${m.id}#booking-section" class="btn-primary-action"><i class="fas fa-ticket-alt"></i> Đặt Vé</a>`
+                                    ? `<a href="/Movies/Details?id=${m.id}#booking-section" class="btn-primary-action"><i class="fas fa-ticket-alt"></i> ${isEn ? "Book Tickets" : "Đặt Vé"}</a>`
                                     : `<button type="button" class="btn-primary-action" onclick="openTrailerModal('${youtubeId}')"><i class="fas fa-play"></i> Trailer</button>`
                                 }
                             </div>

@@ -402,32 +402,32 @@
 
         <!-- MAIN HEADER NAVIGATION -->
         <nav class="header-nav" id="headerNav">
-            <a id="nav-booking-link" href="@Url.Action("Index", "Showtimes")" class="@(controllerName == "Showtimes" ? "active" : "")">Mua Vé</a>
-            <a id="nav-movies-link" href="@Url.Action("Index", "Movies")" class="@(controllerName == "Movies" ? "active" : "")">Phim</a>
-            <a id="nav-promotions-link" href="@Url.Action("Promotions", "Home")" class="@(controllerName == "Home" && actionName == "Promotions" ? "active" : "")">Ưu Đãi</a>
-            <a id="nav-services-link" href="@Url.Action("Services", "Home")" class="@(controllerName == "Home" && actionName == "Services" ? "active" : "")">Sự Kiện</a>
-            <a id="nav-cinemas-link" href="@Url.Action("Cinemas", "Home")" class="@(controllerName == "Home" && actionName == "Cinemas" ? "active" : "")">Rạp</a>
-            <a id="nav-membership-link" href="@Url.Action("Membership", "Home")" class="@(controllerName == "Home" && actionName == "Membership" ? "active" : "")">Thành Viên</a>
-            <a id="nav-admin-link" href="@Url.Action("Dashboard", "Admin")" class="@(controllerName == "Admin" ? "active" : "")" style="display: none; color: var(--accent-color);">Quản Trị</a>
+            <a id="nav-booking-link" data-translate="nav_booking" href="@Url.Action("Index", "Showtimes")" class="@(controllerName == "Showtimes" ? "active" : "")">Mua Vé</a>
+            <a id="nav-movies-link" data-translate="nav_movies" href="@Url.Action("Index", "Movies")" class="@(controllerName == "Movies" ? "active" : "")">Phim</a>
+            <a id="nav-promotions-link" data-translate="nav_promotions" href="@Url.Action("Promotions", "Home")" class="@(controllerName == "Home" && actionName == "Promotions" ? "active" : "")">Ưu Đãi</a>
+            <a id="nav-services-link" data-translate="nav_services" href="@Url.Action("Services", "Home")" class="@(controllerName == "Home" && actionName == "Services" ? "active" : "")">Sự Kiện</a>
+            <a id="nav-cinemas-link" data-translate="nav_cinemas" href="@Url.Action("Cinemas", "Home")" class="@(controllerName == "Home" && actionName == "Cinemas" ? "active" : "")">Rạp</a>
+            <a id="nav-membership-link" data-translate="nav_membership" href="@Url.Action("Membership", "Home")" class="@(controllerName == "Home" && actionName == "Membership" ? "active" : "")">Thành Viên</a>
+            <a id="nav-admin-link" data-translate="nav_admin" href="@Url.Action("Dashboard", "Admin")" class="@(controllerName == "Admin" ? "active" : "")" style="display: none; color: var(--accent-color);">Quản Trị</a>
         </nav>
 
         <!-- CONTROLS & AUTH -->
         <div class="header-controls">
             <div class="header-search-bar">
-                <input type="text" id="layoutSearch" placeholder="Tìm kiếm phim..." autocomplete="off" />
+                <input type="text" id="layoutSearch" data-translate-placeholder="search_placeholder" placeholder="Tìm kiếm phim..." autocomplete="off" />
                 <i class="fas fa-search"></i>
             </div>
 
             <div class="auth-actions" id="auth-links">
-                <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
+                <a href="@Url.Action("Login", "Account")" data-translate="nav_login">Đăng nhập</a>
                 <span>|</span>
-                <a href="@Url.Action("Register", "Account")">Đăng ký</a>
+                <a href="@Url.Action("Register", "Account")" data-translate="nav_register">Đăng ký</a>
             </div>
 
             <div class="lang-switch d-none d-sm-flex">
-                <span class="active">VI</span>
+                <span id="lang-toggle-vi" onclick="setLanguage('vi')">VI</span>
                 <span style="color: #ccc;">|</span>
-                <span>EN</span>
+                <span id="lang-toggle-en" onclick="setLanguage('en')">EN</span>
             </div>
 
             <button type="button" class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu Toggle" aria-controls="headerNav" aria-expanded="false">
@@ -446,30 +446,30 @@
         <div class="footer-grid">
             <div class="footer-col">
                 <h4 style="color: var(--primary-color);">AERO Cinema</h4>
-                <p>Hệ thống rạp chiếu phim hiện đại và tiện lợi, mang đến trải nghiệm điện ảnh chuẩn quốc tế ngay tại Việt Nam.</p>
-                <p><i class="fas fa-phone-alt" style="color: var(--accent-color); margin-right: 5px;"></i> Hotline: 037 905 2767</p>
+                <p data-translate="footer_desc">Hệ thống rạp chiếu phim hiện đại và tiện lợi, mang đến trải nghiệm điện ảnh chuẩn quốc tế ngay tại Việt Nam.</p>
+                <p><i class="fas fa-phone-alt" style="color: var(--accent-color); margin-right: 5px;"></i> <span data-translate="footer_hotline">Hotline</span>: 037 905 2767</p>
             </div>
             
             <div class="footer-col">
-                <h4>Hỗ trợ</h4>
+                <h4 data-translate="footer_support">Hỗ trợ</h4>
                 <ul>
-                    <li><a href="@Url.Action("Support", "Home")">Hỏi đáp FAQ</a></li>
-                    <li><a href="@Url.Action("Support", "Home")">Hướng dẫn đặt vé trực tuyến</a></li>
-                    <li><a href="@Url.Action("Support", "Home")">Liên hệ góp ý</a></li>
+                    <li><a data-translate="footer_faq" href="@Url.Action("Support", "Home")">Hỏi đáp FAQ</a></li>
+                    <li><a data-translate="footer_guide" href="@Url.Action("Support", "Home")">Hướng dẫn đặt vé trực tuyến</a></li>
+                    <li><a data-translate="footer_feedback" href="@Url.Action("Support", "Home")">Liên hệ góp ý</a></li>
                 </ul>
             </div>
             
             <div class="footer-col">
-                <h4>Chính sách</h4>
+                <h4 data-translate="footer_policy">Chính sách</h4>
                 <ul>
-                    <li><a href="@Url.Action("Policy", "Home")">Chính sách thành viên</a></li>
-                    <li><a href="@Url.Action("Policy", "Home")">Điều khoản sử dụng</a></li>
-                    <li><a href="@Url.Action("Policy", "Home")">Chính sách thanh toán & đổi trả</a></li>
+                    <li><a data-translate="footer_policy_member" href="@Url.Action("Policy", "Home")">Chính sách thành viên</a></li>
+                    <li><a data-translate="footer_policy_terms" href="@Url.Action("Policy", "Home")">Điều khoản sử dụng</a></li>
+                    <li><a data-translate="footer_policy_payment" href="@Url.Action("Policy", "Home")">Chính sách thanh toán & đổi trả</a></li>
                 </ul>
             </div>
             
             <div class="footer-col">
-                <h4>Kết nối</h4>
+                <h4 data-translate="footer_connect">Kết nối</h4>
                 <p><i class="fas fa-map-marker-alt" style="color: var(--accent-color); margin-right: 5px;"></i> Đức Hòa, Long An</p>
                 <div class="footer-socials">
                     <a href="https://www.facebook.com/Please.respond.to.my.question"><i class="fab fa-facebook-f"></i></a>
@@ -480,8 +480,8 @@
         </div>
 
         <div class="footer-bottom">
-            <div>&copy; @DateTime.Now.Year AERO Cinema. Bảo lưu mọi quyền.</div>
-            <div>Hợp tác cùng thương hiệu AERO Cinema</div>
+            <div>&copy; @DateTime.Now.Year <span data-translate="footer_rights">AERO Cinema. Bảo lưu mọi quyền.</span></div>
+            <div data-translate="footer_coop">Hợp tác cùng thương hiệu AERO Cinema</div>
         </div>
     </footer>
 
@@ -489,6 +489,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="~/Scripts/aero-localize.js"></script>
 
     <script>
         function toggleMobileMenu() {
@@ -555,10 +556,22 @@
     <script type="module" src="~/Scripts/firebase-init.js"></script>
     <script type="module">
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const auth = window.auth;
         const db = window.db;
+
+        window.updateUserLanguageInFirestore = async (lang) => {
+            const user = auth.currentUser;
+            if (user) {
+                try {
+                    await updateDoc(doc(db, "users", user.uid), { language: lang });
+                    console.log("Synchronized language to Firestore user record:", lang);
+                } catch (e) {
+                    console.warn("Could not synchronize user language to Firestore:", e);
+                }
+            }
+        };
 
         // Global Role Guard Helpers
         window.AeroRoleGuard = {
@@ -689,6 +702,12 @@
                             role = cached.role || role;
                             status = cached.status || status;
                             fullName = cached.fullName || fullName;
+                            if (cached.language) {
+                                localStorage.setItem("language", cached.language);
+                                if (window.applyLanguage) {
+                                    window.applyLanguage(cached.language);
+                                }
+                            }
                         }
                     }
                 } catch (e) {
@@ -704,6 +723,16 @@
                             status = String(userData.status || "active").trim().toLowerCase();
                             fullName = userData.fullName || "";
 
+                            const userLang = userData.language || localStorage.getItem("language") || "vi";
+                            localStorage.setItem("language", userLang);
+                            if (window.applyLanguage) {
+                                window.applyLanguage(userLang);
+                            }
+
+                            if (!userData.language) {
+                                await updateDoc(doc(db, "users", user.uid), { language: userLang });
+                            }
+
                             // Set unified cache as well as legacy cache
                             const authUser = {
                                 uid: user.uid,
@@ -711,6 +740,7 @@
                                 role: role,
                                 status: status,
                                 fullName: fullName,
+                                language: userLang,
                                 cachedAt: Date.now()
                             };
                             sessionStorage.setItem("aero_auth_user", JSON.stringify(authUser));
@@ -765,27 +795,30 @@
                 }
 
                 const displayName = fullName || user.displayName || user.email || "TÀI KHOẢN";
-                const roleLabel = isAdmin ? "Admin" : "Thành viên";
+                const currentLang = localStorage.getItem("language") || "vi";
+                const roleLabelVal = isAdmin ? "Admin" : (currentLang === "en" ? "Member" : "Thành viên");
+                const logoutText = currentLang === "en" ? "Logout" : "Đăng xuất";
 
                 if (authLinks) {
                     authLinks.innerHTML = `
-                        <a href="@Url.Action("Profile", "Account")" style="color: var(--primary-color); font-weight: 700;">${displayName.toUpperCase()} · ${roleLabel}</a>
+                        <a href="@Url.Action("Profile", "Account")" style="color: var(--primary-color); font-weight: 700;">${displayName.toUpperCase()} · <span id="nav-role-label">${roleLabelVal}</span></a>
                         <span style="color:#ddd">|</span>
-                        <a href="#" id="nav-logout-btn">Đăng xuất</a>
+                        <a href="#" id="nav-logout-btn" data-translate="nav_logout">${logoutText}</a>
                     `;
 
                     const logoutBtn = document.getElementById("nav-logout-btn");
                     if (logoutBtn) {
                         logoutBtn.addEventListener("click", async (e) => {
                             e.preventDefault();
+                            const isEn = localStorage.getItem("language") === "en";
                             Swal.fire({
-                                title: 'Bạn có chắc chắn muốn đăng xuất?',
+                                title: isEn ? 'Are you sure you want to log out?' : 'Bạn có chắc chắn muốn đăng xuất?',
                                 icon: 'question',
                                 showCancelButton: true,
                                 confirmButtonColor: 'var(--primary-color)',
                                 cancelButtonColor: '#aaa',
-                                confirmButtonText: 'Đăng xuất',
-                                cancelButtonText: 'Hủy',
+                                confirmButtonText: isEn ? 'Logout' : 'Đăng xuất',
+                                cancelButtonText: isEn ? 'Cancel' : 'Hủy',
                                 background: '#ffffff',
                                 color: '#333'
                             }).then(async (result) => {
@@ -825,10 +858,12 @@
                 if (adminLink) adminLink.style.display = "none";
 
                 if (authLinks) {
+                    const loginText = (localStorage.getItem("language") || "vi") === "en" ? "Login" : "Đăng nhập";
+                    const regText = (localStorage.getItem("language") || "vi") === "en" ? "Register" : "Đăng ký";
                     authLinks.innerHTML = `
-                        <a href="@Url.Action("Login", "Account")">Đăng nhập</a>
+                        <a href="@Url.Action("Login", "Account")" data-translate="nav_login">${loginText}</a>
                         <span style="color:#ddd">|</span>
-                        <a href="@Url.Action("Register", "Account")">Đăng ký</a>
+                        <a href="@Url.Action("Register", "Account")" data-translate="nav_register">${regText}</a>
                     `;
                 }
             }

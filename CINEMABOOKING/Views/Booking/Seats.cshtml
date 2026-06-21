@@ -29,6 +29,10 @@
     .seat-element.sold::after, .legend-badge.sold::after { content: '\f00d'; font-family: 'Font Awesome 5 Free'; font-weight: 900; color: rgba(255, 255, 255, 0.7); position: absolute; }
     .seat-element.sold::after { font-size: 12px; }
     .seat-element.sold span { visibility: hidden; }
+    .seat-element.held { background-color: #94a3b8 !important; border-color: #64748b !important; color: #ffffff !important; cursor: not-allowed !important; pointer-events: none !important; }
+    .seat-element.held::after, .legend-badge.held::after { content: '\f254' !important; font-family: 'Font Awesome 5 Free'; font-weight: 900; color: rgba(255, 255, 255, 0.7) !important; position: absolute; }
+    .seat-element.held::after { font-size: 12px; }
+    .seat-element.held span { visibility: hidden; }
     .walkway-left { margin-right: 18px; }
     .walkway-right { margin-left: 18px; }
     .legend-box { display: flex; justify-content: center; flex-wrap: wrap; gap: 25px; margin-top: 40px; border-top: 1px solid var(--border-color, #e0e0e0); padding-top: 25px; width: 100%; }
@@ -39,6 +43,7 @@
     .legend-badge.selected { background-color: var(--accent-color, #f58020); border-color: var(--accent-color, #f58020); box-shadow: 0 0 8px rgba(245, 128, 32, 0.4); }
     .legend-badge.sold { background-color: #e74c3c; border-color: #c0392b; position: relative; display: flex; align-items: center; justify-content: center; }
     .legend-badge.sold::after { font-size: 10px; }
+    .legend-badge.held { background-color: #94a3b8; border-color: #64748b; position: relative; display: flex; align-items: center; justify-content: center; }
     .invoice-sidebar { padding: 30px; height: fit-content; position: sticky; top: 80px; }
     .invoice-header { border-bottom: 1px dashed var(--border-color, #e0e0e0); padding-bottom: 20px; margin-bottom: 20px; }
     .invoice-movie-title { font-family: 'Raleway', sans-serif; font-size: 20px; font-weight: 800; color: var(--text-main, #333333); text-transform: uppercase; margin: 0 0 5px 0; letter-spacing: 0.5px; }
@@ -63,19 +68,19 @@
 
 <div class="container booking-wrapper">
     <div class="booking-steps-bar">
-        <div class="step-indicator active"><i class="fas fa-couch"></i> Chọn Ghế</div>
+        <div class="step-indicator active"><i class="fas fa-couch"></i> <span data-translate="seats_step_title">Chọn Ghế</span></div>
         <div class="step-line active"></div>
-        <div class="step-indicator"><i class="fas fa-burger"></i> Combo</div>
+        <div class="step-indicator"><i class="fas fa-burger"></i> <span data-translate="seats_step_combo">Combo</span></div>
         <div class="step-line"></div>
-        <div class="step-indicator"><i class="fas fa-credit-card"></i> Thanh Toán</div>
+        <div class="step-indicator"><i class="fas fa-credit-card"></i> <span data-translate="seats_step_payment">Thanh Toán</span></div>
         <div class="step-line"></div>
-        <div class="step-indicator"><i class="fas fa-check-circle"></i> Hoàn Tất</div>
+        <div class="step-indicator"><i class="fas fa-check-circle"></i> <span data-translate="seats_step_complete">Hoàn Tất</span></div>
     </div>
 
     <div class="booking-layout">
         <div class="map-container">
             <div class="screen-perspective"><div class="screen-projection"></div></div>
-            <div class="screen-label">Màn Hình Chiếu Phim</div>
+            <div class="screen-label" data-translate="seats_screen">Màn Hình Chiếu Phim</div>
 
             <div class="seat-map-grid" id="seatMapGrid">
                 <div style="width: 100%; padding: 50px 20px;"><div class="skeleton" style="width: 100%; height: 220px;"></div></div>
@@ -85,8 +90,8 @@
                 <div class="legend-item"><div class="legend-badge"></div><span id="standardLegendLabel">Thường</span></div>
                 <div class="legend-item"><div class="legend-badge vip"></div><span id="vipLegendLabel">VIP</span></div>
                 <div class="legend-item"><div class="legend-badge couple"></div><span id="coupleLegendLabel">Ghế Đôi</span></div>
-                <div class="legend-item"><div class="legend-badge selected"></div><span>Đang Chọn</span></div>
-                <div class="legend-item"><div class="legend-badge sold"></div><span>Đã Bán</span></div>
+                <div class="legend-item"><div class="legend-badge selected"></div><span data-translate="seats_status_selected">Đang Chọn</span></div>
+                <div class="legend-item"><div class="legend-badge sold"></div><span data-translate="seats_status_sold">Đã Bán</span></div>
             </div>
         </div>
 
@@ -97,24 +102,24 @@
             </div>
 
             <div class="invoice-details-list">
-                <div class="invoice-detail-row"><span class="lbl">Rạp</span><span class="val"><div class="skeleton" style="width: 100px; height: 18px;"></div></span></div>
-                <div class="invoice-detail-row"><span class="lbl">Phòng chiếu</span><span class="val"><div class="skeleton" style="width: 80px; height: 18px;"></div></span></div>
-                <div class="invoice-detail-row"><span class="lbl">Suất chiếu</span><span class="val"><div class="skeleton" style="width: 120px; height: 18px;"></div></span></div>
-                <div class="invoice-detail-row"><span class="lbl">Thời gian</span><span class="val"><div class="skeleton" style="width: 60px; height: 18px;"></div></span></div>
+                <div class="invoice-detail-row"><span class="lbl" data-translate="seats_cinema">Rạp</span><span class="val"><div class="skeleton" style="width: 100px; height: 18px;"></div></span></div>
+                <div class="invoice-detail-row"><span class="lbl" data-translate="seats_room">Phòng chiếu</span><span class="val"><div class="skeleton" style="width: 80px; height: 18px;"></div></span></div>
+                <div class="invoice-detail-row"><span class="lbl" data-translate="seats_showtime">Suất chiếu</span><span class="val"><div class="skeleton" style="width: 120px; height: 18px;"></div></span></div>
+                <div class="invoice-detail-row"><span class="lbl" data-translate="seats_time">Thời gian</span><span class="val"><div class="skeleton" style="width: 60px; height: 18px;"></div></span></div>
             </div>
 
             <div class="invoice-selected-seats">
-                <span class="lbl">Ghế đã chọn</span>
-                <div class="val" id="selectedSeatsLabel">Chưa chọn</div>
+                <span class="lbl" data-translate="seats_selected">Ghế đã chọn</span>
+                <div class="val" id="selectedSeatsLabel" data-translate="seats_not_selected">Chưa chọn</div>
             </div>
 
             <div class="invoice-total-row">
-                <span class="lbl">Tạm Tính</span>
+                <span class="lbl" data-translate="seats_total_temp">Tạm Tính</span>
                 <span class="val" id="totalPriceLabel">0đ</span>
             </div>
 
             <button class="btn-checkout-submit" id="btnContinue" disabled onclick="goToCheckout()">
-                <span>Tiếp Tục</span>
+                <span data-translate="seats_btn_next">Tiếp Tục</span>
                 <i class="fas fa-arrow-right"></i>
             </button>
         </aside>
@@ -134,17 +139,16 @@
         let currentUser = null;
         let selectedSeats = [];
         let totalPrice = 0;
+        let showtimeData = null;
 
         // === Auth guard: unsubscribe after first check ===
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             unsubscribe(); // Only run once
 
             if (!user) {
-                // Save current URL for return after login (relative path only)
                 const currentPath = window.location.pathname + window.location.search;
                 sessionStorage.setItem("aero_return_url", currentPath);
 
-                // Save booking draft if showtimeId exists
                 if (showtimeId) {
                     let draft = {
                         showtimeId: showtimeId,
@@ -173,10 +177,11 @@
                     sessionStorage.setItem("aero_booking_draft", JSON.stringify(draft));
                 }
 
+                const currentLang = localStorage.getItem("language") || "vi";
                 Swal.fire({
                     icon: "warning",
-                    title: "Yêu cầu đăng nhập",
-                    text: "Bạn cần đăng nhập để đặt vé xem phim.",
+                    title: currentLang === "en" ? "Login Required" : "Yêu cầu đăng nhập",
+                    text: currentLang === "en" ? "You need to log in to book movie tickets." : "Bạn cần đăng nhập để đặt vé xem phim.",
                     background: "#ffffff",
                     color: "#333333",
                     confirmButtonColor: "#f58220"
@@ -211,10 +216,11 @@
             }
 
             if (!showtimeId) {
+                const currentLang = localStorage.getItem("language") || "vi";
                 Swal.fire({
                     icon: "error",
-                    title: "Thiếu thông tin",
-                    text: "Không tìm thấy thông tin suất chiếu!",
+                    title: currentLang === "en" ? "Missing Info" : "Thiếu thông tin",
+                    text: currentLang === "en" ? "Showtime details not found!" : "Không tìm thấy thông tin suất chiếu!",
                     background: "#ffffff",
                     color: "#333333",
                     confirmButtonColor: "#f58220"
@@ -245,35 +251,43 @@
             try {
                 const showtimeDoc = await getDoc(doc(db, "showtimes", showtimeId));
 
+                const currentLang = localStorage.getItem("language") || "vi";
                 if (!showtimeDoc.exists()) {
-                    showSeatError("Suất chiếu không tồn tại", "Suất chiếu này đã bị hủy hoặc không tồn tại trên hệ thống.");
+                    showSeatError(
+                        currentLang === "en" ? "Showtime does not exist" : "Suất chiếu không tồn tại", 
+                        currentLang === "en" ? "This showtime has been cancelled or does not exist." : "Suất chiếu này đã bị hủy hoặc không tồn tại trên hệ thống."
+                    );
                     return;
                 }
 
-                const showtime = showtimeDoc.data();
-                const dateFormatted = formatDateSafe(showtime.date);
+                showtimeData = showtimeDoc.data();
+                const dateFormatted = formatDateSafe(showtimeData.date);
                 const valElements = document.querySelectorAll(".invoice-detail-row .val");
 
-                document.querySelector(".invoice-movie-title").innerText = showtime.movieTitle || "AERO Cinema";
-                document.querySelector(".invoice-movie-tag").innerText = showtime.format || "2D";
-                valElements[0].innerText = showtime.cinemaName || "";
-                valElements[1].innerText = showtime.roomName || "";
+                document.querySelector(".invoice-movie-title").innerText = showtimeData.movieTitle || "AERO Cinema";
+                document.querySelector(".invoice-movie-tag").innerText = showtimeData.format || "2D";
+                valElements[0].innerText = showtimeData.cinemaName || "";
+                valElements[1].innerText = showtimeData.roomName || "";
                 valElements[2].innerText = dateFormatted;
-                valElements[3].innerText = showtime.time || "";
+                valElements[3].innerText = showtimeData.time || "";
 
-                sessionStorage.setItem("movie", showtime.movieTitle || "");
-                sessionStorage.setItem("cinema", showtime.cinemaName || "");
-                sessionStorage.setItem("room", showtime.roomName || "");
-                sessionStorage.setItem("datetime", `${showtime.time || ""} - ${dateFormatted}`);
-                sessionStorage.setItem("movieId", showtime.movieId || "");
+                sessionStorage.setItem("movie", showtimeData.movieTitle || "");
+                sessionStorage.setItem("cinema", showtimeData.cinemaName || "");
+                sessionStorage.setItem("room", showtimeData.roomName || "");
+                sessionStorage.setItem("datetime", `${showtimeData.time || ""} - ${dateFormatted}`);
+                sessionStorage.setItem("movieId", showtimeData.movieId || "");
 
-                renderSeats(showtime);
+                renderSeats(showtimeData);
 
                 // === Restore draft seats after login ===
-                restoreDraftSeats(showtime);
+                restoreDraftSeats(showtimeData);
             } catch (error) {
                 console.error("Error loading showtime details: ", error);
-                showSeatError("Lỗi kết nối", "Không thể tải thông tin chi tiết suất chiếu: " + error.message);
+                const currentLang = localStorage.getItem("language") || "vi";
+                showSeatError(
+                    currentLang === "en" ? "Connection Error" : "Lỗi kết nối",
+                    (currentLang === "en" ? "Cannot load showtime details: " : "Không thể tải thông tin chi tiết suất chiếu: ") + error.message
+                );
             }
         }
 
@@ -320,10 +334,11 @@
                 updateSummary();
 
                 if (lostSeats.length > 0) {
+                    const currentLang = localStorage.getItem("language") || "vi";
                     Swal.fire({
                         icon: "info",
-                        title: "Một số ghế đã được đặt",
-                        text: `Ghế ${lostSeats.join(", ")} đã được người khác đặt trước. Vui lòng chọn ghế khác.`,
+                        title: currentLang === "en" ? "Some seats have been booked" : "Một số ghế đã được đặt",
+                        text: currentLang === "en" ? `Seats ${lostSeats.join(", ")} have been booked by someone else. Please choose other seats.` : `Ghế ${lostSeats.join(", ")} đã được người khác đặt trước. Vui lòng chọn ghế khác.`,
                         background: "#ffffff",
                         color: "#333333",
                         confirmButtonColor: "#f58220"
@@ -339,17 +354,19 @@
         }
 
         function formatDateSafe(dateValue) {
-            if (!dateValue) return "Đang cập nhật";
+            if (!dateValue) return localStorage.getItem("language") === "en" ? "Updating" : "Đang cập nhật";
             try {
                 if (typeof dateValue === "string") {
                     const parts = dateValue.split("-");
                     if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
                     return dateValue;
                 }
-                if (dateValue.toDate) return dateValue.toDate().toLocaleDateString("vi-VN");
-                return new Date(dateValue).toLocaleDateString("vi-VN");
+                const currentLang = localStorage.getItem("language") || "vi";
+                const locale = currentLang === "en" ? "en-US" : "vi-VN";
+                if (dateValue.toDate) return dateValue.toDate().toLocaleDateString(locale);
+                return new Date(dateValue).toLocaleDateString(locale);
             } catch {
-                return "Đang cập nhật";
+                return localStorage.getItem("language") === "en" ? "Updating" : "Đang cập nhật";
             }
         }
 
@@ -366,18 +383,31 @@
         }
 
         function formatCurrency(value) {
+            const currentLang = localStorage.getItem("language") || "vi";
+            if (currentLang === "en") {
+                return Number(value || 0).toLocaleString("en-US") + " VND";
+            }
             return Number(value || 0).toLocaleString("vi-VN") + "đ";
         }
 
         function formatShortPrice(value) {
             const price = Number(value || 0);
+            const currentLang = localStorage.getItem("language") || "vi";
+            if (currentLang === "en") {
+                return price >= 1000 && price % 1000 === 0 ? (price / 1000).toLocaleString("en-US") + "k" : formatCurrency(price);
+            }
             return price >= 1000 && price % 1000 === 0 ? (price / 1000).toLocaleString("vi-VN") + "k" : formatCurrency(price);
         }
 
         function updateLegendPrices(standardPrice, vipPrice, couplePrice) {
-            document.getElementById("standardLegendLabel").innerText = `Thường (${formatShortPrice(standardPrice)})`;
-            document.getElementById("vipLegendLabel").innerText = `VIP (${formatShortPrice(vipPrice)})`;
-            document.getElementById("coupleLegendLabel").innerText = `Ghế Đôi (${formatShortPrice(couplePrice)})`;
+            const currentLang = localStorage.getItem("language") || "vi";
+            const standardText = currentLang === "en" ? "Standard" : "Thường";
+            const vipText = currentLang === "en" ? "VIP" : "VIP";
+            const coupleText = currentLang === "en" ? "Couple" : "Ghế Đôi";
+
+            document.getElementById("standardLegendLabel").innerText = `${standardText} (${formatShortPrice(standardPrice)})`;
+            document.getElementById("vipLegendLabel").innerText = `${vipText} (${formatShortPrice(vipPrice)})`;
+            document.getElementById("coupleLegendLabel").innerText = `${coupleText} (${formatShortPrice(couplePrice)})`;
         }
 
         function renderSeats(showtime) {
@@ -398,7 +428,11 @@
                 const couplePrice = Number(showtime.couplePrice || 135000);
 
                 if (seatRows.length === 0 || seatColumns <= 0) {
-                    showSeatError("Không tìm thấy sơ đồ ghế", "Phòng chiếu này hiện chưa có cấu hình sơ đồ ghế.");
+                    const currentLang = localStorage.getItem("language") || "vi";
+                    showSeatError(
+                        currentLang === "en" ? "Seat layout not found" : "Không tìm thấy sơ đồ ghế",
+                        currentLang === "en" ? "This showtime room does not have a configured seat layout." : "Phòng chiếu này hiện chưa có cấu hình sơ đồ ghế."
+                    );
                     return;
                 }
 
@@ -444,7 +478,11 @@
                 });
             } catch (error) {
                 console.error("Error drawing seats: ", error);
-                showSeatError("Lỗi kết nối", "Không thể tải sơ đồ ghế: " + error.message);
+                const currentLang = localStorage.getItem("language") || "vi";
+                showSeatError(
+                    currentLang === "en" ? "Connection Error" : "Lỗi kết nối",
+                    (currentLang === "en" ? "Cannot load seat map: " : "Không thể tải sơ đồ ghế: ") + error.message
+                );
             }
         }
 
@@ -468,10 +506,11 @@
                 totalPrice -= seatPrice;
             } else {
                 if (selectedSeats.length >= 8) {
+                    const currentLang = localStorage.getItem("language") || "vi";
                     Swal.fire({
                         icon: "warning",
-                        title: "Chọn tối đa 8 ghế",
-                        text: "Bạn chỉ được phép đặt tối đa 8 ghế trong một giao dịch.",
+                        title: currentLang === "en" ? "Select maximum 8 seats" : "Chọn tối đa 8 ghế",
+                        text: currentLang === "en" ? "You are only allowed to book a maximum of 8 seats per transaction." : "Bạn chỉ được phép đặt tối đa 8 ghế trong một giao dịch.",
                         background: "#ffffff",
                         color: "#333333",
                         confirmButtonColor: "#f58220"
@@ -498,8 +537,9 @@
                 priceLabel.innerText = formatCurrency(totalPrice);
                 btnContinue.removeAttribute("disabled");
             } else {
-                seatsLabel.innerText = "Chưa chọn";
-                priceLabel.innerText = "0đ";
+                const currentLang = localStorage.getItem("language") || "vi";
+                seatsLabel.innerText = currentLang === "en" ? "Not selected" : "Chưa chọn";
+                priceLabel.innerText = formatCurrency(0);
                 btnContinue.setAttribute("disabled", "true");
             }
         }
@@ -528,6 +568,21 @@
             sessionStorage.setItem("aero_booking_draft", JSON.stringify(draft));
 
             window.location.href = `/Booking/Combos?showtimeId=${showtimeId}&seats=${seatIds}`;
+        };
+
+        window.onLanguageChanged = function(lang) {
+            if (showtimeData) {
+                const dateFormatted = formatDateSafe(showtimeData.date);
+                const valElements = document.querySelectorAll(".invoice-detail-row .val");
+                if (valElements.length >= 4) {
+                    valElements[2].innerText = dateFormatted;
+                }
+                const standardPrice = Number(showtimeData.standardPrice || 95000);
+                const vipPrice = Number(showtimeData.vipPrice || 110000);
+                const couplePrice = Number(showtimeData.couplePrice || 135000);
+                updateLegendPrices(standardPrice, vipPrice, couplePrice);
+                updateSummary();
+            }
         };
     </script>
 }

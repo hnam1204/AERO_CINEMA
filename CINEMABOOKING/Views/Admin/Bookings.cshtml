@@ -372,6 +372,21 @@
                     status: "paid",
                     updatedAt: serverTimestamp()
                 });
+                try {
+                    const idToken = await (window.AeroAdmin?.auth || window.auth || auth).currentUser.getIdToken();
+                    $.ajax({
+                        url: '/Booking/SendTicketEmail',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        headers: {
+                            'Authorization': 'Bearer ' + idToken
+                        },
+                        data: JSON.stringify({ bookingId: b.id }),
+                        error: function (err) { console.warn("Lỗi gửi yêu cầu gửi email vé (Admin Bookings): ", err); }
+                    });
+                } catch (e) {
+                    console.warn("Lỗi chuẩn bị gửi email (Admin Bookings): ", e);
+                }
                 await window.AeroAdmin?.logActivity?.("confirm_booking", "bookings", b.id, b, { status: "paid" });
                 toast("success", "Đã xác nhận", "Booking đã chuyển sang paid.");
             } catch (err) {

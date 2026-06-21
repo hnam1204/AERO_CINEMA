@@ -74,13 +74,14 @@
                         <th>Ghế</th>
                         <th>Ngày chiếu</th>
                         <th>Trạng thái</th>
+                        <th>Email Sent</th>
                         <th><span class="sort-header" data-sort="createdAt">Ngày tạo <i class="fas fa-sort"></i></span></th>
                         <th class="action-col" style="text-align: right; width: 140px;">Hành động</th>
                     </tr>
                 </thead>
                 <tbody id="tktBody">
                     <tr>
-                        <td colspan="9"><div class="empty-state"><span>Đang tải vé...</span></div></td>
+                        <td colspan="10"><div class="empty-state"><span>Đang tải vé...</span></div></td>
                     </tr>
                 </tbody>
             </table>
@@ -248,7 +249,7 @@
             el.next.disabled = state.page >= max;
 
             if (!items.length) {
-                el.body.innerHTML = '<tr><td colspan="9"><div class="empty-state"><span>Không tìm thấy vé phù hợp.</span></div></td></tr>';
+                el.body.innerHTML = '<tr><td colspan="10"><div class="empty-state"><span>Không tìm thấy vé phù hợp.</span></div></td></tr>';
                 return;
             }
 
@@ -259,6 +260,9 @@
                 const checkinDis = isUsed || isCancelled ? "disabled" : "";
                 const cancelDis = isCancelled ? "disabled" : "";
                 const badgeClass = statusBadgeClass(s);
+                const emailSentBadge = t.emailSent 
+                    ? `<span class="admin-badge success" title="Gửi lúc: ${fmtDate(t.emailSentAt)}">Yes</span>` 
+                    : `<span class="admin-badge secondary">No</span>`;
 
                 return `<tr>
                     <td data-label="Mã vé"><div class="main"><strong>${safe(t.ticketCode, t.id.substring(0, 8) + '...')}</strong><span>${safe(t.bookingId)}</span></div></td>
@@ -268,6 +272,7 @@
                     <td data-label="Ghế">${seats(t.seats || booking(t.bookingId)?.seats)}</td>
                     <td data-label="Ngày chiếu">${showDate(t)}</td>
                     <td data-label="Trạng thái"><span class="admin-badge ${badgeClass}">${s}</span></td>
+                    <td data-label="Email Sent">${emailSentBadge}</td>
                     <td data-label="Ngày tạo">${fmtDate(t.createdAt)}</td>
                     <td data-label="Hành động" class="action-col">
                         <div class="admin-actions">
@@ -304,6 +309,8 @@
                         ).join("")}
                         <div class="detail-item"><span>seats</span><strong>${seats(t.seats || bk.seats)}</strong></div>
                         <div class="detail-item"><span>qrText</span><strong>${qr}</strong></div>
+                        <div class="detail-item"><span>emailSent</span><strong>${t.emailSent ? 'Yes' : 'No'}</strong></div>
+                        <div class="detail-item"><span>emailSentAt</span><strong>${t.emailSentAt ? fmtDate(t.emailSentAt) : '-'}</strong></div>
                         <div class="detail-item"><span>createdAt</span><strong>${fmtDate(t.createdAt)}</strong></div>
                     </div>
                 </div>`;

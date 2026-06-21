@@ -370,6 +370,42 @@
             } finally { showLoading(false); }
         }
 
+        async function checkCinemaDeleteProtection(cinemaId) {
+            const nowTime = new Date().getTime();
+
+            // 1. Check showtimes of this cinema in local state
+            const activeShowtimes = state.showtimes.filter(st => {
+                if (st.cinemaId !== cinemaId) return false;
+                if (st.status === "inactive" || st.status === "disabled") return false;
+                if (st.status !== "completed") return true;
+                if (st.startAt) {
+                    const start = new Date(st.startAt).getTime();
+                    if (start > nowTime) return true;
+                }
+                return false;
+            });
+
+            if (activeShowtimes.length > 0) {
+                return { allowed: false, message: "Không thể xóa rạp vì vẫn còn suất chiếu." };
+            }
+
+            // 2. Query bookings for references to cinemaId
+            const bookingsQuery = query(collection(db, "bookings"), where("cinemaId", "==", cinemaId), limit(1));
+            const bookingsSnap = await getDocs(bookingsQuery);
+            if (!bookingsSnap.empty) {
+                return { allowed: false, message: "Không thể xóa rạp vì khách hàng đang sở hữu vé thuộc rạp này." };
+            }
+
+            // 3. Query tickets for references to cinemaId
+            const ticketsQuery = query(collection(db, "tickets"), where("cinemaId", "==", cinemaId), limit(1));
+            const ticketsSnap = await getDocs(ticketsQuery);
+            if (!ticketsSnap.empty) {
+                return { allowed: false, message: "Không thể xóa rạp vì khách hàng đang sở hữu vé thuộc rạp này." };
+            }
+
+            return { allowed: true };
+        }
+
         async function canDelete(id) {
             if (roomsOf(id).length > 0) return false;
             const snap = await getDocs(query(collection(db, "rooms"), where("cinemaId", "==", id), limit(1)));
@@ -377,6 +413,47 @@
         }
 
         async function deleteCinema(c) {
+            showLoading(true);
+            let protection;
+            try {
+                protection = await checkCinemaDeleteProtection(c.id);
+            } catch (err) {
+                console.error("Check cinema delete protection error:", err);
+                toast("error", "Lỗi kiểm tra dữ liệu", err.message);
+                showLoading(false);
+                return;
+            }
+            showLoading(false);
+
+            if (!protection.allowed) {
+                const res = await Swal.fire({
+                    icon: "error",
+                    title: "Không thể xóa rạp",
+                    text: protection.message,
+                    showCancelButton: true,
+                    confirmButtonColor: "var(--admin-warning)",
+                    cancelButtonColor: "#475569",
+                    confirmButtonText: "Ngừng hoạt động (Tạm ẩn)",
+                    cancelButtonText: "Đóng"
+                });
+
+                if (res.isConfirmed) {
+                    showLoading(true);
+                    try {
+                        await updateDoc(doc(db, "cinemas", c.id), {
+                            status: "inactive",
+                            updatedAt: serverTimestamp()
+                        });
+                        await window.AeroAdmin?.logActivity?.("update", "cinemas", c.id, c, { ...c, status: "inactive" });
+                        toast("success", "Đã tạm ẩn", "Rạp đã được chuyển sang trạng thái Tạm ẩn (inactive).");
+                    } catch (err) {
+                        console.error("Deactivate cinema error:", err);
+                        toast("error", "Không thể cập nhật", err.message || "Vui lòng thử lại.");
+                    } finally { showLoading(false); }
+                }
+                return;
+            }
+
             const hasRooms = !(await canDelete(c.id));
             if (hasRooms) {
                 await Swal.fire({

@@ -597,6 +597,7 @@
             writeBatch,
             serverTimestamp
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { autoUpdateStatuses } from "/Scripts/aero-status-updater.js";
 
         const DEFAULT_CLEANING_TIME = 15;
         const DEFAULT_DURATION = 120;
@@ -1067,11 +1068,12 @@
             const q = query(
                 collection(db, "showtimes"),
                 where("roomId", "==", roomId),
-                where("date", "==", date),
-                where("status", "==", "active")
+                where("date", "==", date)
             );
             const snap = await getDocs(q);
-            return snap.docs.map(item => ({ id: item.id, ...item.data() }));
+            return snap.docs
+                .map(item => ({ id: item.id, ...item.data() }))
+                .filter(st => ["active", "upcoming", "showing"].includes(st.status));
         }
 
         async function validateRowsAndBuildPayloads() {
@@ -1492,6 +1494,12 @@
             if (!db) return;
             showLoading(true, "Đang tải dữ liệu lịch chiếu...");
             try {
+                try {
+                    await autoUpdateStatuses(db);
+                } catch (statusError) {
+                    console.error("Auto-update statuses failed:", statusError);
+                }
+
                 const [movies, cinemas, rooms, showtimes, bookings] = await Promise.all([
                     loadCollection("movies"),
                     loadCollection("cinemas"),

@@ -569,19 +569,19 @@
     <!-- STEP PROGRESS BAR -->
     <div class="booking-steps-bar">
         <div class="step-indicator">
-            <i class="fas fa-couch"></i> Chọn ghế
+            <i class="fas fa-couch"></i> <span data-translate="seats_step_title">Chọn ghế</span>
         </div>
         <div class="step-line active"></div>
         <div class="step-indicator">
-            <i class="fas fa-burger"></i> Combo
+            <i class="fas fa-burger"></i> <span data-translate="seats_step_combo">Combo</span>
         </div>
         <div class="step-line active"></div>
         <div class="step-indicator active">
-            <i class="fas fa-credit-card"></i> Thanh toán
+            <i class="fas fa-credit-card"></i> <span data-translate="seats_step_payment">Thanh toán</span>
         </div>
         <div class="step-line active"></div>
         <div class="step-indicator">
-            <i class="fas fa-check-circle"></i> Hoàn tất
+            <i class="fas fa-check-circle"></i> <span data-translate="seats_step_complete">Hoàn tất</span>
         </div>
     </div>
 
@@ -594,7 +594,7 @@
             <div class="checkout-card">
                 <div class="card-title">
                     <i class="fas fa-ticket-alt"></i>
-                    <span>THÔNG TIN VÉ ĐÃ ĐẶT</span>
+                    <span data-translate="checkout_summary">THÔNG TIN VÉ ĐÃ ĐẶT</span>
                 </div>
                 <div class="movie-summary-item">
                     <div class="summary-poster-wrap skeleton" id="chkPosterWrapper">
@@ -613,11 +613,11 @@
                             </div>
                             <div class="summary-meta-item">
                                 <i class="fas fa-couch"></i>
-                                <span>Ghế: <span id="chkSeats" style="font-weight: 700; color: var(--primary-color);"><span class="skeleton" style="display: inline-block; width: 80px; height: 18px; border-radius: 4px;"></span></span></span>
+                                <span><span data-translate="checkout_seats">Ghế đã chọn</span>: <span id="chkSeats" style="font-weight: 700; color: var(--primary-color);"><span class="skeleton" style="display: inline-block; width: 80px; height: 18px; border-radius: 4px;"></span></span></span>
                             </div>
                             <div class="summary-meta-item">
                                 <i class="fas fa-door-open"></i>
-                                <span>Phòng chiếu: <span id="chkRoom"><span class="skeleton" style="display: inline-block; width: 60px; height: 18px; border-radius: 4px;"></span></span></span>
+                                <span><span data-translate="checkout_room">Phòng chiếu</span>: <span id="chkRoom"><span class="skeleton" style="display: inline-block; width: 60px; height: 18px; border-radius: 4px;"></span></span></span>
                             </div>
                         </div>
                     </div>
@@ -628,20 +628,20 @@
             <div class="checkout-card">
                 <div class="card-title">
                     <i class="fas fa-user"></i>
-                    <span>THÔNG TIN NGƯỜI NHẬN VÉ</span>
+                    <span data-translate="checkout_customer_title">THÔNG TIN NGƯỜI NHẬN VÉ</span>
                 </div>
                 <form id="customerForm" class="form-grid" onsubmit="event.preventDefault();">
                     <div class="input-field-group">
-                        <label for="txtFullName">Họ và tên</label>
-                        <input type="text" id="txtFullName" placeholder="Nhập họ và tên..." required />
+                        <label for="txtFullName" data-translate="reg_name_label">Họ và tên</label>
+                        <input type="text" id="txtFullName" data-translate-placeholder="reg_name_placeholder" placeholder="Nhập họ và tên..." required />
                     </div>
                     <div class="input-field-group">
-                        <label for="txtPhone">Số điện thoại</label>
-                        <input type="tel" id="txtPhone" placeholder="Nhập số điện thoại..." required />
+                        <label for="txtPhone" data-translate="reg_phone_label">Số điện thoại</label>
+                        <input type="tel" id="txtPhone" data-translate-placeholder="reg_phone_placeholder" placeholder="Nhập số điện thoại..." required />
                     </div>
                     <div class="input-field-group full-width">
-                        <label for="txtEmail">Địa chỉ Email</label>
-                        <input type="email" id="txtEmail" placeholder="Nhập email nhận vé..." required readonly />
+                        <label for="txtEmail" data-translate="reg_email_label">Địa chỉ Email</label>
+                        <input type="email" id="txtEmail" data-translate-placeholder="reg_email_placeholder" placeholder="Nhập email nhận vé..." required readonly />
                     </div>
                 </form>
             </div>
@@ -655,7 +655,7 @@
             <div class="checkout-card">
                 <div class="card-title">
                     <i class="fas fa-wallet"></i>
-                    <span>PHƯƠNG THỨC THANH TOÁN</span>
+                    <span data-translate="checkout_payment_method">PHƯƠNG THỨC THANH TOÁN</span>
                 </div>
                 
                 <div class="payment-options">
@@ -663,7 +663,7 @@
                         <input type="radio" id="payQR" name="paymentGroup" value="qr" checked />
                         <label class="payment-option-label" for="payQR">
                             <i class="fas fa-qrcode" style="color: #005baa;"></i>
-                            <span>QR Banking / Chuyển khoản MB Bank</span>
+                            <span data-translate="checkout_bank_transfer">QR Banking / Chuyển khoản MB Bank</span>
                         </label>
                     </div>
                 </div>
@@ -676,19 +676,19 @@
                     <img src="https://img.vietqr.io/image/mbbank-195989-compact2.jpg?amount=0&addInfo=AERO&accountName=NGUYEN%20HAI%20NAM" alt="QR MB Bank" class="bank-qr-img" id="bankQrImage" />
                     <div class="bank-info-list">
                         <div class="bank-info-row">
-                            <span>Chủ tài khoản</span>
+                            <span data-translate="checkout_acc_owner">Chủ tài khoản</span>
                             <strong>NGUYỄN HẢI NAM</strong>
                         </div>
                         <div class="bank-info-row">
-                            <span>Số tài khoản</span>
+                            <span data-translate="checkout_acc_num">Số tài khoản</span>
                             <strong>195989</strong>
                         </div>
                         <div class="bank-info-row">
-                            <span>Số tiền</span>
+                            <span data-translate="checkout_price">Giá vé</span>
                             <strong class="bank-amount" id="bankQrAmount">0đ</strong>
                         </div>
                         <div class="bank-info-row">
-                            <span>Nội dung chuyển khoản</span>
+                            <span data-translate="checkout_info">Nội dung chuyển khoản</span>
                             <strong id="bankQrOrderCode">AERO</strong>
                         </div>
                     </div>
@@ -697,19 +697,19 @@
 
             <!-- Total Billing Card -->
             <div class="checkout-card">
-                <h3 class="sidebar-section-title">CHI TIẾT THANH TOÁN</h3>
+                <h3 class="sidebar-section-title" data-translate="checkout_billing_details">CHI TIẾT THANH TOÁN</h3>
                 
                 <div class="breakdown-row">
-                    <span class="lbl">Giá vé</span>
+                    <span class="lbl" data-translate="checkout_price">Giá vé</span>
                     <span class="val" id="chkTicketPrice"><span class="skeleton" style="display: inline-block; width: 80px; height: 18px; border-radius: 4px;"></span></span>
                 </div>
                 <div class="breakdown-row">
-                    <span class="lbl">Phí dịch vụ</span>
+                    <span class="lbl" data-translate="checkout_service_fee">Phí dịch vụ</span>
                     <span class="val">0đ</span>
                 </div>
 
                 <div class="breakdown-row" id="comboRow" style="display: none;">
-                    <span class="lbl">Tiền combo</span>
+                    <span class="lbl" data-translate="checkout_combo_total">Tiền combo</span>
                     <span class="val" id="chkComboPrice">0đ</span>
                 </div>
                 <div id="comboItemsContainer" style="display: none; margin-bottom: 12px; font-size: 13px; color: var(--text-sub); border-left: 2px solid var(--accent-color); padding-left: 10px; display: flex; flex-direction: column; gap: 4px;">
@@ -717,29 +717,29 @@
                 </div>
                 
                 <div class="breakdown-row" id="discountRow" style="display: none; color: #16a34a;">
-                    <span class="lbl" style="color: #16a34a;">Khuyến mãi</span>
+                    <span class="lbl" style="color: #16a34a;" data-translate="checkout_discount">Khuyến mãi</span>
                     <span class="val" id="chkDiscount">-0đ</span>
                 </div>
                 
                 <div class="divider-dashed"></div>
                 
                 <!-- PROMO INPUT BOX -->
-                <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-sub); display: block;">Mã khuyến mãi</label>
+                <label style="font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-sub); display: block;" data-translate="checkout_promo_code">Mã khuyến mãi</label>
                 <div class="promo-input-box">
-                    <input type="text" id="promoInput" placeholder="Mã giảm giá (DGCINE50 / CINEMA10)" />
-                    <button class="btn-apply-promo" onclick="applyPromo()">Áp dụng</button>
+                    <input type="text" id="promoInput" data-translate-placeholder="checkout_promo_placeholder" placeholder="Mã giảm giá (DGCINE50 / CINEMA10)" />
+                    <button class="btn-apply-promo" onclick="applyPromo()"><span data-translate="checkout_apply_btn">Áp dụng</span></button>
                 </div>
                 <span id="promoMsg" class="promo-message"></span>
                 
                 <div class="divider-dashed"></div>
                 
                 <div class="total-price-box">
-                    <span class="lbl">Tổng cộng</span>
+                    <span class="lbl" data-translate="checkout_total_label">Tổng cộng</span>
                     <span class="val" id="chkTotal"><span class="skeleton" style="display: inline-block; width: 100px; height: 26px; border-radius: 4px;"></span></span>
                 </div>
                 
-                <button class="btn-confirm-payment" onclick="processCheckout()">
-                    <span>Tôi đã chuyển khoản - Xác nhận đặt vé</span>
+                <button class="btn-confirm-payment" id="btnConfirmBooking" onclick="processCheckout()">
+                    <span data-translate="checkout_confirm_btn">Tôi đã chuyển khoản - Xác nhận đặt vé</span>
                     <i class="fas fa-shield-alt"></i>
                 </button>
             </div>
@@ -753,7 +753,7 @@
 <!-- DEMO BANKING QR MODAL SCREEN (Styled as clean Light Theme Card) -->
 <div id="processingModal" class="processing-modal">
     <div class="processing-modal-content">
-        <h3 id="modalTitle" style="text-transform: uppercase; font-weight: 800; color: var(--text-main); margin: 0; font-family: 'Raleway', sans-serif;">Thanh toán đơn hàng</h3>
+        <h3 id="modalTitle" style="text-transform: uppercase; font-weight: 800; color: var(--text-main); margin: 0; font-family: 'Raleway', sans-serif;" data-translate="checkout_modal_title">Thanh toán đơn hàng</h3>
         <p id="modalInstruction" style="font-size: 14px; color: var(--text-sub); margin: 0 0 10px 0; font-family: 'Raleway', sans-serif;"></p>
         
         <div class="qr-placeholder-image" id="qrContainer">
@@ -762,7 +762,7 @@
         
         <div style="display: flex; align-items: center; gap: 15px; margin-top: 10px;">
             <div class="spinner-loader"></div>
-            <span style="font-size: 13px; color: var(--text-sub); font-family: 'Raleway', sans-serif;">Hệ thống đang kiểm tra giao dịch...</span>
+            <span style="font-size: 13px; color: var(--text-sub); font-family: 'Raleway', sans-serif;" data-translate="checkout_checking_transaction">Hệ thống đang kiểm tra giao dịch...</span>
         </div>
     </div>
 </div>
@@ -796,29 +796,37 @@
         let orderCode = "";
 
         function formatDateSafe(dateValue) {
-            if (!dateValue) return "Đang cập nhật";
+            if (!dateValue) return localStorage.getItem("language") === "en" ? "Updating" : "Đang cập nhật";
             try {
                 if (typeof dateValue === "string") {
                     const parts = dateValue.split("-");
                     if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
                     return dateValue;
                 }
+                const currentLang = localStorage.getItem("language") || "vi";
+                const locale = currentLang === "en" ? "en-US" : "vi-VN";
                 if (dateValue.toDate) {
-                    return dateValue.toDate().toLocaleDateString("vi-VN");
+                    return dateValue.toDate().toLocaleDateString(locale);
                 }
-                return new Date(dateValue).toLocaleDateString("vi-VN");
+                return new Date(dateValue).toLocaleDateString(locale);
             } catch {
-                return "Đang cập nhật";
+                return localStorage.getItem("language") === "en" ? "Updating" : "Đang cập nhật";
             }
         }
 
         function formatCurrency(amount) {
             const value = Number(amount || 0);
+            const currentLang = localStorage.getItem("language") || "vi";
+            if (currentLang === "en") {
+                return value.toLocaleString("en-US") + " VND";
+            }
             return value.toLocaleString("vi-VN") + "đ";
         }
 
         function safeText(value, fallback = "Đang cập nhật") {
-            return value === undefined || value === null || value === "" ? fallback : value;
+            const currentLang = localStorage.getItem("language") || "vi";
+            const currentFallback = fallback === "Đang cập nhật" && currentLang === "en" ? "Updating" : fallback;
+            return value === undefined || value === null || value === "" ? currentFallback : value;
         }
 
         function getMbBankQrUrl() {
@@ -895,10 +903,11 @@
             }
 
             if (!showtimeId || !seatsParam) {
+                const currentLang = localStorage.getItem("language") || "vi";
                 Swal.fire({
                     icon: 'error',
-                    title: 'Thiếu thông tin đặt vé',
-                    text: 'Lỗi truyền dữ liệu đặt vé. Vui lòng thử lại!',
+                    title: currentLang === 'en' ? 'Missing booking details' : 'Thiếu thông tin đặt vé',
+                    text: currentLang === 'en' ? 'Booking information transmission error. Please try again!' : 'Lỗi truyền dữ liệu đặt vé. Vui lòng thử lại!',
                     background: '#ffffff',
                     color: '#1f2937',
                     confirmButtonColor: '#f58220'
@@ -917,9 +926,10 @@
                 // Fetch Showtime
                 const showtimeDoc = await getDoc(doc(db, "showtimes", showtimeId));
                 if (!showtimeDoc.exists()) {
+                    const currentLang = localStorage.getItem("language") || "vi";
                     Swal.fire({
                         icon: 'error',
-                        title: 'Suất chiếu không tồn tại',
+                        title: currentLang === 'en' ? 'Showtime does not exist' : 'Suất chiếu không tồn tại',
                         background: '#ffffff',
                         color: '#1f2937',
                         confirmButtonColor: '#f58220'
@@ -984,7 +994,8 @@
                     ).join("");
                 } else {
                     comboRow.style.display = "flex";
-                    chkComboPrice.innerText = "Không chọn combo";
+                    const currentLang = localStorage.getItem("language") || "vi";
+                    chkComboPrice.innerText = currentLang === "en" ? "No combo selected" : "Không chọn combo";
                     comboItemsContainer.style.display = "none";
                     comboItemsContainer.innerHTML = "";
                 }
@@ -1018,22 +1029,23 @@
             const chkTotal = document.getElementById("chkTotal");
             
             const basePrice = ticketPrice + comboTotal;
+            const currentLang = localStorage.getItem("language") || "vi";
             if (promoCode === "DGCINE50") {
                 discount = Math.min(50000, basePrice);
                 promoMsg.style.color = "#16a34a";
-                promoMsg.innerText = "Áp dụng thành công! Giảm 50.000đ";
+                promoMsg.innerText = currentLang === "en" ? "Success! Discounted 50,000 VND" : "Áp dụng thành công! Giảm 50.000đ";
                 discountRow.style.display = "flex";
                 chkDiscount.innerText = "-" + formatCurrency(discount);
             } else if (promoCode === "CINEMA10") {
                 discount = Math.floor(basePrice * 0.1);
                 promoMsg.style.color = "#16a34a";
-                promoMsg.innerText = "Áp dụng thành công! Giảm 10% tổng hóa đơn";
+                promoMsg.innerText = currentLang === "en" ? "Success! Discounted 10% of total amount" : "Áp dụng thành công! Giảm 10% tổng hóa đơn";
                 discountRow.style.display = "flex";
                 chkDiscount.innerText = "-" + formatCurrency(discount);
             } else {
                 discount = 0;
                 promoMsg.style.color = "#dc2626";
-                promoMsg.innerText = "Mã khuyến mãi không hợp lệ!";
+                promoMsg.innerText = currentLang === "en" ? "Invalid promo code!" : "Mã khuyến mãi không hợp lệ!";
                 discountRow.style.display = "none";
             }
             
@@ -1048,10 +1060,11 @@
             const phone = document.getElementById("txtPhone").value.trim();
             
             if (!fullName || !phone) {
+                const currentLang = localStorage.getItem("language") || "vi";
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Thiếu thông tin',
-                    text: 'Vui lòng nhập đầy đủ thông tin Họ tên và Số điện thoại.',
+                    title: currentLang === 'en' ? 'Missing information' : 'Thiếu thông tin',
+                    text: currentLang === 'en' ? 'Please enter your Full Name and Phone Number.' : 'Vui lòng nhập đầy đủ thông tin Họ tên và Số điện thoại.',
                     background: '#ffffff',
                     color: '#1f2937',
                     confirmButtonColor: '#f58220'
@@ -1059,14 +1072,26 @@
                 return;
             }
 
+            // Disable button and change text
+            const btn = document.getElementById("btnConfirmBooking");
+            if (btn) {
+                btn.disabled = true;
+                const span = btn.querySelector("span");
+                if (span) {
+                    const currentLang = localStorage.getItem("language") || "vi";
+                    span.innerText = currentLang === "en" ? "Confirming and sending ticket..." : "Đang xác nhận và gửi vé...";
+                }
+            }
+
             await executeBookingDB();
         };
 
         // 6. Execute atomic booking write via Firestore Transaction
         async function executeBookingDB() {
+            const currentLang = localStorage.getItem("language") || "vi";
             Swal.fire({
-                title: 'Đang tạo đơn đặt vé...',
-                text: 'Vui lòng chờ trong giây lát, chúng tôi đang giữ ghế của bạn',
+                title: currentLang === 'en' ? 'Creating booking...' : 'Đang tạo đơn đặt vé...',
+                text: currentLang === 'en' ? 'Please wait, we are securing your seats' : 'Vui lòng chờ trong giây lát, chúng tôi đang giữ ghế của bạn',
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -1091,11 +1116,15 @@
                     updateBankQrBox();
                 }
 
+                const ticketRef = doc(collection(db, "tickets"));
+                const ticketId = ticketRef.id;
+
                 await runTransaction(db, async (transaction) => {
                     const currentShowtimeDoc = await transaction.get(showtimeRef);
 
                     if (!currentShowtimeDoc.exists()) {
-                        throw "Suất chiếu không tồn tại trên hệ thống.";
+                        const currentLang = localStorage.getItem("language") || "vi";
+                        throw currentLang === 'en' ? "Showtime does not exist." : "Suất chiếu không tồn tại trên hệ thống.";
                     }
 
                     const currentShowtime = currentShowtimeDoc.data();
@@ -1106,15 +1135,27 @@
                     const duplicatedSeat = seatList.find(seat => soldSeatsSet.has(seat));
 
                     if (duplicatedSeat) {
-                        throw `Ghế ${duplicatedSeat} đã bị người dùng khác đặt trước. Vui lòng chọn ghế khác!`;
+                        const currentLang = localStorage.getItem("language") || "vi";
+                        throw currentLang === 'en' 
+                            ? `Seat ${duplicatedSeat} has been booked by another user. Please choose another seat!`
+                            : `Ghế ${duplicatedSeat} đã bị người dùng khác đặt trước. Vui lòng chọn ghế khác!`;
                     }
 
+                    // Clean holdSeats for these seats
+                    const currentHoldSeats = Array.isArray(currentShowtime.holdSeats) ? currentShowtime.holdSeats : [];
+                    const updatedHoldSeats = currentHoldSeats.filter(hold => {
+                        return !seatList.includes(hold.seatCode);
+                    });
+
                     seatList.forEach(seat => soldSeatsSet.add(seat));
+                    
                     transaction.update(showtimeRef, {
                         soldSeats: Array.from(soldSeatsSet),
+                        holdSeats: updatedHoldSeats,
                         updatedAt: serverTimestamp()
                     });
-                    // Add Booking Document
+
+                    // Add Booking Document (with current user language selection)
                     const bookingDoc = {
                         userId: currentUser.uid,
                         userEmail: currentUser.email,
@@ -1131,13 +1172,14 @@
                         comboTotal: comboTotal,
                         totalPrice: totalAmount,
                         paymentMethod: selectedMethod,
-                        status: "pending",
+                        status: "confirmed",
+                        paymentStatus: "paid",
+                        language: currentLang,
                         createdAt: serverTimestamp()
                     };
                     transaction.set(bookingRef, bookingDoc);
 
                     // Add Ticket Document
-                    const ticketRef = doc(collection(db, "tickets"));
                     const ticketCode = "AERO-" + Math.floor(100000 + Math.random() * 900000);
                     const ticketDoc = {
                         bookingId: bookingId,
@@ -1148,7 +1190,9 @@
                         comboItems: comboItems,
                         comboTotal: comboTotal,
                         qrText: "AEROCINEMA-" + ticketCode,
-                        status: "pending",
+                        status: "valid",
+                        emailSent: false,
+                        emailSentAt: null,
                         createdAt: serverTimestamp()
                     };
                     transaction.set(ticketRef, ticketDoc);
@@ -1161,8 +1205,10 @@
                         amount: totalAmount,
                         ticketTotal: ticketPrice,
                         comboTotal: comboTotal,
-                        method: selectedMethod,
-                        status: "pending",
+                        method: "bank_transfer",
+                        status: "paid",
+                        confirmedBy: "customer_transfer_confirm",
+                        confirmedAt: serverTimestamp(),
                         createdAt: serverTimestamp()
                     };
                     transaction.set(paymentRef, paymentDoc);
@@ -1178,25 +1224,84 @@
                 sessionStorage.removeItem("seats");
                 sessionStorage.removeItem("total");
 
-                // Success Redirect
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Đặt vé thành công!',
-                    text: 'Đơn đặt vé đang chờ xác nhận thanh toán từ quản trị viên.',
-                    background: '#ffffff',
-                    color: '#1f2937',
-                    confirmButtonColor: '#f58220',
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = `/Booking/Success?bookingId=${bookingId}`;
-                });
+                // Get Auth ID token for AJAX request
+                let idToken = "";
+                if (currentUser) {
+                    try {
+                        idToken = await currentUser.getIdToken();
+                    } catch (tokenErr) {
+                        console.warn("Failed to get ID token:", tokenErr);
+                    }
+                }
+
+                // Call POST /Booking/SendTicketEmail immediately after transaction succeeds
+                let emailSentSuccessfully = false;
+                try {
+                    const formData = new FormData();
+                    formData.append("bookingId", bookingId);
+                    formData.append("ticketId", ticketId);
+
+                    const response = await fetch('/Booking/SendTicketEmail', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + idToken
+                        },
+                        body: formData
+                    });
+                    
+                    const resJson = await response.json();
+                    if (resJson && resJson.success) {
+                        emailSentSuccessfully = true;
+                    }
+                } catch (emailErr) {
+                    console.error("AJAX SendTicketEmail error:", emailErr);
+                }
+
+                // Success Alert and Redirect
+                const finalLang = localStorage.getItem("language") || "vi";
+                if (emailSentSuccessfully) {
+                    await Swal.fire({
+                        icon: 'success',
+                        title: finalLang === 'en' ? 'Booking Success' : 'Đặt vé thành công',
+                        text: finalLang === 'en' ? 'E-ticket has been sent to your email.' : 'Vé điện tử đã được gửi đến email của bạn.',
+                        background: '#ffffff',
+                        color: '#1f2937',
+                        confirmButtonColor: '#f58220',
+                        timer: 3000
+                    });
+                } else {
+                    await Swal.fire({
+                        icon: 'info',
+                        title: finalLang === 'en' ? 'Booking Success' : 'Đặt vé thành công',
+                        text: finalLang === 'en' 
+                            ? 'Booking was successful, but we could not send the email yet. You can still view it in your Booking History.'
+                            : 'Đặt vé thành công nhưng chưa gửi được email. Bạn vẫn có thể xem vé trong Lịch sử vé.',
+                        background: '#ffffff',
+                        color: '#1f2937',
+                        confirmButtonColor: '#f58220'
+                    });
+                }
+
+                window.location.href = `/Booking/Success?bookingId=${bookingId}`;
 
             } catch (error) {
                 console.error("Booking transaction failed: ", error);
+                
+                // Re-enable confirm button
+                const btn = document.getElementById("btnConfirmBooking");
+                if (btn) {
+                    btn.disabled = false;
+                    const span = btn.querySelector("span");
+                    if (span) {
+                        const finalLang = localStorage.getItem("language") || "vi";
+                        span.innerText = finalLang === "en" ? "Confirm Booking" : "Tôi đã chuyển khoản - Xác nhận đặt vé";
+                    }
+                }
+
+                const finalLang = localStorage.getItem("language") || "vi";
                 Swal.fire({
                     icon: 'error',
-                    title: 'Đặt vé thất bại',
+                    title: finalLang === 'en' ? 'Booking Failed' : 'Đặt vé thất bại',
                     text: typeof error === 'string' ? error : error.message,
                     background: '#ffffff',
                     color: '#1f2937',
@@ -1204,6 +1309,38 @@
                 });
             }
         }
+
+        window.onLanguageChanged = function(lang) {
+            if (showtimeData) {
+                // Update cinema, room, time dynamically
+                document.getElementById("chkDateTime").innerText = `${safeText(showtimeData.time)} - ${formatDateSafe(showtimeData.date)}`;
+                
+                // Update prices
+                document.getElementById("chkTicketPrice").innerText = formatCurrency(ticketPrice);
+                const currentLang = localStorage.getItem("language") || "vi";
+                if (comboItems && comboItems.length > 0) {
+                    document.getElementById("chkComboPrice").innerText = formatCurrency(comboTotal);
+                } else {
+                    document.getElementById("chkComboPrice").innerText = currentLang === "en" ? "No combo selected" : "Không chọn combo";
+                }
+                
+                if (discount > 0) {
+                    document.getElementById("chkDiscount").innerText = "-" + formatCurrency(discount);
+                }
+                
+                document.getElementById("chkTotal").innerText = formatCurrency(totalAmount);
+                updateBankQrBox();
+
+                // Update processing button text
+                const btn = document.getElementById("btnConfirmBooking");
+                if (btn) {
+                    const span = btn.querySelector("span");
+                    if (span && !btn.disabled) {
+                        span.innerText = currentLang === "en" ? "Confirm Booking" : "Tôi đã chuyển khoản - Xác nhận đặt vé";
+                    }
+                }
+            }
+        };
     </script>
 }
 

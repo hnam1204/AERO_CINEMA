@@ -12,41 +12,41 @@
         <div class="auth-card">
             <div class="auth-header">
                 <div class="auth-logo">AERO<span>Cinema</span></div>
-                <h1 class="auth-title">ĐĂNG NHẬP</h1>
-                <div class="auth-subtitle">Tiếp tục đặt vé và quản lý tài khoản.</div>
+                <h1 class="auth-title" data-translate="login_title">ĐĂNG NHẬP</h1>
+                <div class="auth-subtitle" data-translate="login_subtitle">Tiếp tục đặt vé và quản lý tài khoản.</div>
             </div>
 
             <form id="loginForm">
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email" data-translate="login_email_label">Email</label>
                     <div class="form-input-wrap">
-                        <input type="email" id="email" class="form-input" placeholder="name@domain.com" required autocomplete="email" />
+                        <input type="email" id="email" class="form-input" data-translate-placeholder="login_email_placeholder" placeholder="Nhập email của bạn" required autocomplete="email" />
                     </div>
-                    <span class="field-error" id="emailError">Email không hợp lệ</span>
+                    <span class="field-error" id="emailError" data-translate="error_invalid_email">Email không hợp lệ</span>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">Mật khẩu</label>
+                    <label for="password" data-translate="login_pass_label">Mật khẩu</label>
                     <div class="form-input-wrap">
-                        <input type="password" id="password" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+                        <input type="password" id="password" class="form-input" data-translate-placeholder="login_pass_placeholder" placeholder="Nhập mật khẩu" required autocomplete="current-password" />
                     </div>
-                    <span class="field-error" id="passwordError">Vui lòng nhập mật khẩu</span>
+                    <span class="field-error" id="passwordError" data-translate="error_require_password">Vui lòng nhập mật khẩu</span>
                 </div>
 
                 <div class="form-helper">
                     <label>
-                        <input type="checkbox" id="remember" /> Ghi nhớ đăng nhập
+                        <input type="checkbox" id="remember" /> <span data-translate="login_remember">Ghi nhớ đăng nhập</span>
                     </label>
-                    <a href="@Url.Action("ForgotPassword", "Account")">Quên mật khẩu?</a>
+                    <a href="@Url.Action("ForgotPassword", "Account")" data-translate="login_forgot">Quên mật khẩu?</a>
                 </div>
 
                 <button type="submit" class="btn-auth-submit" id="loginSubmitBtn">
-                    <span id="loginSubmitText">Đăng nhập</span>
+                    <span id="loginSubmitText" data-translate="login_submit">Đăng nhập</span>
                 </button>
             </form>
 
             <div class="auth-footer">
-                Chưa có tài khoản? <a href="@Url.Action("Register", "Account")">Đăng ký</a>
+                <span data-translate="login_no_acc">Chưa có tài khoản?</span> <a href="@Url.Action("Register", "Account")" data-translate="login_reg_now">Đăng ký ngay</a>
             </div>
         </div>
     </div>

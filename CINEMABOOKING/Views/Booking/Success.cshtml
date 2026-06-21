@@ -380,8 +380,14 @@
             </div>
         </div>
 
-        <h1 class="success-title">Đặt Vé Thành Công!</h1>
+        <h1 class="success-title">Đặt vé thành công</h1>
         <p class="success-message">Giao dịch của bạn đã được thực hiện thành công. Vui lòng kiểm tra thông tin vé bên dưới để đối chiếu tại rạp.</p>
+
+        <!-- Success Email Notification Message -->
+        <div id="emailNotificationBox" style="display: none; align-items: center; justify-content: center; gap: 8px; margin: -15px auto 25px auto; padding: 10px 20px; border-radius: 30px; background-color: rgba(40, 167, 69, 0.1); border: 1px solid #28a745; max-width: 420px; color: #28a745; font-weight: 700; font-size: 14px;">
+            <i class="fas fa-envelope-circle-check" style="font-size: 16px;"></i>
+            <span>Vé điện tử đã được gửi đến email của bạn.</span>
+        </div>
 
         <!-- PHYSICAL TICKET VIEW -->
         <div class="ticket-container">
@@ -564,6 +570,8 @@
                 // Fetch associated Ticket
                 let ticketCode = "AERO-UNKNOWN";
                 let qrText = "AEROCINEMA-UNKNOWN";
+                let ticketId = "";
+                let emailSent = false;
                 
                 try {
                     const user = auth.currentUser;
@@ -581,8 +589,10 @@
                     const ticketSnap = await getDocs(ticketQuery);
                     if (!ticketSnap.empty) {
                         const ticketData = ticketSnap.docs[0].data();
+                        ticketId = ticketSnap.docs[0].id;
                         ticketCode = ticketData.ticketCode || ticketCode;
                         qrText = ticketData.qrText || qrText;
+                        emailSent = ticketData.emailSent || false;
                     }
                 } catch (e) {
                     console.error("Error loading ticket: ", e);
@@ -638,6 +648,17 @@
                 };
                 qrImg.src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(qrText);
 
+                // Auto send email if paid or confirmed, and not sent yet
+                const bStatus = (bookingData.status || "").toLowerCase();
+                if ((bStatus === "paid" || bStatus === "confirmed") && !emailSent && ticketId) {
+                    triggerEmailNotification(bookingId, ticketId);
+                } else if (emailSent) {
+                    const emailBox = document.getElementById("emailNotificationBox");
+                    if (emailBox) {
+                        emailBox.style.display = "flex";
+                    }
+                }
+
             } catch (error) {
                 console.error("Error loading success page data: ", error);
                 Swal.fire({
@@ -648,6 +669,38 @@
                     color: '#1f2937',
                     confirmButtonColor: '#f58220'
                 });
+            }
+        }
+
+        async function triggerEmailNotification(bId, tId) {
+            try {
+                const user = auth.currentUser;
+                let idToken = "";
+                if (user) {
+                    idToken = await user.getIdToken();
+                }
+
+                $.ajax({
+                    url: '/Booking/SendTicketEmail',
+                    type: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + idToken
+                    },
+                    data: { bookingId: bId, ticketId: tId },
+                    success: function (res) {
+                        if (res && res.success) {
+                            const emailBox = document.getElementById("emailNotificationBox");
+                            if (emailBox) {
+                                emailBox.style.display = "flex";
+                            }
+                        }
+                    },
+                    error: function (err) {
+                        console.warn("Lỗi gửi yêu cầu gửi email vé: ", err);
+                    }
+                });
+            } catch (err) {
+                console.warn("Lỗi chuẩn bị gửi email: ", err);
             }
         }
     </script>

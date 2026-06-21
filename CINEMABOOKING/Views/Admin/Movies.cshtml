@@ -96,6 +96,7 @@
                         <th><span class="sort-header" data-sort="format">Định dạng <i class="fas fa-sort"></i></span></th>
                         <th><span class="sort-header" data-sort="language">Ngôn ngữ <i class="fas fa-sort"></i></span></th>
                         <th><span class="sort-header" data-sort="releaseDate">Khởi chiếu <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="movieRunDays">Số ngày chiếu <i class="fas fa-sort"></i></span></th>
                         <th><span class="sort-header" data-sort="status">Trạng thái <i class="fas fa-sort"></i></span></th>
                         <th><span class="sort-header" data-sort="voteAverage">Đánh giá <i class="fas fa-sort"></i></span></th>
                         <th><span class="sort-header" data-sort="voteCount">Lượt đánh giá <i class="fas fa-sort"></i></span></th>
@@ -146,10 +147,15 @@
                             <input class="admin-control" id="releaseDate" type="date" required />
                         </div>
                         <div class="admin-field">
+                            <label for="movieRunDays">Số ngày chiếu *</label>
+                            <input class="admin-control" id="movieRunDays" type="number" min="1" required value="30" />
+                        </div>
+                        <div class="admin-field">
                             <label for="status">Trạng thái *</label>
                             <select class="admin-control" id="status" required>
                                 <option value="now_showing">Đang chiếu</option>
                                 <option value="coming_soon">Sắp chiếu</option>
+                                <option value="ended">Đã kết thúc</option>
                                 <option value="inactive">Đang ẩn</option>
                             </select>
                         </div>
@@ -269,6 +275,7 @@
             limit,
             serverTimestamp
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { autoUpdateStatuses } from "/Scripts/aero-status-updater.js";
 
         const pageState = {
             movies: [],
@@ -304,7 +311,7 @@
         const fields = [
             "title", "posterUrl", "bannerUrl", "duration", "rating", "genre", "description",
             "releaseDate", "status", "format", "director", "actors", "country", "language",
-            "trailerUrl", "voteAverage", "voteCount"
+            "trailerUrl", "voteAverage", "voteCount", "movieRunDays"
         ];
 
         function showLoading(show) {
@@ -368,6 +375,7 @@
             const map = {
                 now_showing: "Đang chiếu",
                 coming_soon: "Sắp chiếu",
+                ended: "Đã kết thúc",
                 inactive: "Đang ẩn",
                 active: "Hoạt động",
                 hidden: "Đang ẩn"
@@ -385,6 +393,7 @@
             data.duration = toNumber(data.duration);
             data.voteAverage = toNumber(data.voteAverage);
             data.voteCount = toNumber(data.voteCount);
+            data.movieRunDays = toNumber(data.movieRunDays, 30);
             return data;
         }
 
@@ -393,6 +402,7 @@
             if (!data.posterUrl) return "Poster URL là bắt buộc.";
             if (!data.duration || data.duration <= 0) return "Thời lượng phải lớn hơn 0.";
             if (!data.releaseDate) return "Ngày khởi chiếu là bắt buộc.";
+            if (!data.movieRunDays || data.movieRunDays <= 0) return "Số ngày chiếu phải lớn hơn 0.";
             if (!data.status) return "Trạng thái là bắt buộc.";
             if (data.voteAverage < 0 || data.voteAverage > 10) return "Vote Average phải từ 0 đến 10.";
             if (data.voteCount < 0) return "Vote Count phải lớn hơn hoặc bằng 0.";
@@ -523,6 +533,7 @@
                     <td data-label="Định dạng">${safe(movie.format, "-")}</td>
                     <td data-label="Ngôn ngữ">${safe(movie.language, "-")}</td>
                     <td data-label="Khởi chiếu">${formatDate(movie.releaseDate)}</td>
+                    <td data-label="Số ngày chiếu">${toNumber(movie.movieRunDays, 30)} ngày</td>
                     <td data-label="Trạng thái"><span class="admin-badge ${movie.status === 'now_showing' || movie.status === 'active' ? 'success' : movie.status === 'coming_soon' ? 'warning' : 'secondary'}">${statusText(movie.status)}</span></td>
                     <td data-label="Đánh giá"><span class="rating-chip"><i class="fas fa-star"></i>${toNumber(movie.voteAverage).toFixed(1)}</span></td>
                     <td data-label="Lượt đánh giá">${toNumber(movie.voteCount).toLocaleString("vi-VN")}</td>
@@ -567,6 +578,7 @@
             document.getElementById("movieId").value = "";
             document.getElementById("voteAverage").value = "0";
             document.getElementById("voteCount").value = "0";
+            document.getElementById("movieRunDays").value = "30";
             document.getElementById("status").value = "now_showing";
             document.getElementById("posterPreview").removeAttribute("src");
             document.getElementById("bannerPreview").removeAttribute("src");
@@ -584,7 +596,7 @@
             document.getElementById("movieId").value = movie.id;
             fields.forEach(field => {
                 const el = document.getElementById(field);
-                if (el) el.value = field === "releaseDate" ? formatDateInput(movie[field]) : (movie[field] ?? "");
+                if (el) el.value = field === "releaseDate" ? formatDateInput(movie[field]) : (movie[field] ?? (field === "movieRunDays" ? 30 : ""));
             });
             updatePreview();
             openModal("movieFormModal");
@@ -806,10 +818,16 @@
             });
         }
 
-        function attachRealtime() {
+        async function attachRealtime() {
             if (!db) {
                 toast("error", "Firebase chưa sẵn sàng", "Không thể kết nối Firestore.");
                 return;
+            }
+
+            try {
+                await autoUpdateStatuses(db);
+            } catch (statusError) {
+                console.error("Auto-updating status failed:", statusError);
             }
 
             pageState.unsubscribeMovies?.();

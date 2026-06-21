@@ -1174,7 +1174,7 @@
                     trailerBtn.style.display = "none";
                 }
 
-                const showtimesQuery = query(collection(db, "showtimes"), where("movieId", "==", id), where("status", "==", "active"));
+                               const showtimesQuery = query(collection(db, "showtimes"), where("movieId", "==", id));
                 const [cinemasList, roomsList, showtimesSnap] = await Promise.all([
                     getCachedDocs("cinemas", collection(db, "cinemas")),
                     getCachedDocs("rooms", collection(db, "rooms")),
@@ -1201,7 +1201,7 @@
                 });
 
                 // 3. Fetch Showtimes for this movie
-                allShowtimes = docsToArray(showtimesSnap);
+                allShowtimes = docsToArray(showtimesSnap).filter(st => ["active", "upcoming", "showing"].includes(st.status));
 
                 // 4. Generate 7-9 days horizontal scroll pills
                 generateDatePills();
