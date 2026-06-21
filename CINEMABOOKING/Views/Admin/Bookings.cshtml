@@ -3,6 +3,34 @@
     ViewBag.Title = "Quản lý booking";
 }
 
+@section styles {
+    <style>
+        #bookingDetailModal .admin-modal-panel { width: min(780px, 100%); border-radius: 16px; overflow: hidden; }
+        #bookingDetailModal .admin-modal-body { background: #f6f8fb; padding: 22px; }
+        .booking-detail-shell { display: grid; gap: 14px; }
+        .booking-detail-hero { align-items: center; background: linear-gradient(135deg, #005baa, #0879d1); border-radius: 14px; color: #fff; display: flex; justify-content: space-between; padding: 18px 20px; }
+        .booking-detail-hero > div > span { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em; opacity: .8; text-transform: uppercase; }
+        .booking-detail-hero > div > strong { display: block; font-size: 20px; margin-top: 3px; overflow-wrap: anywhere; }
+        .booking-detail-section { background: #fff; border: 1px solid #e6ebf1; border-radius: 16px; box-shadow: 0 5px 16px rgba(15, 23, 42, .045); padding: 16px 18px; }
+        .booking-detail-section h4 { align-items: center; color: #1e293b; display: flex; font-size: 13px; font-weight: 800; gap: 8px; margin: 0 0 12px; }
+        .booking-detail-section h4 i { color: #005baa; width: 18px; }
+        .booking-detail-grid { display: grid; gap: 12px 20px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .booking-detail-field { min-width: 0; }
+        .booking-detail-field .label { color: #8491a3; display: block; font-size: 11px; font-weight: 600; margin-bottom: 3px; }
+        .booking-detail-field .value { color: #172033; display: block; font-size: 13px; font-weight: 750; overflow-wrap: anywhere; }
+        .booking-seat-list { display: flex; flex-wrap: wrap; gap: 7px; }
+        .booking-seat-chip { background: #eaf4fc; border: 1px solid #c5def1; border-radius: 8px; color: #005baa; font-size: 12px; font-weight: 800; padding: 6px 10px; }
+        .booking-total { color: #f58220 !important; font-size: 22px !important; font-weight: 900 !important; }
+        .detail-status-badge { border-radius: 999px; display: inline-flex; font-size: 11px; font-weight: 800; padding: 6px 10px; }
+        .detail-status-badge.success { background: #dcfce7; color: #15803d; }
+        .detail-status-badge.warning { background: #fef3c7; color: #a16207; }
+        .detail-status-badge.danger { background: #fee2e2; color: #b91c1c; }
+        .detail-status-badge.secondary { background: #e9eef4; color: #475569; }
+        @@media (max-width: 620px) { #bookingDetailModal .admin-modal-body { padding: 14px; } .booking-detail-grid { grid-template-columns: 1fr; } .booking-detail-hero { align-items: flex-start; flex-direction: column; gap: 10px; } }
+        @@media print { body * { visibility: hidden; } #bookingDetailBody, #bookingDetailBody * { visibility: visible; } #bookingDetailBody { left: 0; position: absolute; top: 0; width: 100%; } }
+    </style>
+}
+
 <div class="bk-admin">
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="heroTitle">
@@ -124,11 +152,13 @@
 <div class="admin-modal" id="bookingDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="admin-modal-panel">
         <div class="admin-modal-header">
-            <h3 id="modalTitle">Chi tiết booking</h3>
+            <h3 id="modalTitle"><i class="fas fa-ticket-alt" style="color:#005baa;margin-right:8px;"></i>Thông Tin Vé Đặt</h3>
             <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="bookingDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
         </div>
         <div class="admin-modal-body" id="bookingDetailBody"></div>
         <div class="admin-modal-footer">
+            <button type="button" class="admin-btn admin-btn-secondary" id="printBookingDetail"><i class="fas fa-print"></i> In Vé</button>
+            <button type="button" class="admin-btn admin-btn-primary" id="viewRelatedTicket"><i class="fas fa-ticket-alt"></i> Xem Ticket</button>
             <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="bookingDetailModal">Đóng</button>
         </div>
     </div>
@@ -160,6 +190,7 @@
             sortDirection: "desc",
             unsubs: []
         };
+        let currentDetailBooking = null;
 
         const els = {
             search: document.getElementById("searchInput"),
@@ -193,6 +224,17 @@
             return d && !Number.isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : "";
         };
         const seatsText = s => Array.isArray(s) ? s.join(", ") : safe(s);
+        const escapeHtml = v => String(safe(v)).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
+        const detailMoney = v => new Intl.NumberFormat("vi-VN").format(Number(v || 0)) + " VNĐ";
+        const showDetailDate = v => {
+            const raw = String(v || "");
+            const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+            const d = toDate(v);
+            return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString("vi-VN") : safe(v);
+        };
+        const bookingStatusLabel = s => ({ paid: "Đã thanh toán", completed: "Hoàn tất", success: "Đã thanh toán", pending: "Chờ thanh toán", unpaid: "Chưa thanh toán", cancelled: "Đã hủy", canceled: "Đã hủy" }[norm(s)] || safe(s, "Chờ xử lý"));
+        const paymentLabel = v => ({ qr: "QR Banking", qr_banking: "QR Banking", banking: "QR Banking", bank_transfer: "Chuyển khoản", cash: "Tiền mặt" }[norm(v).replace(/\s+/g, "_")] || safe(v));
         
         function showLoading(show) {
             window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
@@ -333,12 +375,18 @@
         }
 
         function openDetail(b) {
-            document.getElementById("bookingDetailBody").innerHTML = `<div class="detail-grid">
-                ${["id", "userId", "userEmail", "showtimeId", "movieId", "movieTitle", "cinemaName", "roomName", "date", "time", "paymentMethod", "status"].map(k => `<div class="detail-item"><span>${k}</span><strong>${safe(b[k] ?? (k === "id" ? b.id : ""))}</strong></div>`).join("")}
-                <div class="detail-item"><span>seats</span><strong>${seatsText(b.seats)}</strong></div>
-                <div class="detail-item"><span>totalPrice</span><strong>${money(b.totalPrice)}</strong></div>
-                <div class="detail-item"><span>createdAt</span><strong>${fmtDate(b.createdAt)}</strong></div>
-                <div class="detail-item"><span>updatedAt</span><strong>${fmtDate(b.updatedAt)}</strong></div>
+            currentDetailBooking = b;
+            const bookingCode = `BK-${String(b.id || "").slice(0, 8).toUpperCase()}`;
+            const seatValues = Array.isArray(b.seats) ? b.seats : [safe(b.seats)];
+            const field = (label, fieldValue, valueClass = "") => `<div class="booking-detail-field"><span class="label">${label}</span><strong class="value ${valueClass}">${escapeHtml(fieldValue)}</strong></div>`;
+            document.getElementById("bookingDetailBody").innerHTML = `<div class="booking-detail-shell">
+                <div class="booking-detail-hero"><div><span>Mã Booking</span><strong>${escapeHtml(bookingCode)}</strong></div><span class="detail-status-badge ${statusClass(b.status)}">${escapeHtml(bookingStatusLabel(b.status))}</span></div>
+                <section class="booking-detail-section"><h4><i class="fas fa-user"></i> Khách hàng</h4><div class="booking-detail-grid">${field("Email", b.userEmail)}${field("User ID", b.userId)}</div></section>
+                <section class="booking-detail-section"><h4><i class="fas fa-film"></i> Phim</h4><div class="booking-detail-grid">${field("Tên phim", b.movieTitle)}${field("Movie ID", b.movieId)}</div></section>
+                <section class="booking-detail-section"><h4><i class="fas fa-building"></i> Địa điểm</h4><div class="booking-detail-grid">${field("Rạp", b.cinemaName)}${field("Phòng", b.roomName)}</div></section>
+                <section class="booking-detail-section"><h4><i class="fas fa-calendar-alt"></i> Lịch chiếu</h4><div class="booking-detail-grid">${field("Ngày", showDetailDate(b.date))}${field("Giờ", b.time)}</div></section>
+                <section class="booking-detail-section"><h4><i class="fas fa-couch"></i> Ghế</h4><div class="booking-seat-list">${seatValues.map(seat => `<span class="booking-seat-chip">${escapeHtml(seat)}</span>`).join("")}</div></section>
+                <section class="booking-detail-section"><h4><i class="fas fa-credit-card"></i> Thanh toán</h4><div class="booking-detail-grid">${field("Phương thức", paymentLabel(b.paymentMethod))}${field("Trạng thái", bookingStatusLabel(b.status))}${field("Tổng tiền", detailMoney(b.totalPrice), "booking-total")}${field("Ngày tạo", fmtDate(b.createdAt))}</div></section>
             </div>`;
             openModal("bookingDetailModal");
         }
@@ -523,6 +571,17 @@
                     state.page++;
                     renderTable();
                 }
+            });
+
+            document.getElementById("printBookingDetail").addEventListener("click", () => window.print());
+            document.getElementById("viewRelatedTicket").addEventListener("click", () => {
+                if (!currentDetailBooking) return;
+                const ticket = state.tickets.find(item => item.bookingId === currentDetailBooking.id);
+                if (!ticket) {
+                    toast("info", "Chưa có ticket", "Booking này chưa phát hành ticket.");
+                    return;
+                }
+                window.location.href = `/Admin/Tickets?ticketId=${encodeURIComponent(ticket.id)}`;
             });
 
             document.addEventListener("click", e => {

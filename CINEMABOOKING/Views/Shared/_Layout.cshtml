@@ -43,6 +43,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css" />
 
     <link href="@Url.Content("~/Content/responsive.css?v=1")" rel="stylesheet" />
+    <link href="@Url.Content("~/Content/chatbot.css?v=1")" rel="stylesheet" />
 
     <style>
         @@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;600;700;800;900&display=swap');
@@ -552,8 +553,9 @@
     </script>
 
     <!-- Firebase SDK Global Layout Listeners -->
-    <script src="~/Scripts/firebase-config.js"></script>
-    <script type="module" src="~/Scripts/firebase-init.js"></script>
+    <script src="@Url.Content("~/Scripts/firebase-config.js")"></script>
+    <script type="module" src="@Url.Content("~/Scripts/firebase-init.js")"></script>
+    <script type="module" src="@Url.Content("~/Scripts/aero-chatbot.js?v=1")"></script>
     <script type="module">
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
