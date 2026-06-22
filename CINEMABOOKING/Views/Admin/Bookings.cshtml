@@ -149,14 +149,14 @@
 </div>
 
 <!-- Booking Detail Modal -->
-<div class="admin-modal" id="bookingDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="admin-modal-panel">
-        <div class="admin-modal-header">
-            <h3 id="modalTitle"><i class="fas fa-ticket-alt" style="color:#005baa;margin-right:8px;"></i>Thông Tin Vé Đặt</h3>
-            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="bookingDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+<div class="admin-modal premium-detail-modal" id="bookingDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="admin-modal-panel premium-modal-panel">
+        <div class="admin-modal-header premium-modal-header">
+            <h3 id="modalTitle" class="premium-modal-title">📋 Chi tiết đặt vé</h3>
+            <button type="button" class="admin-btn premium-modal-close" data-close-modal="bookingDetailModal" aria-label="Đóng"><i class="fas fa-times"></i></button>
         </div>
-        <div class="admin-modal-body" id="bookingDetailBody"></div>
-        <div class="admin-modal-footer">
+        <div class="admin-modal-body premium-modal-body" id="bookingDetailBody"></div>
+        <div class="admin-modal-footer premium-modal-footer">
             <button type="button" class="admin-btn admin-btn-secondary" id="printBookingDetail"><i class="fas fa-print"></i> In Vé</button>
             <button type="button" class="admin-btn admin-btn-primary" id="viewRelatedTicket"><i class="fas fa-ticket-alt"></i> Xem Ticket</button>
             <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="bookingDetailModal">Đóng</button>
@@ -225,16 +225,80 @@
         };
         const seatsText = s => Array.isArray(s) ? s.join(", ") : safe(s);
         const escapeHtml = v => String(safe(v)).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
-        const detailMoney = v => new Intl.NumberFormat("vi-VN").format(Number(v || 0)) + " VNĐ";
-        const showDetailDate = v => {
-            const raw = String(v || "");
-            const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            if (match) return `${match[3]}/${match[2]}/${match[1]}`;
-            const d = toDate(v);
-            return d && !Number.isNaN(d.getTime()) ? d.toLocaleDateString("vi-VN") : safe(v);
+
+        // Standard Format Helpers
+        const safeText = (value, fallback = "-") => {
+            if (value === undefined || value === null || value === "") return fallback;
+            if (typeof value === "string") {
+                if (value.includes("updateMask.fieldPaths") || value.includes(".fieldPaths") || value.includes("updateMask")) return fallback;
+            }
+            if (typeof value === "object") return fallback;
+            return value;
         };
-        const bookingStatusLabel = s => ({ paid: "Đã thanh toán", completed: "Hoàn tất", success: "Đã thanh toán", pending: "Chờ thanh toán", unpaid: "Chưa thanh toán", cancelled: "Đã hủy", canceled: "Đã hủy" }[norm(s)] || safe(s, "Chờ xử lý"));
-        const paymentLabel = v => ({ qr: "QR Banking", qr_banking: "QR Banking", banking: "QR Banking", bank_transfer: "Chuyển khoản", cash: "Tiền mặt" }[norm(v).replace(/\s+/g, "_")] || safe(v));
+
+        const formatCurrency = value => {
+            if (value === undefined || value === null || value === "") return "-";
+            const num = Number(value);
+            return isNaN(num) ? "-" : num.toLocaleString("vi-VN") + "đ";
+        };
+
+        const formatDateTime = v => {
+            const d = toDate(v);
+            if (!d) return "-";
+            const pad = n => String(n).padStart(2, "0");
+            return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+        };
+
+        const formatDate = v => {
+            if (!v) return "-";
+            if (typeof v === "string") {
+                const match = v.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+            }
+            const d = toDate(v);
+            if (!d) return safeText(v);
+            const pad = n => String(n).padStart(2, "0");
+            return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+        };
+
+        const formatPaymentMethod = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "qr" || val === "bank_transfer" || val === "banking" || val === "qr_banking") return "Chuyển khoản ngân hàng";
+            if (val === "momo") return "Ví MoMo";
+            if (val === "cash") return "Tiền mặt";
+            if (val === "card") return "Thẻ ngân hàng";
+            return safeText(value);
+        };
+
+        const formatBookingStatus = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "paid" || val === "confirmed" || val === "completed" || val === "success") return "Đã xác nhận";
+            if (val === "pending") return "Chờ xử lý";
+            if (val === "cancelled" || val === "canceled") return "Đã hủy";
+            return safeText(value);
+        };
+
+        const formatPaymentStatus = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "paid" || val === "success") return "Đã thanh toán";
+            if (val === "pending") return "Chờ thanh toán";
+            if (val === "failed" || val === "rejected") return "Thất bại";
+            return safeText(value);
+        };
+
+        const formatTicketStatus = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "unused" || val === "active") return "Chưa sử dụng";
+            if (val === "used") return "Đã soát vé";
+            if (val === "cancelled" || val === "canceled") return "Đã hủy";
+            return safeText(value);
+        };
+
+        const formatBoolean = value => {
+            if (value === true || String(value).toLowerCase() === "true" || value === 1 || String(value) === "1") return "Có";
+            if (value === false || String(value).toLowerCase() === "false" || value === 0 || String(value) === "0") return "Không";
+            return "-";
+        };
         
         function showLoading(show) {
             window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
@@ -376,18 +440,122 @@
 
         function openDetail(b) {
             currentDetailBooking = b;
-            const bookingCode = `BK-${String(b.id || "").slice(0, 8).toUpperCase()}`;
-            const seatValues = Array.isArray(b.seats) ? b.seats : [safe(b.seats)];
-            const field = (label, fieldValue, valueClass = "") => `<div class="booking-detail-field"><span class="label">${label}</span><strong class="value ${valueClass}">${escapeHtml(fieldValue)}</strong></div>`;
-            document.getElementById("bookingDetailBody").innerHTML = `<div class="booking-detail-shell">
-                <div class="booking-detail-hero"><div><span>Mã Booking</span><strong>${escapeHtml(bookingCode)}</strong></div><span class="detail-status-badge ${statusClass(b.status)}">${escapeHtml(bookingStatusLabel(b.status))}</span></div>
-                <section class="booking-detail-section"><h4><i class="fas fa-user"></i> Khách hàng</h4><div class="booking-detail-grid">${field("Email", b.userEmail)}${field("User ID", b.userId)}</div></section>
-                <section class="booking-detail-section"><h4><i class="fas fa-film"></i> Phim</h4><div class="booking-detail-grid">${field("Tên phim", b.movieTitle)}${field("Movie ID", b.movieId)}</div></section>
-                <section class="booking-detail-section"><h4><i class="fas fa-building"></i> Địa điểm</h4><div class="booking-detail-grid">${field("Rạp", b.cinemaName)}${field("Phòng", b.roomName)}</div></section>
-                <section class="booking-detail-section"><h4><i class="fas fa-calendar-alt"></i> Lịch chiếu</h4><div class="booking-detail-grid">${field("Ngày", showDetailDate(b.date))}${field("Giờ", b.time)}</div></section>
-                <section class="booking-detail-section"><h4><i class="fas fa-couch"></i> Ghế</h4><div class="booking-seat-list">${seatValues.map(seat => `<span class="booking-seat-chip">${escapeHtml(seat)}</span>`).join("")}</div></section>
-                <section class="booking-detail-section"><h4><i class="fas fa-credit-card"></i> Thanh toán</h4><div class="booking-detail-grid">${field("Phương thức", paymentLabel(b.paymentMethod))}${field("Trạng thái", bookingStatusLabel(b.status))}${field("Tổng tiền", detailMoney(b.totalPrice), "booking-total")}${field("Ngày tạo", fmtDate(b.createdAt))}</div></section>
-            </div>`;
+            const customerName = safeText(b.userName || b.fullName || b.userEmail, "Khách hàng AERO");
+            const avatarText = customerName.split(/\s+/).map(part => part[0]).join("").slice(0, 2).toUpperCase();
+            const bookingStatus = norm(b.status);
+            const isCancelled = ["cancelled", "canceled"].includes(bookingStatus);
+
+            // Set progress steps
+            let progress = 1;
+            if (bookingStatus === "completed") {
+                progress = 4;
+            } else if (paidStatuses.includes(bookingStatus)) {
+                progress = 3;
+            } else if (bookingStatus === "pending") {
+                progress = 2;
+            }
+
+            const field = (icon, label, fieldValue, extraClass = "") => `
+                <div class="premium-field-row">
+                    <span class="premium-field-label"><i class="fas ${icon}"></i> ${label}</span>
+                    <span class="premium-field-value ${extraClass}">${fieldValue}</span>
+                </div>
+            `;
+            const timelineSteps = ["Đặt vé", "Thanh toán", "Xác nhận", "Hoàn thành"];
+
+            document.getElementById("bookingDetailBody").innerHTML = `
+                <div class="premium-detail-layout">
+                    <!-- User Header -->
+                    <div class="premium-profile-card">
+                        <div class="premium-profile-avatar">${avatarText}</div>
+                        <div class="premium-profile-info">
+                            <h4 class="premium-profile-name">${customerName}</h4>
+                            <div class="premium-profile-email">
+                                <span><i class="fas fa-envelope"></i> ${safeText(b.userEmail)}</span>
+                                ${b.userPhone || b.phone ? `<span><i class="fas fa-phone"></i> ${safeText(b.userPhone || b.phone)}</span>` : ""}
+                            </div>
+                        </div>
+                        <div>
+                            <button type="button" class="premium-action-btn" data-copy-booking aria-label="Sao chép mã đặt vé">
+                                <i class="fas fa-copy"></i> Copy Booking ID
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Timeline -->
+                    <div class="premium-timeline-card">
+                        <div class="premium-timeline-header">Tiến trình đặt vé</div>
+                        <div class="premium-timeline ${isCancelled ? "cancelled" : ""}">
+                            ${timelineSteps.map((step, index) => {
+                                const stepNum = index + 1;
+                                let stepClass = "";
+                                if (isCancelled && stepNum === 2) {
+                                    stepClass = "current"; // Mark payment as red/failed/cancelled point
+                                } else if (!isCancelled) {
+                                    if (stepNum < progress) stepClass = "completed";
+                                    else if (stepNum === progress) stepClass = "current";
+                                }
+                                return `
+                                    <div class="premium-timeline-step ${stepClass}">
+                                        <span class="step-dot"></span>
+                                        <span class="step-label">${isCancelled && stepNum === 2 ? "Đã hủy" : step}</span>
+                                    </div>
+                                `;
+                            }).join("")}
+                        </div>
+                    </div>
+
+                    <!-- Left Column Sections -->
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <section class="premium-detail-section">
+                            <h4 class="premium-section-title"><i class="fas fa-user"></i>Thông tin khách hàng</h4>
+                            <div class="premium-info-grid one-column">
+                                ${field("fa-user", "Khách hàng", customerName)}
+                                ${field("fa-envelope", "Email", b.userEmail ? `<a href="mailto:${b.userEmail}">${safeText(b.userEmail)}</a>` : "-")}
+                                ${field("fa-phone", "Số điện thoại", safeText(b.userPhone || b.phone))}
+                                ${field("fa-id-card", "User ID", safeText(b.userId))}
+                            </div>
+                        </section>
+
+                        <section class="premium-detail-section">
+                            <h4 class="premium-section-title"><i class="fas fa-credit-card"></i>Thông tin thanh toán</h4>
+                            <div class="premium-info-grid one-column">
+                                ${field("fa-credit-card", "Phương thức", formatPaymentMethod(b.paymentMethod))}
+                                ${field("fa-money-bill-wave", "Tổng tiền", formatCurrency(b.totalPrice), "premium-money")}
+                                ${field("fa-info-circle", "Thanh toán", `<span class="premium-status ${statusClass(b.paymentStatus || b.status)}">${formatPaymentStatus(b.paymentStatus || b.status)}</span>`)}
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- Right Column Sections -->
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <section class="premium-detail-section">
+                            <h4 class="premium-section-title"><i class="fas fa-film"></i>Thông tin suất chiếu</h4>
+                            <div class="premium-info-grid one-column">
+                                ${field("fa-film", "Phim", safeText(b.movieTitle))}
+                                ${field("fa-building", "Rạp", safeText(b.cinemaName))}
+                                ${field("fa-door-open", "Phòng", safeText(b.roomName))}
+                                ${field("fa-couch", "Ghế", Array.isArray(b.seats) ? b.seats.join(", ") : safeText(b.seats))}
+                                ${field("fa-calendar", "Ngày chiếu", formatDate(b.date))}
+                                ${field("fa-clock", "Giờ chiếu", safeText(b.time))}
+                            </div>
+                        </section>
+
+                        <section class="premium-detail-section">
+                            <h4 class="premium-section-title"><i class="fas fa-cog"></i>Thông tin hệ thống</h4>
+                            <div class="premium-info-grid one-column">
+                                ${field("fa-info-circle", "Trạng thái", `<span class="premium-status ${statusClass(b.status)}">${formatBookingStatus(b.status)}</span>`)}
+                                ${field("fa-calendar-plus", "Ngày tạo", formatDateTime(b.createdAt))}
+                                ${field("fa-clock", "Cập nhật", formatDateTime(b.updatedAt))}
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            `;
+            document.querySelector("[data-copy-booking]")?.addEventListener("click", async () => {
+                try { await navigator.clipboard.writeText(String(b.id)); toast("success", "Đã sao chép", "Mã đặt vé đã được sao chép."); }
+                catch { toast("warning", "Không thể sao chép", "Vui lòng sao chép mã thủ công."); }
+            });
             openModal("bookingDetailModal");
         }
 

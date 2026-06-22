@@ -113,14 +113,14 @@
 </div>
 
 <!-- Details Modal -->
-<div class="admin-modal" id="payDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
-    <div class="admin-modal-panel">
-        <div class="admin-modal-header">
-            <h3 id="payModalTitle">Chi tiết giao dịch thanh toán</h3>
-            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="payDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+<div class="admin-modal premium-detail-modal" id="payDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="payModalTitle">
+    <div class="admin-modal-panel premium-modal-panel">
+        <div class="admin-modal-header premium-modal-header">
+            <h3 id="payModalTitle" class="premium-modal-title">💳 Chi tiết giao dịch</h3>
+            <button type="button" class="admin-btn premium-modal-close" data-close-modal="payDetailModal" aria-label="Đóng"><i class="fas fa-times"></i></button>
         </div>
-        <div class="admin-modal-body" id="payDetailBody"></div>
-        <div class="admin-modal-footer">
+        <div class="admin-modal-body premium-modal-body" id="payDetailBody"></div>
+        <div class="admin-modal-footer premium-modal-footer">
             <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="payDetailModal">Đóng</button>
         </div>
     </div>
@@ -178,6 +178,66 @@
                 hour: "2-digit",
                 minute: "2-digit"
             }) : "-";
+        };
+
+        // Standard Format Helpers
+        const safeText = (value, fallback = "-") => {
+            if (value === undefined || value === null || value === "") return fallback;
+            if (typeof value === "string") {
+                if (value.includes("updateMask.fieldPaths") || value.includes(".fieldPaths") || value.includes("updateMask")) return fallback;
+            }
+            if (typeof value === "object") return fallback;
+            return value;
+        };
+
+        const formatCurrency = value => {
+            if (value === undefined || value === null || value === "") return "-";
+            const num = Number(value);
+            return isNaN(num) ? "-" : num.toLocaleString("vi-VN") + "đ";
+        };
+
+        const formatDateTime = v => {
+            const d = toDate(v);
+            if (!d) return "-";
+            const pad = n => String(n).padStart(2, "0");
+            return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+        };
+
+        const formatDate = v => {
+            if (!v) return "-";
+            if (typeof v === "string") {
+                const match = v.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+            }
+            const d = toDate(v);
+            if (!d) return safeText(v);
+            const pad = n => String(n).padStart(2, "0");
+            return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+        };
+
+        const formatPaymentMethod = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "qr" || val === "bank_transfer" || val === "banking" || val === "qr_banking") return "Chuyển khoản ngân hàng";
+            if (val === "momo") return "Ví MoMo";
+            if (val === "cash") return "Tiền mặt";
+            if (val === "card") return "Thẻ ngân hàng";
+            return safeText(value);
+        };
+
+        const formatPaymentStatus = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "paid" || val === "success") return "Đã thanh toán";
+            if (val === "pending") return "Chờ thanh toán";
+            if (val === "failed" || val === "rejected") return "Thất bại";
+            return safeText(value);
+        };
+
+        const statusClass = s => {
+            const n = norm(s);
+            if (n === "paid" || n === "completed" || n === "success") return "success";
+            if (n === "pending" || n === "unpaid") return "warning";
+            if (n === "cancelled" || n === "canceled" || n === "rejected") return "danger";
+            return "secondary";
         };
 
         function showLoading(show) {
@@ -410,28 +470,68 @@
 
         function viewDetail(p) {
             const bk = booking(p.bookingId) || {};
-            const info = [
-                ["Mã tài liệu ID", p.id],
-                ["Mã Giao dịch", safe(p.transactionCode)],
-                ["Mã Đặt vé (Booking ID)", safe(p.bookingId)],
-                ["Tài khoản", safe(p.userId || bk.userEmail)],
-                ["Số tiền", money(p.amount)],
-                ["Phương thức", safe(p.method)],
-                ["Trạng thái", safe(p.status, "pending")],
-                ["Thời gian tạo", fmtDate(p.createdAt)],
-                ["Thời gian sửa", fmtDate(p.updatedAt)]
-            ];
-
-            el.detailBody.innerHTML = `
-                <div class="detail-grid">
-                    ${info.map(([k, v]) => `
-                        <div class="detail-item">
-                            <span>${k}</span>
-                            <strong>${v}</strong>
-                        </div>
-                    `).join("")}
+            const hasBooking = !!p.bookingId && Object.keys(bk).length > 0;
+            const field = (icon, label, fieldValue, extraClass = "", extraStyle = "") => `
+                <div class="premium-field-row">
+                    <span class="premium-field-label"><i class="fas ${icon}"></i> ${label}</span>
+                    <span class="premium-field-value ${extraClass}" style="${extraStyle}">${fieldValue}</span>
                 </div>
             `;
+
+            let html = `
+                <div class="premium-detail-layout">
+                    <!-- Transaction Info Card -->
+                    <section class="premium-detail-section">
+                        <h4 class="premium-section-title"><i class="fas fa-credit-card"></i>Thông tin giao dịch</h4>
+                        <div class="premium-info-grid one-column">
+                            <div class="premium-field-row">
+                                <span class="premium-field-label"><i class="fas fa-id-card"></i> Mã giao dịch</span>
+                                <span class="premium-field-value" style="display: flex; align-items: center; gap: 8px;">
+                                    ${safeText(p.transactionCode || p.id)}
+                                    <button type="button" class="premium-action-btn" style="padding: 4px 8px; min-height: auto;" onclick="navigator.clipboard.writeText('${p.transactionCode || p.id}').then(() => window.AeroAdmin?.toast('success', 'Đã sao chép', 'Mã giao dịch đã được sao chép.'))" title="Sao chép">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </span>
+                            </div>
+                            ${field("fa-ticket-alt", "Mã đặt vé", safeText(p.bookingId))}
+                            ${field("fa-user", "Khách hàng", safeText(p.userId || bk.userEmail))}
+                            ${field("fa-credit-card", "Phương thức", formatPaymentMethod(p.method || p.paymentMethod))}
+                            ${field("fa-info-circle", "Trạng thái", `<span class="premium-status ${statusClass(p.status)}">${formatPaymentStatus(p.status)}</span>`)}
+                            ${field("fa-money-bill-wave", "Số tiền", formatCurrency(p.amount), "", "font-size: 24px; font-weight: 700; color: var(--admin-primary, #f58220);")}
+                            ${field("fa-user-shield", "Người xác nhận", safeText(p.verifiedBy || p.approvedBy))}
+                            ${field("fa-clock", "Thời gian xác nhận", formatDateTime(p.verifiedAt || p.approvedAt || p.updatedAt))}
+                            ${field("fa-calendar-plus", "Thời gian tạo", formatDateTime(p.createdAt))}
+                            ${field("fa-clock", "Thời gian cập nhật", formatDateTime(p.updatedAt))}
+                        </div>
+                    </section>
+            `;
+
+            if (hasBooking) {
+                html += `
+                    <!-- Related Booking Info Card -->
+                    <section class="premium-detail-section">
+                        <h4 class="premium-section-title"><i class="fas fa-ticket-alt"></i>Thông tin vé liên quan</h4>
+                        <div class="premium-info-grid one-column">
+                            ${field("fa-film", "Tên phim", safeText(bk.movieTitle))}
+                            ${field("fa-building", "Rạp", safeText(bk.cinemaName))}
+                            ${field("fa-door-open", "Phòng", safeText(bk.roomName))}
+                            ${field("fa-couch", "Ghế", Array.isArray(bk.seats) ? bk.seats.join(", ") : safeText(bk.seats))}
+                        </div>
+                    </section>
+                `;
+            } else {
+                html += `
+                    <section class="premium-detail-section" style="display: flex; align-items: center; justify-content: center; text-align: center; min-height: 250px;">
+                        <div>
+                            <i class="fas fa-ticket-alt" style="font-size: 40px; color: var(--admin-subtle, #94a3b8); margin-bottom: 16px; display: block;"></i>
+                            <span style="color: var(--admin-subtle, #64748b); font-size: 13px; font-weight: 500;">Không tìm thấy thông tin đặt vé liên quan.</span>
+                        </div>
+                    </section>
+                `;
+            }
+
+            html += `</div>`;
+            el.detailBody.innerHTML = html;
             openModal("payDetailModal");
         }
 

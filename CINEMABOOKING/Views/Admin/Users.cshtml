@@ -3,6 +3,20 @@
     ViewBag.Title = "Quản lý người dùng";
 }
 
+@section styles {
+    <style>
+        .badge-success { background: #dcfce7 !important; color: #16a34a !important; }
+        .badge-danger { background: #fee2e2 !important; color: #dc2626 !important; }
+        .badge-warning { background: #fef3c7 !important; color: #d97706 !important; }
+        .badge-primary { background: #dbeafe !important; color: #2563eb !important; }
+        .badge-purple { background: #ede9fe !important; color: #7c3aed !important; }
+        .badge-diamond { background: #dbeafe !important; color: #2563eb !important; }
+        .badge-gold { background: #fef3c7 !important; color: #d97706 !important; }
+        .badge-silver { background: #f1f5f9 !important; color: #64748b !important; }
+        .badge-neutral { background: #f1f5f9 !important; color: #475569 !important; }
+    </style>
+}
+
 <div class="user-admin">
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="heroTitle">
@@ -151,7 +165,7 @@
             <div class="admin-modal-body">
                 <input type="hidden" id="docId" />
                 <div class="admin-form-grid">
-                    <div class="admin-field"><label>UID</label><input class="admin-control" id="uid" disabled /></div>
+                    <div class="admin-field"><label>UID</label><input class="admin-control" id="uid" readonly /></div>
                     <div class="admin-field"><label>Email</label><input class="admin-control" id="email" disabled /></div>
                     <div class="admin-field"><label for="fullName">Họ tên *</label><input class="admin-control" id="fullName" required /></div>
                     <div class="admin-field"><label for="phone">Số điện thoại</label><input class="admin-control" id="phone" /></div>
@@ -170,14 +184,14 @@
 </div>
 
 <!-- Detail User Modal -->
-<div class="admin-modal" id="userDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
-    <div class="admin-modal-panel" style="width: min(800px, 100%);">
-        <div class="admin-modal-header">
-            <h3 id="detailTitle">Hồ sơ chi tiết người dùng</h3>
-            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="userDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+<div class="admin-modal premium-detail-modal" id="userDetailModal" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+    <div class="admin-modal-panel premium-modal-panel">
+        <div class="admin-modal-header premium-modal-header">
+            <h3 id="detailTitle" class="premium-modal-title">👤 Chi tiết người dùng</h3>
+            <button type="button" class="admin-btn premium-modal-close" data-close-modal="userDetailModal" aria-label="Đóng"><i class="fas fa-times"></i></button>
         </div>
-        <div class="admin-modal-body" id="userDetailBody"></div>
-        <div class="admin-modal-footer"><button type="button" class="admin-btn admin-btn-secondary" data-close-modal="userDetailModal">Đóng</button></div>
+        <div class="admin-modal-body premium-modal-body" id="userDetailBody"></div>
+        <div class="admin-modal-footer premium-modal-footer"><button type="button" class="admin-btn admin-btn-secondary" data-close-modal="userDetailModal">Đóng</button></div>
     </div>
 </div>
 
@@ -197,7 +211,7 @@
             sortDirection: "asc",
             unsubs: []
         };
-        
+
         const els = {
             search: document.getElementById("searchInput"), 
             role: document.getElementById("roleFilter"), 
@@ -225,6 +239,108 @@
             }) : "-";
         };
         const initials = v => String(v || "US").trim().split(/\s+/).map(x => x[0]).join("").substring(0, 2).toUpperCase();
+
+        // Standard Format Helpers
+        function safeText(value, fallback = "-") {
+            if (value === undefined || value === null || value === "") return fallback;
+            const text = String(value);
+            if (text.includes("updateMask") || text.includes("fieldPaths")) return fallback;
+            return text;
+        }
+
+        function statusClass(status) {
+            const s = String(status || "").toLowerCase();
+            if (s === "active") return "badge-success";
+            if (s === "blocked" || s === "inactive" || s === "disabled") return "badge-danger";
+            if (s === "pending") return "badge-warning";
+            return "badge-neutral";
+        }
+
+        function roleClass(role) {
+            const r = String(role || "").toLowerCase();
+            if (r === "admin" || r === "super_admin") return "badge-danger";
+            if (r === "staff" || r === "counter_staff") return "badge-purple";
+            if (r === "customer" || r === "user") return "badge-primary";
+            return "badge-neutral";
+        }
+
+        function rankClass(rank) {
+            const r = String(rank || "").toLowerCase();
+            if (r === "diamond") return "badge-diamond";
+            if (r === "gold") return "badge-gold";
+            if (r === "silver") return "badge-silver";
+            if (r === "standard" || r === "member") return "badge-neutral";
+            return "badge-neutral";
+        }
+
+        const isValidUid = value => {
+            const uid = String(value || "").trim();
+            return uid !== "" && !uid.includes("updateMask") && !uid.includes("fieldPaths");
+        };
+
+        const formatCurrency = value => {
+            if (value === undefined || value === null || value === "") return "-";
+            const num = Number(value);
+            return isNaN(num) ? "-" : num.toLocaleString("vi-VN") + "đ";
+        };
+
+        const formatDateTime = v => {
+            const d = toDate(v);
+            if (!d) return "-";
+            const pad = n => String(n).padStart(2, "0");
+            return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+        };
+
+        const formatDate = v => {
+            if (!v) return "-";
+            if (typeof v === "string") {
+                const match = v.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+            }
+            const d = toDate(v);
+            if (!d) return safeText(v);
+            const pad = n => String(n).padStart(2, "0");
+            return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+        };
+
+        const formatPaymentMethod = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "qr" || val === "bank_transfer" || val === "banking" || val === "qr_banking") return "Chuyển khoản ngân hàng";
+            if (val === "momo") return "Ví MoMo";
+            if (val === "cash") return "Tiền mặt";
+            if (val === "card") return "Thẻ ngân hàng";
+            return safeText(value);
+        };
+
+        const formatBookingStatus = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "paid" || val === "confirmed" || val === "completed" || val === "success") return "Đã xác nhận";
+            if (val === "pending") return "Chờ xử lý";
+            if (val === "cancelled" || val === "canceled") return "Đã hủy";
+            return safeText(value);
+        };
+
+        const formatPaymentStatus = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "paid" || val === "success") return "Đã thanh toán";
+            if (val === "pending") return "Chờ thanh toán";
+            if (val === "failed" || val === "rejected") return "Thất bại";
+            return safeText(value);
+        };
+
+        const formatTicketStatus = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "unused" || val === "active") return "Chưa sử dụng";
+            if (val === "used") return "Đã soát vé";
+            if (val === "cancelled" || val === "canceled") return "Đã hủy";
+            return safeText(value);
+        };
+
+        const formatBoolean = value => {
+            if (value === true || String(value).toLowerCase() === "true" || value === 1 || String(value) === "1") return "Có";
+            if (value === false || String(value).toLowerCase() === "false" || value === 0 || String(value) === "0") return "Không";
+            return "-";
+        };
         
         function showLoading(show) {
             window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
@@ -336,7 +452,7 @@
                             <div class="user-cell">
                                 <div class="user-name">
                                     <strong>${name}</strong>
-                                    <span>UID: ${u.uid || u.id}</span>
+                                    <span>UID: ${safeText(u.uid || u.id)}</span>
                                 </div>
                             </div>
                         </td>
@@ -394,8 +510,13 @@
         }
         
         function openEdit(u) {
-            document.getElementById("docId").value = u.id;
-            document.getElementById("uid").value = u.uid || u.id;
+            const uid = u.uid || u.id;
+            if (!isValidUid(uid)) {
+                toast("error", "UID người dùng không hợp lệ", "UID người dùng không hợp lệ.");
+                return;
+            }
+            document.getElementById("docId").value = uid;
+            document.getElementById("uid").value = uid;
             document.getElementById("email").value = u.email || "";
             document.getElementById("fullName").value = u.fullName || "";
             document.getElementById("phone").value = u.phone || "";
@@ -407,18 +528,74 @@
         }
         
         function openDetail(u) {
-            document.getElementById("userDetailBody").innerHTML = `
-                <div class="detail-grid">
-                    ${["uid", "fullName", "email", "phone", "avatarUrl", "role", "status", "memberRank", "points", "emailVerifiedByOtp"].map(k => `
-                        <div class="detail-item ${k === 'avatarUrl' ? 'full' : ''}">
-                            <span>${k}</span>
-                            <strong>${safe(u[k] ?? (k === "uid" ? u.id : ""))}</strong>
-                        </div>`).join("")}
-                    <div class="detail-item"><span>createdAt</span><strong>${fmtDate(u.createdAt)}</strong></div>
-                    <div class="detail-item"><span>updatedAt</span><strong>${fmtDate(u.updatedAt)}</strong></div>
-                    <div class="detail-item"><span>lastLoginAt</span><strong>${fmtDate(u.lastLoginAt)}</strong></div>
-                    <div class="detail-item"><span>Số đơn đặt vé</span><strong>${bookingCountOf(u)}</strong></div>
-                </div>`;
+            const customerName = safeText(u.fullName || u.email, "Người dùng");
+            const avatarHtml = u.avatarUrl
+                ? `<img src="${u.avatarUrl}" alt="${customerName}" style="width: 100%; height: 100%; object-fit: cover;" />`
+                : initials(customerName);
+
+            const roleVal = String(u.role || "user").toLowerCase().trim();
+            const roleBadge = `<span class="premium-status ${roleClass(roleVal)}">${safeText(u.role, "user")}</span>`;
+            const statusVal = String(u.status || "active").toLowerCase().trim();
+            const statusBadge = `<span class="premium-status ${statusClass(statusVal)}">${safeText(u.status, "active")}</span>`;
+            const rankValue = safeText(u.memberRank || u.rank || "Standard");
+            const rankBadge = `<span class="premium-status ${rankClass(rankValue)}">${rankValue}</span>`;
+
+            const field = (icon, label, fieldValue) => {
+                if (fieldValue === undefined || fieldValue === null || fieldValue === "") return "";
+                return `
+                    <div class="premium-field-row">
+                        <span class="premium-field-label"><i class="fas ${icon}"></i> ${label}</span>
+                        <span class="premium-field-value">${fieldValue}</span>
+                    </div>
+                `;
+            };
+
+            let html = `
+                <div class="premium-detail-layout">
+                    <!-- User Profile Header Card -->
+                    <div class="premium-profile-card">
+                        <div class="premium-profile-avatar">${avatarHtml}</div>
+                        <div class="premium-profile-info">
+                            <h4 class="premium-profile-name">
+                                ${customerName}
+                                ${roleBadge}
+                            </h4>
+                            <p class="premium-profile-email">
+                                <span><i class="fas fa-envelope"></i> ${safeText(u.email)}</span>
+                                ${u.phone ? `<span><i class="fas fa-phone"></i> ${safeText(u.phone)}</span>` : ""}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Personal Info Card -->
+                    <section class="premium-detail-section">
+                        <h4 class="premium-section-title"><i class="fas fa-user"></i>Hồ sơ cá nhân</h4>
+                        <div class="premium-info-grid one-column">
+                            ${field("fa-id-card", "UID / Account ID", safeText(u.uid || u.id))}
+                            ${field("fa-user", "Họ tên", safeText(u.fullName))}
+                            ${field("fa-envelope", "Email đăng ký", safeText(u.email))}
+                            ${field("fa-phone", "Số điện thoại", safeText(u.phone))}
+                        </div>
+                    </section>
+
+                    <!-- Activity & Membership Card -->
+                    <section class="premium-detail-section">
+                        <h4 class="premium-section-title"><i class="fas fa-star"></i>Hoạt động & Thành viên</h4>
+                        <div class="premium-info-grid one-column">
+                            ${field("fa-user-shield", "Quyền hạn (Role)", roleBadge)}
+                            ${field("fa-info-circle", "Trạng thái", statusBadge)}
+                            ${field("fa-medal", "Hạng thành viên", rankBadge)}
+                            ${field("fa-star", "Điểm tích lũy", Number(u.points || 0).toLocaleString("vi-VN"))}
+                            ${field("fa-envelope-circle-check", "Xác minh OTP", formatBoolean(u.emailVerifiedByOtp))}
+                            ${field("fa-ticket-alt", "Số đơn đặt vé", bookingCountOf(u))}
+                            ${field("fa-history", "Đăng nhập gần nhất", formatDateTime(u.lastLoginAt))}
+                            ${field("fa-calendar-plus", "Ngày tạo tài khoản", formatDateTime(u.createdAt))}
+                            ${field("fa-clock", "Cập nhật gần nhất", formatDateTime(u.updatedAt))}
+                        </div>
+                    </section>
+                </div>
+            `;
+            document.getElementById("userDetailBody").innerHTML = html;
             openModal("userDetailModal");
         }
 
@@ -442,8 +619,12 @@
 
         async function saveUser(e) {
             e.preventDefault();
-            const id = document.getElementById("docId").value;
-            const oldData = state.users.find(u => u.id === id);
+            const uid = document.getElementById("docId").value.trim();
+            if (!isValidUid(uid)) {
+                toast("error", "UID người dùng không hợp lệ", "UID người dùng không hợp lệ.");
+                return;
+            }
+            const oldData = state.users.find(u => u.uid === uid || u.id === uid);
             if (!oldData) return;
             const data = getFormData();
             if ((oldData.uid === currentUid() || oldData.id === currentUid()) && norm(oldData.role) === "admin" && norm(data.role) !== "admin") {
@@ -452,8 +633,17 @@
             }
             showLoading(true);
             try {
-                await updateDoc(doc(db, "users", id), { ...data, updatedAt: serverTimestamp() });
-                await window.AeroAdmin?.logActivity?.(logAction(oldData, data), "users", id, oldData, data);
+                const updatePayload = {
+                    fullName: data.fullName,
+                    phone: data.phone,
+                    role: data.role,
+                    status: data.status,
+                    memberRank: data.memberRank,
+                    points: data.points,
+                    updatedAt: serverTimestamp()
+                };
+                await updateDoc(doc(db, "users", uid), updatePayload);
+                await window.AeroAdmin?.logActivity?.(logAction(oldData, data), "users", uid, oldData, data);
                 toast("success", "Đã cập nhật user", "Thông tin người dùng đã được lưu.");
                 closeModal("userFormModal");
             } catch (err) {
@@ -568,10 +758,15 @@
             state.unsubs.forEach(u => u());
             state.unsubs = [
                 onSnapshot(collection(db, "users"), snap => {
-                    state.users = snap.docs.map(d => ({
-                        id: d.id,
-                        ...d.data()
-                    })).sort((a, b) => String(a.email || "").localeCompare(String(b.email || "")));
+                    state.users = snap.docs.map(docSnap => {
+                        const uid = docSnap.id;
+                        const data = docSnap.data();
+                        return {
+                            ...data,
+                            id: uid,
+                            uid: uid
+                        };
+                    }).sort((a, b) => String(a.email || "").localeCompare(String(b.email || "")));
                     updateStats();
                     filterData();
                 }, err => {

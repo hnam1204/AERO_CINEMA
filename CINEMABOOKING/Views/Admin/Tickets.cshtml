@@ -121,14 +121,14 @@
 </div>
 
 <!-- Ticket Detail Modal -->
-<div class="admin-modal" id="tktDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="tktModalTitle">
-    <div class="admin-modal-panel">
-        <div class="admin-modal-header">
-            <h3 id="tktModalTitle"><i class="fas fa-qrcode" style="color:#005baa;margin-right:8px;"></i>QR Code</h3>
-            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="tktDetailModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+<div class="admin-modal premium-detail-modal" id="tktDetailModal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="tktModalTitle">
+    <div class="admin-modal-panel premium-modal-panel">
+        <div class="admin-modal-header premium-modal-header">
+            <h3 id="tktModalTitle" class="premium-modal-title">🎟 Chi tiết vé</h3>
+            <button type="button" class="admin-btn premium-modal-close" data-close-modal="tktDetailModal" aria-label="Đóng"><i class="fas fa-times"></i></button>
         </div>
-        <div class="admin-modal-body" id="tktDetailBody"></div>
-        <div class="admin-modal-footer">
+        <div class="admin-modal-body premium-modal-body" id="tktDetailBody"></div>
+        <div class="admin-modal-footer premium-modal-footer">
             <button type="button" class="admin-btn admin-btn-primary" id="downloadTicketQr"><i class="fas fa-download"></i> Tải QR</button>
             <button type="button" class="admin-btn admin-btn-secondary" id="printTicketDetail"><i class="fas fa-print"></i> In Vé</button>
             <button type="button" class="admin-btn admin-btn-secondary" data-close-modal="tktDetailModal">Đóng</button>
@@ -188,19 +188,89 @@
                 minute: "2-digit"
             }) : "-";
         };
-        const fmtSentAt = v => {
-            const x = toDate(v);
-            if (!x || Number.isNaN(x.getTime())) return "-";
-            return `${x.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} ${x.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" })}`;
-        };
-        const fmtShowDate = v => {
-            const raw = String(v || "");
-            const match = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            if (match) return `${match[3]}/${match[2]}/${match[1]}`;
-            const x = toDate(v);
-            return x && !Number.isNaN(x.getTime()) ? x.toLocaleDateString("vi-VN") : safe(v);
-        };
         const escapeHtml = v => String(safe(v)).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
+
+        // Standard Format Helpers
+        const safeText = (value, fallback = "-") => {
+            if (value === undefined || value === null || value === "") return fallback;
+            if (typeof value === "string") {
+                if (value.includes("updateMask.fieldPaths") || value.includes(".fieldPaths") || value.includes("updateMask")) return fallback;
+            }
+            if (typeof value === "object") return fallback;
+            return value;
+        };
+
+        const formatCurrency = value => {
+            if (value === undefined || value === null || value === "") return "-";
+            const num = Number(value);
+            return isNaN(num) ? "-" : num.toLocaleString("vi-VN") + "đ";
+        };
+
+        const formatDateTime = v => {
+            const d = toDate(v);
+            if (!d) return "-";
+            const pad = n => String(n).padStart(2, "0");
+            return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+        };
+
+        const formatDate = v => {
+            if (!v) return "-";
+            if (typeof v === "string") {
+                const match = v.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (match) return `${match[3]}/${match[2]}/${match[1]}`;
+            }
+            const d = toDate(v);
+            if (!d) return safeText(v);
+            const pad = n => String(n).padStart(2, "0");
+            return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+        };
+
+        const formatPaymentMethod = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "qr" || val === "bank_transfer" || val === "banking" || val === "qr_banking") return "Chuyển khoản ngân hàng";
+            if (val === "momo") return "Ví MoMo";
+            if (val === "cash") return "Tiền mặt";
+            if (val === "card") return "Thẻ ngân hàng";
+            return safeText(value);
+        };
+
+        const formatBookingStatus = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "paid" || val === "confirmed" || val === "completed" || val === "success") return "Đã xác nhận";
+            if (val === "pending") return "Chờ xử lý";
+            if (val === "cancelled" || val === "canceled") return "Đã hủy";
+            return safeText(value);
+        };
+
+        const formatPaymentStatus = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "paid" || val === "success") return "Đã thanh toán";
+            if (val === "pending") return "Chờ thanh toán";
+            if (val === "failed" || val === "rejected") return "Thất bại";
+            return safeText(value);
+        };
+
+        const formatTicketStatus = value => {
+            const val = String(value || "").toLowerCase().trim();
+            if (val === "unused" || val === "active") return "Chưa sử dụng";
+            if (val === "used") return "Đã soát vé";
+            if (val === "cancelled" || val === "canceled") return "Đã hủy";
+            return safeText(value);
+        };
+
+        const formatBoolean = value => {
+            if (value === true || String(value).toLowerCase() === "true" || value === 1 || String(value) === "1") return "Có";
+            if (value === false || String(value).toLowerCase() === "false" || value === 0 || String(value) === "0") return "Không";
+            return "-";
+        };
+
+        const statusClass = s => {
+            const n = norm(s);
+            if (n === "used") return "success";
+            if (n === "unused" || n === "active") return "warning";
+            if (n === "cancelled" || n === "canceled") return "danger";
+            return "secondary";
+        };
 
         function showLoading(show) {
             window.AeroAdmin?.showLoader?.(show, "Đang xử lý...");
@@ -341,33 +411,62 @@
         function openDetail(t) {
             const qr = t.qrText || t.ticketCode || t.id;
             const bk = booking(t.bookingId) || {};
-            const detailStatus = t.checkedIn === true ? "used" : normStatus(t);
-            const statusMeta = {
-                unused: { text: "VALID", css: "valid" },
-                valid: { text: "VALID", css: "valid" },
-                used: { text: "USED · Đã sử dụng", css: "used" },
-                expired: { text: "EXPIRED", css: "expired" },
-                cancelled: { text: "CANCELLED", css: "cancelled" }
-            }[detailStatus] || { text: detailStatus.toUpperCase(), css: "secondary" };
             currentTicketQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qr)}`;
-            const row = (icon, label, rowValue) => `<div class="ticket-info-row"><span class="ticket-info-icon"><i class="fas ${icon}"></i></span><span class="ticket-info-label">${label}</span><strong class="ticket-info-value">${escapeHtml(rowValue)}</strong></div>`;
+
+            const movieTitle = t.movieTitle || bk.movieTitle;
+            const cinemaName = t.cinemaName || bk.cinemaName;
+            const roomName = t.roomName || bk.roomName;
+            const ticketDate = t.date || bk.date;
+            const ticketTime = t.time || bk.time;
+            const ticketSeats = t.seats || bk.seats;
+            const ticketStatus = t.checkedIn === true ? "used" : t.status;
+
+            const field = (icon, label, fieldValue) => `
+                <div class="premium-field-row">
+                    <span class="premium-field-label"><i class="fas ${icon}"></i> ${label}</span>
+                    <span class="premium-field-value">${fieldValue}</span>
+                </div>
+            `;
+
             document.getElementById("tktDetailBody").innerHTML = `
-                <div class="ticket-detail-shell">
-                    <div class="ticket-qr-card"><span>Quét mã để kiểm tra vé</span><img class="ticket-qr-image" src="${currentTicketQrUrl}" alt="QR vé ${escapeHtml(t.ticketCode || t.id)}" /></div>
-                    <div class="ticket-info-card">
-                        ${row("fa-ticket-alt", "Mã vé", t.ticketCode || t.id)}
-                        ${row("fa-film", "Phim", t.movieTitle || bk.movieTitle)}
-                        ${row("fa-building", "Rạp", t.cinemaName || bk.cinemaName)}
-                        ${row("fa-door-open", "Phòng", t.roomName || bk.roomName)}
-                        ${row("fa-calendar-alt", "Ngày chiếu", fmtShowDate(t.date || bk.date))}
-                        ${row("fa-clock", "Giờ chiếu", t.time || bk.time)}
-                        ${row("fa-couch", "Ghế", seats(t.seats || bk.seats))}
-                        ${row("fa-envelope", "Email", t.emailSent ? "Đã gửi" : "Chưa gửi")}
-                        ${row("fa-paper-plane", "Thời gian gửi", t.emailSentAt ? fmtSentAt(t.emailSentAt) : "-")}
-                        ${t.checkedIn === true ? row("fa-user-check", "Check-in lúc", t.checkedInAt ? fmtSentAt(t.checkedInAt) : "Đã check-in") : ""}
-                        <div class="ticket-info-row"><span class="ticket-info-icon"><i class="fas fa-chart-line"></i></span><span class="ticket-info-label">Trạng thái</span><strong class="ticket-info-value"><span class="ticket-status-badge ${statusMeta.css}">${escapeHtml(statusMeta.text)}</span></strong></div>
+                <div class="premium-ticket-layout">
+                    <!-- Ticket Stub Left Section -->
+                    <aside class="premium-qr-card">
+                        <div class="premium-qr-brand"><i class="fas fa-film"></i> AERO CINEMA</div>
+                        <img src="${currentTicketQrUrl}" alt="QR vé ${safeText(t.ticketCode || t.id)}" />
+                        <div class="premium-qr-code">${safeText(t.ticketCode || t.id)}</div>
+                        <span class="premium-status ${statusClass(ticketStatus)}">${formatTicketStatus(ticketStatus)}</span>
+                    </aside>
+
+                    <!-- Details Right Section -->
+                    <div class="premium-detail-layout" style="grid-template-columns: 1fr; gap: 20px;">
+                        <section class="premium-detail-section">
+                            <h4 class="premium-section-title"><i class="fas fa-ticket-alt"></i>Thông tin vé</h4>
+                            <div class="premium-info-grid one-column">
+                                ${field("fa-id-card", "Mã vé", safeText(t.ticketCode || t.id))}
+                                ${field("fa-ticket-alt", "Mã đặt vé", safeText(t.bookingId))}
+                                ${field("fa-film", "Phim", safeText(movieTitle))}
+                                ${field("fa-building", "Rạp", safeText(cinemaName))}
+                                ${field("fa-door-open", "Phòng", safeText(roomName))}
+                                ${field("fa-couch", "Ghế", Array.isArray(ticketSeats) ? ticketSeats.join(", ") : safeText(ticketSeats))}
+                                ${field("fa-calendar", "Ngày chiếu", formatDate(ticketDate))}
+                                ${field("fa-clock", "Giờ chiếu", safeText(ticketTime))}
+                            </div>
+                        </section>
+
+                        <section class="premium-detail-section">
+                            <h4 class="premium-section-title"><i class="fas fa-cog"></i>Thông tin hệ thống</h4>
+                            <div class="premium-info-grid one-column">
+                                ${field("fa-envelope", "Email đã gửi", formatBoolean(t.emailSent))}
+                                ${field("fa-paper-plane", "Thời gian gửi", formatDateTime(t.emailSentAt))}
+                                ${field("fa-info-circle", "Trạng thái", `<span class="premium-status ${statusClass(ticketStatus)}">${formatTicketStatus(ticketStatus)}</span>`)}
+                                ${field("fa-calendar-plus", "Ngày tạo", formatDateTime(t.createdAt))}
+                                ${t.checkedIn === true ? field("fa-user-check", "Check-in lúc", formatDateTime(t.checkedInAt)) : ""}
+                            </div>
+                        </section>
                     </div>
-                </div>`;
+                </div>
+            `;
             openModal("tktDetailModal");
         }
 

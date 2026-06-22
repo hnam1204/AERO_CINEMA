@@ -6,20 +6,16 @@ console.log("AERO Chatbot loaded");
 console.log("window.db", window.db);
 console.log("window.auth", window.auth);
 
-const HISTORY_KEY = "aeroChatHistory";
-const HISTORY_LIMIT = 30;
 const EMPTY_TEXT = "Hiện chưa có dữ liệu phù hợp.";
 const ERROR_TEXT = "Xin lỗi, hiện chưa thể tải dữ liệu. Vui lòng thử lại sau.";
 const FALLBACK_TEXT = "Tôi có thể hỗ trợ:\n\n• Phim đang chiếu\n• Lịch chiếu\n• Vé của tôi\n• Giá vé\n• Khuyến mãi\n• Gợi ý phim";
 const quickActions = [
-    "🎬 Phim đang chiếu",
-    "🎟 Lịch chiếu hôm nay",
-    "📍 Rạp gần tôi",
-    "💰 Giá vé",
-    "🎁 Khuyến mãi",
-    "🎫 Vé của tôi",
-    "❤️ Gợi ý phim",
-    "🎭 Thể loại phim"
+    { label: "🎬 Phim hot", prompt: "Phim đang chiếu" },
+    { label: "🍿 Suất chiếu hôm nay", prompt: "Lịch chiếu hôm nay" },
+    { label: "🎟 Đặt vé", prompt: "Lịch chiếu hôm nay" },
+    { label: "⭐ Khuyến mãi", prompt: "Khuyến mãi" },
+    { label: "🏢 Rạp", prompt: "Rạp phim" },
+    { label: "📞 Hỗ trợ", prompt: "Bạn có thể hỗ trợ gì?" }
 ];
 
 const genreAliases = {
@@ -48,7 +44,6 @@ const intentRules = [
 let services = null;
 let currentUser = null;
 let isSending = false;
-let history = [];
 
 function normalize(value) {
     return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/đ/g, "d").replace(/Đ/g, "D").toLowerCase().trim();
@@ -92,25 +87,60 @@ function waitForFirebaseReady(maxRetries = 20, retryDelay = 200) {
 function injectChatbot() {
     if (document.getElementById("aeroChatbot")) return;
     const chatbotHtml = `<div id="aeroChatbot">
-        <button class="aero-chat-toggle aero-chatbot-launcher" type="button" aria-label="Mở AERO AI Assistant" aria-expanded="false" aria-controls="aeroChatbox"><i class="fas fa-comments" aria-hidden="true"></i><span>AERO Bot</span></button>
-        <span class="aero-chat-tooltip" role="tooltip">AERO AI Assistant</span>
+        <button id="aeroChatbotLauncher" class="aero-chat-toggle aero-chatbot-launcher" type="button" aria-label="Mở AERO AI" aria-expanded="false" aria-controls="aeroChatbox">
+            <span class="aero-chatbot-launcher-icon"><i class="fas fa-robot" aria-hidden="true"></i></span>
+            <span class="aero-chatbot-launcher-text">Hỗ trợ</span>
+            <span class="aero-chatbot-online-badge" aria-hidden="true"></span>
+        </button>
         <section class="aero-chatbox aero-chatbot-panel" id="aeroChatbox" role="dialog" aria-labelledby="aeroChatTitle" aria-hidden="true">
             <header class="aero-chat-header">
-                <div class="aero-chat-brand"><span class="aero-chat-avatar" aria-hidden="true"><b>A</b></span><div><strong id="aeroChatTitle">AERO AI Assistant</strong><small><i></i> Trợ lý rạp phim trực tuyến</small></div></div>
-                <button class="aero-chat-close" type="button" aria-label="Đóng chatbot"><i class="fas fa-times" aria-hidden="true"></i></button>
+                <div class="aero-chat-brand"><span class="aero-chat-avatar" aria-hidden="true"><i class="fas fa-robot"></i></span><div><strong id="aeroChatTitle">AERO AI Assistant</strong><small><i></i> Online · Trợ lý đặt vé thông minh</small></div></div>
+                <div class="aero-chat-window-actions">
+                    <button class="aero-chat-minimize" type="button" aria-label="Thu nhỏ chatbot"><i class="fas fa-minus" aria-hidden="true"></i></button>
+                    <button class="aero-chat-close" type="button" aria-label="Đóng chatbot"><i class="fas fa-times" aria-hidden="true"></i></button>
+                </div>
             </header>
             <div class="aero-chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
-            <form class="aero-chat-form"><input class="aero-chat-input" type="text" maxlength="250" autocomplete="off" placeholder="Hỏi AERO về phim, lịch chiếu..." aria-label="Câu hỏi cho AERO AI Assistant" /><button class="aero-chat-send" type="submit" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane" aria-hidden="true"></i></button></form>
+            <form class="aero-chat-form">
+                <div class="aero-chat-composer">
+                    <textarea class="aero-chat-input" rows="1" maxlength="500" placeholder="Hỏi AERO về phim, lịch chiếu..." aria-label="Câu hỏi cho AERO AI Assistant"></textarea>
+                    <div class="aero-chat-tools">
+                        <button class="aero-chat-tool aero-chat-voice" type="button" aria-label="Nhập bằng giọng nói"><i class="fas fa-microphone"></i></button>
+                        <button class="aero-chat-tool aero-chat-emoji" type="button" aria-label="Thêm biểu tượng cảm xúc"><i class="far fa-smile"></i></button>
+                        <button class="aero-chat-tool aero-chat-attachment" type="button" aria-label="Đính kèm tệp"><i class="fas fa-paperclip"></i></button>
+                        <input class="aero-chat-file" type="file" hidden />
+                        <span class="aero-chat-enter-hint">Enter để gửi</span>
+                        <button class="aero-chat-send" type="submit" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane" aria-hidden="true"></i></button>
+                    </div>
+                </div>
+            </form>
         </section>
     </div>`;
     document.body.insertAdjacentHTML("beforeend", chatbotHtml);
     const root = document.getElementById("aeroChatbot");
-    root.querySelector(".aero-chat-toggle").addEventListener("click", () => setChatOpen(true));
+    root.querySelector(".aero-chatbot-launcher").addEventListener("click", () => setChatOpen(true));
+    root.querySelector(".aero-chat-minimize").addEventListener("click", () => setChatOpen(false));
     root.querySelector(".aero-chat-close").addEventListener("click", () => setChatOpen(false));
     root.querySelector(".aero-chat-form").addEventListener("submit", event => {
         event.preventDefault();
         sendMessage(root.querySelector(".aero-chat-input").value);
     });
+    const input = root.querySelector(".aero-chat-input");
+    input.addEventListener("keydown", event => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
+            root.querySelector(".aero-chat-form").requestSubmit();
+        }
+    });
+    input.addEventListener("input", () => resizeComposer(input));
+    root.querySelector(".aero-chat-emoji").addEventListener("click", () => insertAtCursor(input, "😊"));
+    root.querySelector(".aero-chat-attachment").addEventListener("click", () => root.querySelector(".aero-chat-file").click());
+    root.querySelector(".aero-chat-file").addEventListener("change", event => {
+        const file = event.target.files?.[0];
+        if (file) appendMessage("bot", `Đã nhận tệp “${file.name}”. Tính năng phân tích tệp sẽ sớm được cập nhật.`);
+        event.target.value = "";
+    });
+    root.querySelector(".aero-chat-voice").addEventListener("click", () => startVoiceInput(input));
     document.addEventListener("keydown", event => {
         if (event.key === "Escape" && root.classList.contains("is-open")) setChatOpen(false);
     });
@@ -136,8 +166,44 @@ function scrollLatest() {
     if (element) element.scrollTop = element.scrollHeight;
 }
 
-function appendMessage(role, response, save = true) {
+function resizeComposer(input) {
+    input.style.height = "auto";
+    input.style.height = `${Math.min(input.scrollHeight, 96)}px`;
+}
+
+function insertAtCursor(input, text) {
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? input.value.length;
+    input.value = input.value.slice(0, start) + text + input.value.slice(end);
+    input.selectionStart = input.selectionEnd = start + text.length;
+    input.dispatchEvent(new Event("input"));
+    input.focus();
+}
+
+function startVoiceInput(input) {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        appendMessage("bot", "Trình duyệt này chưa hỗ trợ nhập bằng giọng nói.");
+        return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = "vi-VN";
+    recognition.interimResults = false;
+    recognition.addEventListener("result", event => insertAtCursor(input, event.results[0][0].transcript));
+    recognition.addEventListener("error", () => appendMessage("bot", "Tôi chưa nghe rõ. Bạn vui lòng thử lại nhé."));
+    recognition.start();
+}
+
+function appendMessage(role, response) {
     const normalizedResponse = typeof response === "string" ? { text: response } : response;
+    const row = document.createElement("div");
+    row.className = `aero-message-row ${role}`;
+    if (role === "bot") {
+        const avatar = document.createElement("span");
+        avatar.className = "aero-message-avatar";
+        avatar.innerHTML = '<i class="fas fa-robot" aria-hidden="true"></i>';
+        row.appendChild(avatar);
+    }
     const wrapper = document.createElement("div");
     wrapper.className = `aero-message ${role}`;
     if (Array.isArray(normalizedResponse.cards) && normalizedResponse.cards.length) wrapper.classList.add("has-cards");
@@ -148,8 +214,8 @@ function appendMessage(role, response, save = true) {
         wrapper.appendChild(text);
     }
     if (Array.isArray(normalizedResponse.cards)) renderCards(wrapper, normalizedResponse.cards);
-    messagesElement()?.appendChild(wrapper);
-    if (save) saveHistory(role, normalizedResponse);
+    row.appendChild(wrapper);
+    messagesElement()?.appendChild(row);
     scrollLatest();
     return wrapper;
 }
@@ -179,11 +245,21 @@ function renderCards(parent, cards) {
             body.appendChild(line);
         });
         if (card.href) {
-            const link = document.createElement("a");
-            link.className = "aero-result-action";
-            link.href = card.href;
-            link.textContent = card.action || "Xem chi tiết";
-            body.appendChild(link);
+            const actions = document.createElement("div");
+            actions.className = "aero-result-actions";
+            const detailLink = document.createElement("a");
+            detailLink.className = "aero-result-action secondary";
+            detailLink.href = card.href;
+            detailLink.textContent = card.action || "Xem chi tiết";
+            actions.appendChild(detailLink);
+            if (card.secondaryHref) {
+                const primaryLink = document.createElement("a");
+                primaryLink.className = "aero-result-action primary";
+                primaryLink.href = card.secondaryHref;
+                primaryLink.textContent = card.secondaryAction || "Đặt vé ngay";
+                actions.appendChild(primaryLink);
+            }
+            body.appendChild(actions);
         }
         item.appendChild(body);
         list.appendChild(item);
@@ -195,12 +271,12 @@ function renderQuickActions() {
     const container = document.createElement("div");
     container.className = "aero-quick-actions";
     container.setAttribute("aria-label", "Câu hỏi gợi ý");
-    quickActions.forEach(label => {
+    quickActions.forEach(action => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "aero-quick-action";
-        button.textContent = label;
-        button.addEventListener("click", () => sendMessage(label.replace(/^[^\p{L}\p{N}]+/u, "")));
+        button.textContent = action.label;
+        button.addEventListener("click", () => sendMessage(action.prompt));
         container.appendChild(button);
     });
     messagesElement()?.appendChild(container);
@@ -208,36 +284,49 @@ function renderQuickActions() {
 
 function showTyping(label) {
     const node = document.createElement("div");
-    node.className = "aero-message bot aero-typing";
+    node.className = "aero-message-row bot aero-typing-row";
+    const avatar = document.createElement("span");
+    avatar.className = "aero-message-avatar";
+    avatar.innerHTML = '<i class="fas fa-robot" aria-hidden="true"></i>';
+    const bubble = document.createElement("div");
+    bubble.className = "aero-message bot aero-typing";
     const text = document.createElement("span");
     text.textContent = label;
     const dots = document.createElement("span");
     dots.className = "aero-typing-dots";
     dots.setAttribute("aria-hidden", "true");
     dots.innerHTML = "<i></i><i></i><i></i>";
-    node.append(text, dots);
+    bubble.append(text, dots);
+    node.append(avatar, bubble);
     messagesElement()?.appendChild(node);
     scrollLatest();
     return node;
 }
 
-function saveHistory(role, response) {
-    if (response?.private === true) return;
-    history.push({ role, response, createdAt: Date.now() });
-    history = history.slice(-HISTORY_LIMIT);
-    try { localStorage.setItem(HISTORY_KEY, JSON.stringify(history)); } catch (error) { console.warn("[AERO AI] Không thể lưu lịch sử:", error); }
+function clearChatHistoryOnPageLoad() {
+    localStorage.removeItem("aeroChatHistory");
+    localStorage.removeItem("aero_chat_history");
+    localStorage.removeItem("aeroChatbotMessages");
+    localStorage.removeItem("aeroChatMessages");
+    sessionStorage.removeItem("aeroChatHistory");
 }
 
-function restoreHistory() {
-    try {
-        const stored = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-        history = Array.isArray(stored) ? stored.slice(-HISTORY_LIMIT) : [];
-    } catch (error) {
-        history = [];
-        console.warn("[AERO AI] Lịch sử chat không hợp lệ:", error);
-    }
-    if (history.length) history.forEach(item => appendMessage(item.role, item.response, false));
-    else appendMessage("bot", "Xin chào! Tôi là AERO AI Assistant. Hôm nay bạn muốn xem phim gì?", true);
+function renderWelcomeMessage() {
+    const messages = messagesElement();
+    if (!messages) return;
+    messages.replaceChildren();
+    const welcome = document.createElement("section");
+    welcome.className = "aero-welcome";
+    welcome.innerHTML = `
+        <div class="aero-welcome-avatar"><i class="fas fa-robot" aria-hidden="true"></i></div>
+        <h2>Xin chào <span>👋</span></h2>
+        <p>Tôi là <strong>AERO AI Assistant</strong>.<br />Tôi có thể giúp bạn:</p>
+        <div class="aero-welcome-capabilities">
+            <span>🎬 Xem phim đang chiếu</span><span>🍿 Tra cứu suất chiếu</span>
+            <span>🎟 Đặt vé nhanh</span><span>🏢 Thông tin rạp</span>
+            <span>💳 Thanh toán</span><span>⭐ Khuyến mãi</span>
+        </div>`;
+    messages.appendChild(welcome);
     renderQuickActions();
 }
 
@@ -258,12 +347,15 @@ function displayDate(input) {
 }
 
 function movieCard(movie) {
+    const detailsUrl = `/Movies/Details?id=${encodeURIComponent(movie.id)}`;
     return {
-        image: movie.posterUrl || movie.poster || "",
+        image: movie.posterUrl || movie.imageUrl || movie.bannerUrl || movie.poster || "https://placehold.co/160x240/0f172a/ffffff?text=AERO",
         title: value(movie, ["title", "name"]),
-        lines: [`🎭 ${value(movie, ["genre"], "Chưa cập nhật thể loại")}`, `⏱ ${value(movie, ["duration"], "-")} phút · ⭐ ${value(movie, ["voteAverage"], "-")}/10`],
-        href: `/Movies/Details?id=${encodeURIComponent(movie.id)}`,
-        action: "Xem chi tiết"
+        lines: [`⭐ ${value(movie, ["voteAverage"], "-")}/10`, `⏱ ${value(movie, ["duration"], "-")} phút`, `🏷 ${value(movie, ["genre"], "Đang cập nhật")}`, `🔞 ${value(movie, ["rating"], "P")}`],
+        href: detailsUrl,
+        action: "Xem chi tiết",
+        secondaryHref: `${detailsUrl}#booking-section`,
+        secondaryAction: "Đặt vé ngay"
     };
 }
 
@@ -463,7 +555,7 @@ async function createResponse(message, detectedIntent = null) {
     const intent = detectedIntent || detectIntent(message);
     const localResponse = await handlers[intent.name](message, intent);
     if (localResponse !== FALLBACK_TEXT || !AIProvider.useGemini) return localResponse;
-    return await AIProvider.generateResponse(message, { intent, history: history.slice(-6) }) || FALLBACK_TEXT;
+    return await AIProvider.generateResponse(message, { intent, history: [] }) || FALLBACK_TEXT;
 }
 
 async function sendMessage(rawMessage) {
@@ -473,9 +565,10 @@ async function sendMessage(rawMessage) {
     const input = document.querySelector("#aeroChatbot .aero-chat-input");
     const button = document.querySelector("#aeroChatbot .aero-chat-send");
     if (input) input.value = "";
+    if (input) resizeComposer(input);
     if (button) button.disabled = true;
     const intent = detectIntent(message);
-    appendMessage("user", message, intent.name !== "ticket_search");
+    appendMessage("user", message);
     const typing = showTyping(typingLabel(intent.name));
     try {
         const [response] = await Promise.all([createResponse(message, intent), new Promise(resolve => window.setTimeout(resolve, 420))]);
@@ -493,8 +586,9 @@ async function sendMessage(rawMessage) {
 }
 
 async function initAeroChatbot() {
+    clearChatHistoryOnPageLoad();
     injectChatbot();
-    restoreHistory();
+    renderWelcomeMessage();
     try {
         const firebase = await waitForFirebaseReady();
         console.log("window.db", window.db);
