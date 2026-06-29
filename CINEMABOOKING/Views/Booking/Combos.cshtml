@@ -60,8 +60,7 @@
     .combo-tag { display: inline-flex; width: fit-content; border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 900; color: #fff; background: var(--combo-accent); }
     .combo-desc { margin: 0; color: var(--combo-muted); font-size: 13px; line-height: 1.45; min-height: 38px; }
     .combo-meta { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; }
-    .combo-price { color: var(--combo-accent); font-size: 18px; font-weight: 900; }
-    .combo-stock { color: var(--combo-muted); font-size: 12px; font-weight: 700; }
+    .combo-price { color: var(--combo-accent); font-size: 20px; font-weight: 900; }
     .combo-card-actions { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
     .btn-combo-detail { border: 1px solid var(--combo-border); background: #fff; color: var(--combo-primary); border-radius: 6px; padding: 7px 12px; font-size: 12px; font-weight: 800; cursor: pointer; transition: all .2s ease; display: inline-flex; align-items: center; gap: 5px; }
     .btn-combo-detail:hover { border-color: var(--combo-accent); color: var(--combo-accent); }
@@ -499,7 +498,7 @@
                         <div class="combo-meta">
                             <div>
                                 <div class="combo-price">${formatCurrency(price)}</div>
-                                <div class="combo-stock">Tồn kho: ${stock >= 999999 ? "Không giới hạn" : stock.toLocaleString("vi-VN")}</div>
+                                ${stock <= 0 ? `<div style="color: #ef4444; font-size: 13px; font-weight: 800; margin-top: 4px;">Tạm hết</div>` : ""}
                             </div>
                             <div class="qty-control">
                                 <button type="button" data-action="minus" data-id="${id}" ${qty <= 0 ? "disabled" : ""}>-</button>

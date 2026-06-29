@@ -231,6 +231,17 @@ namespace CINEMABOOKING.Controllers
 
         private static string BuildRegisterOtpBody(string otpCode)
         {
+            if (IsEnglishCulture())
+            {
+                return
+                    "Hello,\n\n" +
+                    "Your AERO Cinema account registration verification code is:\n\n" +
+                    otpCode + "\n\n" +
+                    "This code is valid for 5 minutes.\n\n" +
+                    "If you did not make this request, please ignore this email.\n\n" +
+                    "AERO Cinema";
+            }
+
             return
                 "Xin chào,\n\n" +
                 "Mã xác nhận đăng ký tài khoản AERO Cinema của bạn là:\n\n" +
@@ -242,6 +253,17 @@ namespace CINEMABOOKING.Controllers
 
         private static string BuildForgotPasswordOtpBody(string otpCode)
         {
+            if (IsEnglishCulture())
+            {
+                return
+                    "Hello,\n\n" +
+                    "Your AERO Cinema password recovery verification code is:\n\n" +
+                    otpCode + "\n\n" +
+                    "This code is valid for 5 minutes.\n\n" +
+                    "If you did not request password recovery, please ignore this email.\n\n" +
+                    "AERO Cinema";
+            }
+
             return
                 "Xin chào,\n\n" +
                 "Mã xác nhận khôi phục mật khẩu AERO Cinema của bạn là:\n\n" +
@@ -249,6 +271,14 @@ namespace CINEMABOOKING.Controllers
                 "Mã có hiệu lực trong 5 phút.\n\n" +
                 "Nếu bạn không yêu cầu khôi phục mật khẩu, vui lòng bỏ qua email này.\n\n" +
                 "AERO Cinema";
+        }
+
+        private static bool IsEnglishCulture()
+        {
+            return string.Equals(
+                System.Threading.Thread.CurrentThread.CurrentUICulture.TwoLetterISOLanguageName,
+                "en",
+                StringComparison.OrdinalIgnoreCase);
         }
 
         private string BuildLoginAlertBody(LoginInfo loginInfo)

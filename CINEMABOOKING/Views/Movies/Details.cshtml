@@ -915,10 +915,10 @@
 
                 <div class="movie-actions">
                     <button class="btn-action-trailer" id="trailerBtn">
-                        <i class="fas fa-play" style="color: var(--accent-color);"></i> Xem Trailer
+                        <i class="fas fa-play" style="color: var(--accent-color);"></i> <span data-i18n="trailer">Trailer</span>
                     </button>
                     <a href="#booking-section" class="btn-action-booking" id="btnBookNow">
-                        <i class="fas fa-ticket-alt"></i> Đặt Vé Ngay
+                        <i class="fas fa-ticket-alt"></i> <span data-i18n="movie_book_now">Đặt Vé Ngay</span>
                     </a>
                 </div>
             </div>
@@ -932,31 +932,31 @@
         <aside class="movie-detail-sidebar">
             <div class="movie-spec-card">
                 <div class="spec-item">
-                    <div class="spec-label">Đạo diễn</div>
+                    <div class="spec-label" data-i18n="movie_director">Đạo diễn</div>
                     <div class="spec-value" id="movieDirector"></div>
                 </div>
                 <div class="spec-item">
-                    <div class="spec-label">Diễn viên</div>
+                    <div class="spec-label" data-i18n="movie_cast">Diễn viên</div>
                     <div class="spec-value" id="movieActors"></div>
                 </div>
                 <div class="spec-item">
-                    <div class="spec-label">Thể loại</div>
+                    <div class="spec-label" data-i18n="movie_genre">Thể loại</div>
                     <div class="spec-value" id="movieGenre"></div>
                 </div>
                 <div class="spec-item">
-                    <div class="spec-label">Quốc gia</div>
+                    <div class="spec-label" data-i18n="movie_country">Quốc gia</div>
                     <div class="spec-value" id="movieCountry"></div>
                 </div>
                 <div class="spec-item">
-                    <div class="spec-label">Ngôn ngữ</div>
+                    <div class="spec-label" data-i18n="movie_language">Ngôn ngữ</div>
                     <div class="spec-value" id="movieLanguage"></div>
                 </div>
                 <div class="spec-item">
-                    <div class="spec-label">Định dạng</div>
+                    <div class="spec-label" data-i18n="movie_format">Định dạng</div>
                     <div class="spec-value" id="movieFormat">2D/3D/IMAX</div>
                 </div>
                 <div class="spec-item">
-                    <div class="spec-label">Trạng thái</div>
+                    <div class="spec-label" data-i18n="history_status">Trạng thái</div>
                     <div class="spec-value" id="movieStatus"></div>
                 </div>
             </div>
@@ -967,13 +967,13 @@
             
             <!-- Synopsis -->
             <section>
-                <h2 class="info-section-title">Nội Dung Phim</h2>
+                <h2 class="info-section-title" data-i18n="movie_synopsis">Nội Dung Phim</h2>
                 <p class="synopsis-text" id="movieDescription"></p>
             </section>
 
             <!-- Showtimes & Quick Booking Section -->
             <section id="booking-section">
-                <h2 class="info-section-title">Lịch Chiếu & Đặt Vé</h2>
+                <h2 class="info-section-title" data-i18n="movie_showtimes">Lịch Chiếu</h2>
                 
                 <div class="showtimes-card">
                     <!-- GALAXY QUICK BOOKING BAR -->
@@ -981,10 +981,10 @@
                         <!-- Step 1: Choose Cinema Filter -->
                         <div class="booking-step-container step-cinema">
                             <span class="booking-step-num">Bước 1</span>
-                            <span class="booking-step-label">Chọn Rạp</span>
+                            <span class="booking-step-label" data-i18n="choose_cinema">Chọn Rạp</span>
                             <div class="cinema-filter-wrapper">
                                 <select id="detailsCinemaFilter" class="cinema-filter-select" onchange="onCinemaFilterChange()">
-                                    <option value="all">Tất cả rạp</option>
+                                    <option value="all" data-i18n="movies_all">Tất cả rạp</option>
                                 </select>
                             </div>
                         </div>
@@ -992,7 +992,7 @@
                         <!-- Step 2: Choose Date -->
                         <div class="booking-step-container step-date" style="flex-grow: 1; overflow: hidden;">
                             <span class="booking-step-num">Bước 2</span>
-                            <span class="booking-step-label">Chọn Ngày</span>
+                            <span class="booking-step-label" data-i18n="choose_date">Chọn Ngày</span>
                             <div class="date-scroll-container" id="datePillContainer">
                                 <!-- Dynamically loaded date pills -->
                             </div>
@@ -1002,7 +1002,7 @@
                     <!-- Step 3: Showtime Hours Grid (Grouped by Cinema) -->
                     <div class="booking-step-showtime-header">
                         <span class="booking-step-num">Bước 3</span>
-                        <span class="booking-step-label">Chọn Suất Chiếu</span>
+                        <span class="booking-step-label" data-i18n="choose_showtime">Chọn Suất Chiếu</span>
                     </div>
                     
                     <div id="showtimeGroups" class="showtime-grid">
@@ -1012,8 +1012,8 @@
                     <!-- Step 4: Seat selection (Instructional/Status bar) -->
                     <div class="booking-step-seat-footer">
                         <span class="booking-step-num">Bước 4</span>
-                        <span class="booking-step-label">Chọn Ghế</span>
-                        <p class="step-seat-desc">Sau khi bấm chọn Suất Chiếu, bạn sẽ được tự động chuyển hướng đến sơ đồ ghế phòng chiếu để chọn vị trí ngồi mong muốn.</p>
+                        <span class="booking-step-label" data-i18n="seats_step_title">Chọn Ghế</span>
+                        <p class="step-seat-desc" data-i18n="movie_select_seat_desc">Sau khi bấm chọn Suất Chiếu, bạn sẽ được tự động chuyển hướng đến sơ đồ ghế phòng chiếu để chọn vị trí ngồi mong muốn.</p>
                     </div>
                 </div>
             </section>
@@ -1054,6 +1054,18 @@
         
         let selectedDateStr = "";
         let selectedCinemaFilter = "all"; // all or cinemaId
+
+        function currentLang() {
+            return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+        }
+
+        function tr(key) {
+            return window.t ? window.t(key) : key;
+        }
+
+        function localizeDynamic(value, type) {
+            return window.translateDynamic ? window.translateDynamic(value, type) : value;
+        }
 
         const docsToArray = (snap) => snap.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
 
@@ -1100,7 +1112,7 @@
         const movieId = urlParams.get('id');
 
         if (!movieId) {
-            showError("Không tìm thấy mã phim!", "Vui lòng chọn một bộ phim hợp lệ từ danh sách.");
+            showError(currentLang() === "en" ? "Movie ID not found!" : "Không tìm thấy mã phim!", currentLang() === "en" ? "Please choose a valid movie from the list." : "Vui lòng chọn một bộ phim hợp lệ từ danh sách.");
         } else {
             loadMovieDetails(movieId);
         }
@@ -1110,7 +1122,7 @@
                 // 1. Fetch Movie details
                 const movieDoc = await getDoc(doc(db, "movies", id));
                 if (!movieDoc.exists()) {
-                    showError("Bộ phim không tồn tại!", "Bộ phim này không tồn tại hoặc đã bị gỡ khỏi hệ thống.");
+                    showError(currentLang() === "en" ? "Movie not found!" : "Bộ phim không tồn tại!", currentLang() === "en" ? "This movie does not exist or has been removed." : "Bộ phim này không tồn tại hoặc đã bị gỡ khỏi hệ thống.");
                     return;
                 }
 
@@ -1121,14 +1133,14 @@
                 document.getElementById("moviePoster").src = currentMovie.posterUrl || '';
                 document.getElementById("movieAgeBadge").innerText = currentMovie.rating || 'P';
                 document.getElementById("movieTitleVn").innerText = currentMovie.title || '';
-                document.getElementById("movieDuration").innerText = `${currentMovie.duration || 120} phút`;
+                document.getElementById("movieDuration").innerText = `${currentMovie.duration || 120} ${currentLang() === "en" ? "mins" : "phút"}`;
                 
                 // TMDB Rating Integration
                 const ratingContainer = document.getElementById("movieRatingVal");
                 if (currentMovie.voteAverage) {
                     let ratingHtml = `<i class="fas fa-star" style="color: #FFE53D;"></i> <span style="font-weight: 700;">${currentMovie.voteAverage}/10`;
                     if (currentMovie.voteCount) {
-                        ratingHtml += ` <span style="font-size: 12px; color: var(--text-sub); font-weight: 400;">(${Number(currentMovie.voteCount).toLocaleString('vi-VN')} đánh giá)</span>`;
+                        ratingHtml += ` <span style="font-size: 12px; color: var(--text-sub); font-weight: 400;">(${Number(currentMovie.voteCount).toLocaleString(currentLang() === "en" ? "en-US" : "vi-VN")} ${currentLang() === "en" ? "reviews" : "đánh giá"})</span>`;
                     }
                     ratingHtml += `</span>`;
                     ratingContainer.innerHTML = ratingHtml;
@@ -1137,7 +1149,7 @@
                     // Fallback to Galaxy standard details if TMDB fields are missing in DB
                     ratingContainer.innerHTML = `
                         <i class="fas fa-star" style="color: #FFE53D;"></i>
-                        <span style="font-weight: 700;">8.5/10 <span style="font-size: 12px; color: var(--text-sub); font-weight: 400;">(25.000 đánh giá)</span></span>
+                        <span style="font-weight: 700;">8.5/10 <span style="font-size: 12px; color: var(--text-sub); font-weight: 400;">(${currentLang() === "en" ? "25,000 reviews" : "25.000 đánh giá"})</span></span>
                     `;
                     ratingContainer.style.display = "flex";
                 }
@@ -1147,21 +1159,21 @@
                 if (rDate) {
                     rDate = rDate.split("-").reverse().join("/");
                 }
-                document.getElementById("movieReleaseDate").innerText = `Khởi chiếu: ${rDate}`;
+                document.getElementById("movieReleaseDate").innerText = `${tr("movie_release_date")}: ${rDate}`;
                 
                 document.getElementById("movieDirector").innerText = currentMovie.director || 'N/A';
                 document.getElementById("movieActors").innerText = currentMovie.actors || 'N/A';
-                document.getElementById("movieGenre").innerText = currentMovie.genre || 'N/A';
-                document.getElementById("movieCountry").innerText = currentMovie.country || 'N/A';
-                document.getElementById("movieLanguage").innerText = currentMovie.language || 'N/A';
-                document.getElementById("movieDescription").innerText = currentMovie.description || 'Chưa có mô tả.';
+                document.getElementById("movieGenre").innerText = localizeDynamic(currentMovie.genre || 'N/A', "genre");
+                document.getElementById("movieCountry").innerText = localizeDynamic(currentMovie.country || 'N/A', "country");
+                document.getElementById("movieLanguage").innerText = localizeDynamic(currentMovie.language || 'N/A', "language");
+                document.getElementById("movieDescription").innerText = currentMovie.description || (currentLang() === "en" ? "No synopsis available." : "Chưa có mô tả.");
                 
                 // Format & Status Specs
-                document.getElementById("movieFormat").innerText = currentMovie.format || "2D Phụ Đề";
+                document.getElementById("movieFormat").innerText = localizeDynamic(currentMovie.format || "2D Phụ Đề", "language");
                 if (currentMovie.status === "now_showing") {
-                    document.getElementById("movieStatus").innerHTML = `<span style="color: #10B981; font-weight: 800;">Đang chiếu</span>`;
+                    document.getElementById("movieStatus").innerHTML = `<span style="color: #10B981; font-weight: 800;">${tr("now_showing")}</span>`;
                 } else {
-                    document.getElementById("movieStatus").innerHTML = `<span style="color: var(--accent-color); font-weight: 800;">Sắp chiếu</span>`;
+                    document.getElementById("movieStatus").innerHTML = `<span style="color: var(--accent-color); font-weight: 800;">${tr("coming_soon")}</span>`;
                 }
 
                 // Setup trailer URL (hide button if trailerUrl is missing or invalid)
@@ -1183,7 +1195,7 @@
 
                 // 2. Fetch all Cinemas to populate dynamic dropdown
                 const selectFilter = document.getElementById("detailsCinemaFilter");
-                selectFilter.innerHTML = '<option value="all">Tất cả rạp</option>';
+                selectFilter.innerHTML = `<option value="all">${tr("movies_all")}</option>`;
                 cachedCinemasMap = {};
                 
                 cinemasList.forEach((cData) => {
@@ -1224,7 +1236,7 @@
 
             } catch (error) {
                 console.error("Error loading movie: ", error);
-                showError("Lỗi kết nối hệ thống!", error.message);
+                showError(currentLang() === "en" ? "System connection error!" : "Lỗi kết nối hệ thống!", error.message);
             }
         }
 
@@ -1242,7 +1254,9 @@
                 const d = new Date();
                 d.setDate(today.getDate() + i);
                 const dateStr = d.toISOString().split('T')[0]; // YYYY-MM-DD
-                const dayLabel = i === 0 ? "Hôm nay" : (i === 1 ? "Ngày mai" : daysOfWeek[d.getDay()]);
+                const dayLabel = i === 0
+                    ? (currentLang() === "en" ? "Today" : "Hôm nay")
+                    : (i === 1 ? (currentLang() === "en" ? "Tomorrow" : "Ngày mai") : daysOfWeek[d.getDay()]);
                 const dayNum = d.getDate();
                 const monthNum = d.getMonth() + 1;
                 const formattedDate = `${dayNum < 10 ? '0' + dayNum : dayNum}/${monthNum < 10 ? '0' + monthNum : monthNum}`;
@@ -1307,8 +1321,8 @@
                     groupsContainer.innerHTML = `
                         <div class="empty-showtimes-card">
                             <span class="icon">🎬</span>
-                            <h4>Chưa có lịch chiếu cho ngày này.</h4>
-                            <p style="font-size: 13px; color: var(--text-sub); margin: 0;">Vui lòng chọn ngày khác hoặc thay đổi cụm rạp lọc lịch chiếu.</p>
+                            <h4>${currentLang() === "en" ? "No showtimes for this date." : "Chưa có lịch chiếu cho ngày này."}</h4>
+                            <p style="font-size: 13px; color: var(--text-sub); margin: 0;">${currentLang() === "en" ? "Please choose another date or cinema." : "Vui lòng chọn ngày khác hoặc thay đổi cụm rạp lọc lịch chiếu."}</p>
                         </div>
                     `;
                     return;
@@ -1327,7 +1341,8 @@
                     
                     const roomData = cachedRoomsMap[st.roomId] || {};
                     const roomType = roomData.type || "2D";
-                    const formatLabel = `${roomType} ${currentMovie ? (currentMovie.language || 'Phụ Đề') : 'Phụ Đề'}`;
+                    const movieLanguage = currentMovie ? (currentMovie.language || 'Phụ Đề') : 'Phụ Đề';
+                    const formatLabel = `${roomType} ${localizeDynamic(movieLanguage, "language")}`;
                     
                     if (!grouped[cId].formats[formatLabel]) {
                         grouped[cId].formats[formatLabel] = [];
@@ -1387,6 +1402,10 @@
             document.querySelectorAll(".time-slot-btn").forEach(b => b.classList.remove("selected"));
             btn.classList.add("selected");
         };
+
+        document.addEventListener("aero:languageChanged", () => {
+            if (movieId) loadMovieDetails(movieId);
+        });
     </script>
 
     <script>

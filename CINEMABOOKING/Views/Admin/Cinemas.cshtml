@@ -442,10 +442,11 @@
                     try {
                         await updateDoc(doc(db, "cinemas", c.id), {
                             status: "inactive",
+                            isActive: false,
                             updatedAt: serverTimestamp()
                         });
-                        await window.AeroAdmin?.logActivity?.("update", "cinemas", c.id, c, { ...c, status: "inactive" });
-                        toast("success", "Đã tạm ẩn", "Rạp đã được chuyển sang trạng thái Tạm ẩn (inactive).");
+                        await window.AeroAdmin?.logActivity?.("update", "cinemas", c.id, c, { ...c, status: "inactive", isActive: false });
+                        toast("success", "Đã tạm ẩn", "Rạp đã được chuyển sang trạng thái Tạm ẩn (inactive) và ẩn khỏi trang khách hàng.");
                     } catch (err) {
                         console.error("Deactivate cinema error:", err);
                         toast("error", "Không thể cập nhật", err.message || "Vui lòng thử lại.");

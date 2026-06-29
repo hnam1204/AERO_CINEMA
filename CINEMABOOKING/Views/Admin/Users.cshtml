@@ -173,6 +173,8 @@
                     <div class="admin-field"><label for="status">Trạng thái (Status)</label><select class="admin-control" id="status"><option value="active">active</option><option value="blocked">blocked</option></select></div>
                     <div class="admin-field"><label for="memberRank">Hạng thành viên</label><select class="admin-control" id="memberRank"><option>Standard</option><option>Silver</option><option>Gold</option><option>Diamond</option></select></div>
                     <div class="admin-field"><label for="points">Điểm tích lũy (Points)</label><input class="admin-control" id="points" type="number" min="0" value="0" /></div>
+                    <div class="admin-field"><label for="dailyPoints">Điểm tích lũy ngày (Daily Points)</label><input class="admin-control" id="dailyPoints" type="number" min="0" value="0" /></div>
+
                 </div>
             </div>
             <div class="admin-modal-footer">
@@ -524,6 +526,7 @@
             document.getElementById("status").value = u.status || "active";
             document.getElementById("memberRank").value = u.memberRank || u.rank || "Standard";
             document.getElementById("points").value = Number(u.points || 0);
+            document.getElementById("dailyPoints").value = Number(u.dailyPoints || 0);
             openModal("userFormModal");
         }
         
@@ -586,6 +589,7 @@
                             ${field("fa-info-circle", "Trạng thái", statusBadge)}
                             ${field("fa-medal", "Hạng thành viên", rankBadge)}
                             ${field("fa-star", "Điểm tích lũy", Number(u.points || 0).toLocaleString("vi-VN"))}
+                            ${field("fa-star-half-alt", "Điểm tích lũy hôm nay", Number(u.dailyPoints || 0).toLocaleString("vi-VN"))}
                             ${field("fa-envelope-circle-check", "Xác minh OTP", formatBoolean(u.emailVerifiedByOtp))}
                             ${field("fa-ticket-alt", "Số đơn đặt vé", bookingCountOf(u))}
                             ${field("fa-history", "Đăng nhập gần nhất", formatDateTime(u.lastLoginAt))}
@@ -606,8 +610,10 @@
                 role: document.getElementById("role").value,
                 status: document.getElementById("status").value,
                 memberRank: document.getElementById("memberRank").value,
-                points: Math.max(0, Number(document.getElementById("points").value || 0))
+                points: Math.max(0, Number(document.getElementById("points").value || 0)),
+                dailyPoints: Math.max(0, Number(document.getElementById("dailyPoints").value || 0))
             };
+
         }
 
         function logAction(oldData, newData) {
@@ -640,7 +646,9 @@
                     status: data.status,
                     memberRank: data.memberRank,
                     points: data.points,
+                    dailyPoints: data.dailyPoints,
                     updatedAt: serverTimestamp()
+
                 };
                 await updateDoc(doc(db, "users", uid), updatePayload);
                 await window.AeroAdmin?.logActivity?.(logAction(oldData, data), "users", uid, oldData, data);

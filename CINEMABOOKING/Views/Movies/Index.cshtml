@@ -391,6 +391,103 @@
             font-size: 11px;
         }
     }
+
+    /* TRAILER MODAL SYSTEM */
+    .trailer-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .trailer-modal.show {
+        display: flex;
+    }
+
+    .trailer-modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.72);
+        backdrop-filter: blur(8px);
+    }
+
+    .trailer-modal-content {
+        position: relative;
+        z-index: 2;
+        width: min(960px, 94vw);
+        aspect-ratio: 16 / 9;
+        background: #000;
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 30px 90px rgba(0, 0, 0, 0.45);
+        animation: trailerModalIn 0.24s ease;
+    }
+
+    @@keyframes trailerModalIn {
+        from {
+            opacity: 0;
+            transform: translateY(16px) scale(0.96);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .trailer-close-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        z-index: 5;
+        width: 40px;
+        height: 40px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(15, 23, 42, 0.78);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 16px;
+        transition: 0.2s ease;
+    }
+
+    .trailer-close-btn:hover {
+        background: #f58220;
+        transform: rotate(90deg);
+    }
+
+    .trailer-modal iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+
+    body.trailer-open {
+        overflow: hidden;
+    }
+
+    @@media (max-width: 767px) {
+        .trailer-modal {
+            padding: 14px;
+        }
+
+        .trailer-modal-content {
+            width: 100%;
+            border-radius: 14px;
+        }
+
+        .trailer-close-btn {
+            width: 36px;
+            height: 36px;
+            top: 8px;
+            right: 8px;
+        }
+    }
 </style>
 
 <div class="container fade-up" style="margin-top: 20px; max-width: 1200px;">
@@ -466,10 +563,20 @@
 </div>
 
 <!-- MODAL XEM TRAILER PHIM -->
-<div id="trailerModalPopup" class="trailer-modal" onclick="closeTrailerModal()">
+<div id="trailerModalPopup" class="trailer-modal" aria-hidden="true">
+    <div class="trailer-modal-backdrop" onclick="closeTrailerModal()"></div>
     <div class="trailer-modal-content" onclick="event.stopPropagation()">
-        <button type="button" class="trailer-close-btn" onclick="closeTrailerModal()">&times;</button>
-        <iframe id="trailerVideoFrame" width="100%" height="100%" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <button type="button" class="trailer-close-btn" onclick="closeTrailerModal()" aria-label="Đóng trailer">
+            <i class="fas fa-times"></i>
+        </button>
+        <iframe id="trailerVideoFrame"
+                width="100%"
+                height="100%"
+                src=""
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen>
+        </iframe>
     </div>
 </div>
 
@@ -483,6 +590,26 @@
 
         let allMovies = [];
         let currentFilterStatus = "all"; // all, now_showing, coming_soon
+
+        function currentLang() {
+            return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+        }
+
+        function tr(key, fallback = "") {
+            return window.t ? window.t(key, fallback) : (fallback || key);
+        }
+
+        function safeText(value, fallback = "") {
+            if (window.safeI18nText) return window.safeI18nText(value, fallback);
+            if (value === undefined || value === null) return fallback;
+            const text = String(value).trim();
+            return text && text.toLowerCase() !== "undefined" && text.toLowerCase() !== "null" ? text : fallback;
+        }
+
+        function getLocalized(item, field, fallback = "") {
+            if (window.getLocalizedField) return window.getLocalizedField(item, field, fallback);
+            return safeText(item?.[field], fallback);
+        }
 
         // YouTube ID helper
         window.getYoutubeId = function(url) {
@@ -510,7 +637,7 @@
                 document.getElementById("moviesGrid").innerHTML = `
                     <div style="grid-column: span 4; text-align: center; padding: 50px 20px; color: var(--text-sub);">
                         <i class="fas fa-exclamation-triangle fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
-                        <span>Lỗi kết nối cơ sở dữ liệu: ${error.message}</span>
+                        <span>${currentLang() === "en" ? "Database connection error" : "Lỗi kết nối cơ sở dữ liệu"}: ${error.message}</span>
                     </div>
                 `;
             }
@@ -518,13 +645,14 @@
 
         // Filter and Render logic
         window.filterAndRender = () => {
-            const isEn = localStorage.getItem("language") === "en";
+            const isEn = currentLang() === "en";
             const searchText = document.getElementById("searchInput").value.toLowerCase().trim();
             const grid = document.getElementById("moviesGrid");
             grid.innerHTML = "";
 
             const filtered = allMovies.filter(m => {
-                const matchesSearch = m.title ? m.title.toLowerCase().includes(searchText) : false;
+                const title = getLocalized(m, "title", safeText(m.title || m.name, ""));
+                const matchesSearch = title ? title.toLowerCase().includes(searchText) : false;
                 const matchesStatus = (currentFilterStatus === "all") || (m.status === currentFilterStatus);
                 return matchesSearch && matchesStatus;
             });
@@ -533,7 +661,7 @@
                 grid.innerHTML = `
                     <div style="grid-column: span 4; text-align: center; padding: 50px 20px; color: var(--text-sub);">
                         <i class="far fa-folder-open fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
-                        <span>${isEn ? "No matching movies found." : "Không tìm thấy phim phù hợp yêu cầu."}</span>
+                        <span>${tr("no_matching_movies")}</span>
                     </div>
                 `;
                 return;
@@ -543,7 +671,10 @@
             filtered.forEach(m => {
                 const ratingClass = "badge-" + (m.rating ? m.rating.toLowerCase() : "p");
                 const isNowShowing = m.status === "now_showing";
-                const releaseDateFormatted = m.releaseDate ? m.releaseDate.split("-").reverse().slice(0, 2).join("/") : (isEn ? "Coming Soon" : "Sắp chiếu");
+                const title = getLocalized(m, "title", safeText(m.title || m.name, tr("updated")));
+                const genre = safeText(window.translateDynamic ? window.translateDynamic(getLocalized(m, "genre", tr("updated")), "genre") : getLocalized(m, "genre", tr("updated")), tr("updated"));
+                const poster = safeText(m.posterUrl || m.imageUrl || m.bannerUrl, "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85");
+                const releaseDateFormatted = m.releaseDate ? m.releaseDate.split("-").reverse().slice(0, 2).join("/") : tr("coming_soon_badge");
                 const youtubeId = window.getYoutubeId(m.trailerUrl);
 
                 html += `
@@ -556,20 +687,20 @@
                             }
                         </div>
                         <div class="poster-box-wrapper">
-                            <img src="${m.posterUrl}" alt="${m.title}" loading="lazy" decoding="async" onerror="this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
+                            <img src="${poster}" alt="${title}" loading="lazy" decoding="async" onerror="this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
                         </div>
                         <div class="card-static-details">
                             <div>
-                                <h3 class="card-movie-title" title="${m.title}">${m.title}</h3>
+                                <h3 class="card-movie-title" title="${title}">${title}</h3>
                                 <div class="card-movie-meta-row">
-                                    <span>${(m?.genre || (isEn ? "Updating" : "Đang cập nhật")).split(",")[0]}</span>
-                                    <span><i class="far fa-clock"></i> ${m.duration} ${isEn ? "Mins" : "Phút"}</span>
+                                    <span>${genre.split(",")[0]}</span>
+                                    <span><i class="far fa-clock"></i> ${safeText(m.duration, "--")} ${tr("minutes")}</span>
                                 </div>
                             </div>
                             <div class="card-action-buttons">
-                                <a href="/Movies/Details?id=${m.id}" class="btn-secondary-action">${isEn ? "Details" : "Chi Tiết"}</a>
+                                <a href="/Movies/Details?id=${m.id}" class="btn-secondary-action">${tr("detail")}</a>
                                 ${isNowShowing
-                                    ? `<a href="/Movies/Details?id=${m.id}#booking-section" class="btn-primary-action"><i class="fas fa-ticket-alt"></i> ${isEn ? "Book Tickets" : "Đặt Vé"}</a>`
+                                    ? `<a href="/Movies/Details?id=${m.id}#booking-section" class="btn-primary-action"><i class="fas fa-ticket-alt"></i> ${tr("book_ticket")}</a>`
                                     : `<button type="button" class="btn-primary-action" onclick="openTrailerModal('${youtubeId}')"><i class="fas fa-play"></i> Trailer</button>`
                                 }
                             </div>
@@ -595,6 +726,10 @@
 
         // Bind Search Input dynamic search
         document.getElementById("searchInput").addEventListener("input", filterAndRender);
+        window.addEventListener("aero:languageChanged", () => {
+            if (window.applyLanguage) window.applyLanguage();
+            filterAndRender();
+        });
 
         // Initial setup on load
         const urlParams = new URLSearchParams(window.location.search);
@@ -613,30 +748,77 @@
     </script>
 
     <script>
-        // Trailer Video Modal handlers
-        function openTrailerModal(videoId) {
-            if (!videoId) return;
-            var modal = document.getElementById("trailerModalPopup");
-            var frame = document.getElementById("trailerVideoFrame");
-            if (!modal || !frame) return;
+        function normalizeTrailerUrl(url) {
+            if (!url) return "";
+            
+            // Support simple 11-char YouTube Video ID
+            if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
+                return "https://www.youtube.com/embed/" + url;
+            }
 
-            frame.src = "https://www.youtube.com/embed/" + videoId + "?autoplay=1";
+            if (url.includes("watch?v=")) {
+                return url.replace("watch?v=", "embed/");
+            }
+
+            if (url.includes("youtu.be/")) {
+                const id = url.split("youtu.be/")[1].split("?")[0];
+                return "https://www.youtube.com/embed/" + id;
+            }
+
+            return url;
+        }
+
+        window.openTrailerModal = function(url) {
+            const modal = document.getElementById("trailerModalPopup");
+            const frame = document.getElementById("trailerVideoFrame");
+            if (!modal || !frame) {
+                console.warn("Trailer modal elements not found.");
+                return;
+            }
+
+            const embedUrl = normalizeTrailerUrl(url);
+            if (!embedUrl) {
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: "info",
+                        title: currentLang() === "en" ? "Trailer is not available yet" : "Trailer chưa được cập nhật",
+                        text: currentLang() === "en" ? "This movie does not have a trailer yet." : "Phim này hiện chưa có trailer."
+                    });
+                }
+                return;
+            }
+
+            frame.src = embedUrl + (embedUrl.includes("?") ? "&" : "?") + "autoplay=1";
             modal.style.display = "flex";
             setTimeout(function() {
                 modal.classList.add("show");
+                modal.setAttribute("aria-hidden", "false");
+                document.body.classList.add("trailer-open");
             }, 50);
-        }
+        };
 
-        function closeTrailerModal() {
-            var modal = document.getElementById("trailerModalPopup");
-            var frame = document.getElementById("trailerVideoFrame");
-            if (!modal || !frame) return;
-
-            modal.classList.remove("show");
+        window.closeTrailerModal = function() {
+            const modal = document.getElementById("trailerModalPopup");
+            const frame = document.getElementById("trailerVideoFrame");
+            if (modal) {
+                modal.classList.remove("show");
+                modal.setAttribute("aria-hidden", "true");
+            }
+            document.body.classList.remove("trailer-open");
             setTimeout(function() {
-                frame.src = "";
-                modal.style.display = "none";
-            }, 400);
-        }
+                if (frame) {
+                    frame.src = "";
+                }
+                if (modal) {
+                    modal.style.display = "none";
+                }
+            }, 300);
+        };
+
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") {
+                closeTrailerModal();
+            }
+        });
     </script>
 }

@@ -3,340 +3,1128 @@
 }
 
 <style>
-    .member-wrapper {
-        margin-bottom: 50px;
+    body {
+        background-color: #f8fafc !important;
     }
 
-    .member-hero {
+    .membership-wrapper {
+        margin-bottom: 72px;
+    }
+
+    /* Hero section */
+    .membership-hero {
+        max-width: 1200px;
+        margin: 28px auto 34px;
+        padding: 0 24px;
+    }
+
+    .membership-hero-inner {
         position: relative;
-        padding: 60px 20px;
-        text-align: center;
-        background: linear-gradient(135deg, #1e1b29 0%, #0b0b0d 100%);
-        border-radius: 12px;
-        margin-bottom: 40px;
-        border: 1px solid var(--border-color);
         overflow: hidden;
+        border-radius: 24px;
+        padding: 68px 36px;
+        text-align: center;
+        color: #fff;
+        background:
+            radial-gradient(circle at top left, rgba(245,130,32,.28), transparent 34%),
+            radial-gradient(circle at bottom right, rgba(0,91,170,.30), transparent 34%),
+            linear-gradient(135deg, #0f172a 0%, #111827 55%, #020617 100%);
+        box-shadow: 0 28px 80px rgba(15,23,42,.22);
     }
 
-    .member-hero::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(41, 188, 234, 0.05) 0%, transparent 60%);
-        pointer-events: none;
+    .membership-eyebrow {
+        display: inline-flex;
+        margin-bottom: 14px;
+        color: #f58220;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 2px;
     }
 
-    .member-hero h1 {
-        font-size: 36px;
+    .membership-hero h1 {
+        margin: 0;
+        font-size: 40px;
+        line-height: 1.2;
         font-weight: 900;
         text-transform: uppercase;
-        color: #fff;
-        margin-bottom: 15px;
-        letter-spacing: 1px;
     }
 
-    .member-hero h1 span {
-        color: var(--accent-color);
+    .membership-hero h1 span {
+        color: #f58220;
     }
 
-    .member-hero p {
+    .membership-hero p {
+        margin: 16px auto 0;
+        max-width: 760px;
+        color: rgba(255,255,255,.76);
         font-size: 15px;
-        color: var(--text-sub);
-        max-width: 600px;
-        margin: 0 auto;
+        line-height: 1.8;
     }
 
-    /* CARD MEMBERSHIP TIERS */
-    .tiers-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 20px;
-        margin-bottom: 45px;
-    }
-
-    .tier-card {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 30px 20px;
-        text-align: center;
-        transition: var(--transition);
-        position: relative;
-        overflow: hidden;
+    .membership-hero-actions {
         display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        min-height: 380px;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 28px;
+        flex-wrap: wrap;
     }
 
-    .tier-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-    }
-
-    .tier-card.silver::before { background-color: #bdc3c7; }
-    .tier-card.gold::before { background: linear-gradient(90deg, #f1c40f, #f39c12); }
-    .tier-card.platinum::before { background: linear-gradient(90deg, #9b59b6, #8e44ad); }
-    .tier-card.diamond::before { background: linear-gradient(90deg, #29bcea, #3498db); }
-
-    .tier-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.3);
-    }
-
-    .tier-card.silver:hover { border-color: #bdc3c7; }
-    .tier-card.gold:hover { border-color: #f1c40f; }
-    .tier-card.platinum:hover { border-color: #9b59b6; }
-    .tier-card.diamond:hover { border-color: #29bcea; }
-
-    .tier-name {
-        font-size: 18px;
+    .membership-primary-btn, .membership-secondary-btn {
+        height: 44px;
+        padding: 0 28px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
         font-weight: 900;
+        text-decoration: none;
+        transition: all 0.2s ease;
         text-transform: uppercase;
-        margin-bottom: 10px;
-        letter-spacing: 1px;
-    }
-
-    .tier-card.silver .tier-name { color: #bdc3c7; }
-    .tier-card.gold .tier-name { color: #f1c40f; }
-    .tier-card.platinum .tier-name { color: #9b59b6; }
-    .tier-card.diamond .tier-name { color: #29bcea; }
-
-    .tier-requirement {
-        font-size: 12px;
-        color: var(--text-sub);
-        margin-bottom: 25px;
-    }
-
-    .tier-benefits {
-        padding: 0;
-        margin: 0 0 25px 0;
-        list-style: none;
-        text-align: left;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .tier-benefits li {
-        font-size: 12px;
-        color: #ddd;
-        display: flex;
-        align-items: flex-start;
-        gap: 8px;
-        line-height: 1.4;
-    }
-
-    .tier-benefits li i {
-        color: var(--accent-color);
-        font-size: 11px;
-        margin-top: 3px;
-        flex-shrink: 0;
-    }
-
-    .btn-tier-action {
-        padding: 10px 20px;
-        font-size: 12px;
-        font-weight: 700;
-        border-radius: 20px;
-        text-transform: uppercase;
-        border: 1px solid rgba(255,255,255,0.1);
-        background: transparent;
-        color: #fff;
-        transition: var(--transition);
         cursor: pointer;
     }
 
-    .tier-card:hover .btn-tier-action {
-        background-color: var(--primary-color);
-        border-color: var(--primary-color);
-        box-shadow: 0 5px 15px rgba(214, 0, 0, 0.4);
-    }
-
-    /* POINTS SECTION */
-    .points-info-card {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 35px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-
-    .points-title {
-        font-size: 18px;
-        font-weight: 800;
-        text-transform: uppercase;
+    .membership-primary-btn {
+        background: #f58220;
         color: #fff;
-        margin-bottom: 20px;
-        border-left: 3px solid var(--primary-color);
-        padding-left: 12px;
+        border: 1px solid #f58220;
+        box-shadow: 0 10px 20px rgba(245, 130, 32, 0.24);
     }
 
-    .points-steps {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 30px;
+    .membership-primary-btn:hover {
+        background: #ea6f08;
+        border-color: #ea6f08;
+        transform: translateY(-2px);
+        color: #fff;
     }
 
-    .point-step-item {
-        text-align: center;
+    .membership-secondary-btn {
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
     }
 
-    .point-step-icon {
-        width: 50px;
-        height: 50px;
-        background-color: rgba(41, 188, 234, 0.08);
-        border: 1px solid rgba(41, 188, 234, 0.15);
-        color: var(--accent-color);
+    .membership-secondary-btn:hover {
+        background: rgba(255, 255, 255, 0.18);
+        border-color: rgba(255, 255, 255, 0.25);
+        transform: translateY(-2px);
+        color: #fff;
+    }
+
+    /* Logged In User Dashboard */
+    .my-membership-panel {
+        max-width: 1200px;
+        margin: 0 auto 36px;
+        padding: 0 24px;
+    }
+
+    .my-membership-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        padding: 30px;
+        box-shadow: 0 16px 42px rgba(15,23,42,.08);
+    }
+
+    .my-member-profile {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .my-member-avatar {
+        width: 64px;
+        height: 64px;
         border-radius: 50%;
+        background: linear-gradient(135deg, #f58220 0%, #ff9a3c 100%);
+        color: #fff;
+        font-size: 24px;
+        font-weight: 900;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 20px;
-        margin: 0 auto 15px auto;
+        box-shadow: 0 8px 20px rgba(245, 130, 32, 0.25);
     }
 
-    .point-step-item h4 {
-        font-size: 14px;
+    .my-member-profile h2 {
+        margin: 0;
+        font-size: 22px;
         font-weight: 800;
+        color: #0f172a;
+    }
+
+    .my-member-profile p {
+        margin: 4px 0 0;
+        font-size: 14px;
+        color: #64748b;
+    }
+
+    .my-member-profile strong {
+        color: #f58220;
+        font-weight: 800;
+    }
+
+    .my-member-stats {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 28px;
+        flex-wrap: wrap;
+    }
+
+    .my-member-stats div {
+        flex: 1;
+        min-width: 150px;
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        text-align: center;
+    }
+
+    .my-member-stats strong {
+        display: block;
+        font-size: 24px;
+        font-weight: 900;
+        color: #0f172a;
+    }
+
+    .my-member-stats span {
+        display: block;
+        margin-top: 4px;
+        font-size: 13px;
+        color: #64748b;
+        font-weight: 600;
+    }
+
+    .rank-progress-box {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+    }
+
+    .rank-progress-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #475569;
+    }
+
+    .rank-progress-head strong {
+        color: #f58220;
+    }
+
+    .rank-progress-track {
+        height: 10px;
+        background: #e2e8f0;
+        border-radius: 999px;
+        overflow: hidden;
+    }
+
+    .rank-progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #f58220 0%, #ff9a3c 100%);
+        border-radius: 999px;
+        width: 0%;
+        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Guest Loyalty CTA */
+    .membership-login-cta {
+        max-width: 1200px;
+        margin: 0 auto 36px;
+        padding: 40px 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 24px;
+        box-shadow: 0 16px 42px rgba(15,23,42,.08);
+        text-align: center;
+    }
+
+    .membership-login-cta h2 {
+        color: #0f172a;
+        font-size: 20px;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .membership-login-cta p {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .membership-login-cta a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 42px;
+        padding: 0 24px;
+        background: #f58220;
         color: #fff;
+        font-size: 13px;
+        font-weight: 900;
+        border-radius: 999px;
+        text-decoration: none;
+        box-shadow: 0 10px 20px rgba(245,130,32,.22);
+        transition: all 0.2s ease;
+    }
+
+    .membership-login-cta a:hover {
+        background: #ea6f08;
+        transform: translateY(-2px);
+    }
+
+    /* Section Title */
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 40px auto 24px;
+        max-width: 1200px;
+        padding: 0 24px;
+    }
+
+    .section-title span {
+        width: 4px;
+        height: 24px;
+        background: #f58220;
+        border-radius: 2px;
+    }
+
+    .section-title h2 {
+        font-size: 20px;
+        font-weight: 900;
+        color: #0f172a;
         text-transform: uppercase;
-        margin-bottom: 8px;
+        margin: 0;
+        letter-spacing: 0.5px;
     }
 
-    .point-step-item p {
-        font-size: 12px;
-        color: var(--text-sub);
+    /* Loyalty cards */
+    .membership-ranks-section {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .membership-rank-grid {
+        max-width: 1200px;
+        margin: 0 auto 50px;
+        padding: 0 24px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .rank-card {
+        position: relative;
+        overflow: hidden;
+        min-height: 360px;
+        padding: 26px 22px;
+        border-radius: 24px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 16px 42px rgba(15,23,42,.10);
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .rank-card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 30px 76px rgba(15,23,42,.16);
+    }
+
+    .rank-card-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 18px;
+        font-size: 24px;
+    }
+
+    .rank-card-icon.standard { background: rgba(100, 116, 139, 0.1); color: #64748b; }
+    .rank-card-icon.silver { background: rgba(148, 163, 184, 0.1); color: #94a3b8; }
+    .rank-card-icon.gold { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+    .rank-card-icon.diamond { background: rgba(6, 182, 212, 0.1); color: #06b6d4; }
+
+    .rank-card h3 {
+        margin: 0 0 8px;
+        font-size: 22px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .rank-card.standard h3 { color: #64748b; }
+    .rank-card.silver h3 { color: #94a3b8; }
+    .rank-card.gold h3 { color: #f59e0b; }
+    .rank-card.diamond h3 { color: #06b6d4; }
+
+    .rank-card .rank-points {
+        margin-bottom: 20px;
+        color: #64748b;
+        font-weight: 800;
+        font-size: 13px;
+    }
+
+    .rank-benefits {
+        display: grid;
+        gap: 12px;
+        padding: 0;
+        list-style: none;
+    }
+
+    .rank-benefits li {
+        display: grid;
+        grid-template-columns: 18px 1fr;
+        gap: 9px;
+        color: #334155;
+        font-size: 14px;
+        line-height: 1.55;
+        font-weight: 600;
+    }
+
+    .rank-benefits i {
+        color: #f58220;
+        margin-top: 3px;
+    }
+
+    .rank-card.standard { border-top: 5px solid #64748b; }
+    .rank-card.silver { border-top: 5px solid #94a3b8; }
+    .rank-card.gold { border-top: 5px solid #f59e0b; }
+    .rank-card.diamond {
+        border-top: 5px solid #06b6d4;
+        box-shadow: 0 24px 70px rgba(6,182,212,.20);
+    }
+
+    /* Points guide section */
+    .points-guide-section {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .points-guide-grid {
+        max-width: 1200px;
+        margin: 0 auto 50px;
+        padding: 0 24px;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .guide-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 24px;
+        text-align: center;
+        box-shadow: 0 16px 42px rgba(15,23,42,.06);
+        transition: transform 0.25s ease;
+    }
+
+    .guide-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 24px 50px rgba(15,23,42,.1);
+    }
+
+    .guide-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        background: rgba(245, 130, 32, 0.1);
+        color: #f58220;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+
+    .guide-card h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        font-weight: 800;
+        color: #0f172a;
+        text-transform: uppercase;
+    }
+
+    .guide-card p {
+        margin: 0;
+        font-size: 13px;
         line-height: 1.6;
+        color: #64748b;
     }
 
-    @@media (max-width: 1200px) {
-        .tiers-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
+    /* FAQ Section */
+    .membership-faq-section {
+        max-width: 1200px;
+        margin: 0 auto 72px;
+    }
+
+    .faq-list {
+        padding: 0 24px;
+        display: grid;
+        gap: 14px;
+    }
+
+    .faq-item {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .faq-question {
+        width: 100%;
+        background: transparent;
+        border: 0;
+        padding: 18px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .faq-question span {
+        font-size: 15px;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .faq-question i {
+        color: #94a3b8;
+        transition: transform 0.2s ease;
+    }
+
+    .faq-answer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.25s ease-out;
+        background: #f8fafc;
+        border-top: 0 solid #e2e8f0;
+    }
+
+    .faq-answer p {
+        margin: 0;
+        padding: 18px 24px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #475569;
+    }
+
+    .faq-item.active {
+        border-color: #f58220;
+        box-shadow: 0 10px 25px rgba(245, 130, 32, 0.06);
+    }
+
+    .faq-item.active .faq-question i {
+        transform: rotate(180deg);
+        color: #f58220;
+    }
+
+    .faq-item.active .faq-answer {
+        border-top-width: 1px;
+    }
+
+    /* Responsive CSS media queries */
+    @@media (max-width: 1199px) {
+        .membership-rank-grid,
+        .points-guide-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
-    @@media (max-width: 768px) {
-        .points-steps {
-            grid-template-columns: 1fr;
-            gap: 25px;
+    @@media (max-width: 767px) {
+        .membership-hero {
+            padding: 0 16px;
         }
-    }
 
-    @@media (max-width: 576px) {
-        .tiers-grid {
-            grid-template-columns: 1fr;
+        .membership-hero-inner {
+            padding: 44px 20px;
+            border-radius: 20px;
         }
-        .member-hero h1 {
+
+        .membership-hero h1 {
             font-size: 28px;
+        }
+
+        .membership-rank-grid,
+        .points-guide-grid {
+            grid-template-columns: 1fr;
+            padding: 0 16px;
+        }
+
+        .my-member-stats {
+            flex-direction: column;
+        }
+
+        .my-member-stats div {
+            width: 100%;
         }
     }
 </style>
 
-<div class="member-wrapper">
-    
-    <!-- Hero Header -->
-    <div class="member-hero">
-        <h1>Chương Trình Thành Viên <span>AERO Star</span></h1>
-        <p>Đăng ký thành viên, tích lũy điểm chi tiêu và nâng cấp thứ hạng để nhận ngập tràn ưu đãi vé xem phim & combo bắp nước.</p>
-    </div>
+<div class="membership-wrapper">
+    <!-- Hero Banner intro -->
+    <section class="membership-hero">
+        <div class="membership-hero-inner">
+            <span class="membership-eyebrow">AERO STAR MEMBERSHIP</span>
+            <h1>CHƯƠNG TRÌNH THÀNH VIÊN <span>AERO STAR</span></h1>
+            <p>Tích điểm sau mỗi giao dịch, nâng hạng thành viên và nhận đặc quyền xem phim, combo bắp nước cùng nhiều ưu đãi độc quyền.</p>
 
-    <!-- Tiers Grid -->
-    <div class="tiers-grid">
-        
-        <!-- Tier 1: Silver -->
-        <div class="tier-card silver">
-            <div>
-                <h3 class="tier-name">Silver</h3>
-                <span class="tier-requirement">Hạng mặc định sau đăng ký</span>
+            <div id="heroActions" class="membership-hero-actions" style="display: none;">
+                <a href="/Account/Register" class="membership-primary-btn">Đăng ký thành viên</a>
+                <a href="/Account/Login" class="membership-secondary-btn">Đăng nhập</a>
             </div>
-            <ul class="tier-benefits">
-                <li><i class="fas fa-star"></i> Tích lũy 5% giá trị giao dịch thành điểm thưởng</li>
-                <li><i class="fas fa-star"></i> Quà tặng sinh nhật thành viên</li>
-                <li><i class="fas fa-star"></i> Nhận tin khuyến mãi sớm nhất</li>
-            </ul>
-            <button class="btn-tier-action" onclick="window.location.href='/Account/Register'">Đăng Ký Ngay</button>
+        </div>
+    </section>
+
+    <!-- User membership panel dashboard -->
+    <section id="myMembershipPanel" class="my-membership-panel" style="display: none;">
+        <div class="my-membership-card">
+            <div class="my-member-profile">
+                <div class="my-member-avatar">AS</div>
+                <div>
+                    <h2>Xin chào, Thành viên</h2>
+                    <p>Hạng hiện tại: <strong>Standard</strong></p>
+                </div>
+            </div>
+
+            <div class="my-member-stats">
+                <div>
+                    <strong id="myTotalPoints">0</strong>
+                    <span>Tổng điểm</span>
+                </div>
+                <div>
+                    <strong id="myDailyPoints">0</strong>
+                    <span>Điểm hôm nay</span>
+                </div>
+                <div>
+                    <strong id="myBookingCount">0</strong>
+                    <span>Đơn đặt vé</span>
+                </div>
+            </div>
+
+            <div class="rank-progress-box">
+                <div class="rank-progress-head">
+                    <span id="rankProgressText">Đang tải tiến trình nâng hạng...</span>
+                    <strong id="rankProgressPercent">0%</strong>
+                </div>
+                <div class="rank-progress-track">
+                    <div id="rankProgressBar" class="rank-progress-bar"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Guest login CTA panel -->
+    <section id="guestCTA" class="membership-login-cta" style="display: none;">
+        <h2>Đăng nhập để xem hạng thành viên của bạn</h2>
+        <p>Theo dõi điểm tích lũy, quyền lợi và tiến độ nâng hạng AERO STAR.</p>
+        <a href="/Account/Login">Đăng nhập ngay</a>
+    </section>
+
+    <!-- Membership tiers details list -->
+    <section class="membership-ranks-section">
+        <div class="section-title">
+            <span></span>
+            <h2>HẠNG THÀNH VIÊN AERO STAR</h2>
         </div>
 
-        <!-- Tier 2: Gold -->
-        <div class="tier-card gold">
-            <div>
-                <h3 class="tier-name">Gold</h3>
-                <span class="tier-requirement">Chi tiêu từ 1.000.000đ / năm</span>
-            </div>
-            <ul class="tier-benefits">
-                <li><i class="fas fa-star"></i> Tích lũy 7% giá trị giao dịch thành điểm</li>
-                <li><i class="fas fa-star"></i> Tặng 01 vé xem phim 2D sinh nhật</li>
-                <li><i class="fas fa-star"></i> Giảm 5% khi mua các combo bắp nước</li>
-                <li><i class="fas fa-star"></i> Tham gia các buổi chiếu sớm VIP</li>
-            </ul>
-            <button class="btn-tier-action" onclick="window.location.href='/Account/Login'">Xem Chi Tiết</button>
+        <div class="membership-rank-grid">
+            <!-- Standard card -->
+            <article class="rank-card standard">
+                <div class="rank-card-icon standard">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Standard</h3>
+                <span class="rank-points">0 - 499 điểm</span>
+                <ul class="rank-benefits">
+                    <li><i class="fas fa-check-circle"></i><span>Tích điểm sau mỗi giao dịch.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Nhận ưu đãi thành viên.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Theo dõi lịch sử vé điện tử.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Nhận tin khuyến mãi mới nhất.</span></li>
+                </ul>
+            </article>
+
+            <!-- Silver card -->
+            <article class="rank-card silver">
+                <div class="rank-card-icon silver">
+                    <i class="fas fa-award"></i>
+                </div>
+                <h3>Silver</h3>
+                <span class="rank-points">500 - 999 điểm</span>
+                <ul class="rank-benefits">
+                    <li><i class="fas fa-check-circle"></i><span>Tích điểm nhanh hơn.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Ưu đãi combo bắp nước.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Quà sinh nhật thành viên.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Ưu tiên nhận voucher.</span></li>
+                </ul>
+            </article>
+
+            <!-- Gold card -->
+            <article class="rank-card gold">
+                <div class="rank-card-icon gold">
+                    <i class="fas fa-crown"></i>
+                </div>
+                <h3>Gold</h3>
+                <span class="rank-points">1.000 - 2.999 điểm</span>
+                <ul class="rank-benefits">
+                    <li><i class="fas fa-check-circle"></i><span>Tặng vé xem phim 2D sinh nhật.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Giảm giá combo bắp nước.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Ưu đãi suất chiếu đặc biệt.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Ưu tiên quầy vé riêng.</span></li>
+                </ul>
+            </article>
+
+            <!-- Diamond card -->
+            <article class="rank-card diamond">
+                <div class="rank-card-icon diamond">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <h3>Diamond</h3>
+                <span class="rank-points">3.000+ điểm</span>
+                <ul class="rank-benefits">
+                    <li><i class="fas fa-check-circle"></i><span>Đặc quyền thành viên cao nhất.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Ưu đãi vé và combo tốt nhất.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Phòng chờ VIP tại cụm rạp lớn.</span></li>
+                    <li><i class="fas fa-check-circle"></i><span>Quà tặng và sự kiện độc quyền.</span></li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+    <!-- Points accumulation rules guide -->
+    <section class="points-guide-section">
+        <div class="section-title">
+            <span></span>
+            <h2>CÁCH TÍCH ĐIỂM & ĐỔI ƯU ĐÃI</h2>
         </div>
 
-        <!-- Tier 3: Platinum -->
-        <div class="tier-card platinum">
-            <div>
-                <h3 class="tier-name">Platinum</h3>
-                <span class="tier-requirement">Chi tiêu từ 3.000.000đ / năm</span>
-            </div>
-            <ul class="tier-benefits">
-                <li><i class="fas fa-star"></i> Tích lũy 10% giá trị giao dịch thành điểm</li>
-                <li><i class="fas fa-star"></i> Tặng 02 vé xem phim 2D sinh nhật</li>
-                <li><i class="fas fa-star"></i> Giảm 10% khi mua các combo bắp nước</li>
-                <li><i class="fas fa-star"></i> Ưu tiên quầy vé & quầy bắp nước VIP</li>
-            </ul>
-            <button class="btn-tier-action" onclick="window.location.href='/Account/Login'">Xem Chi Tiết</button>
+        <div class="points-guide-grid">
+            <article class="guide-card">
+                <div class="guide-icon"><i class="fas fa-ticket-alt"></i></div>
+                <h3>Đặt vé thành công</h3>
+                <p>Mỗi giao dịch thanh toán thành công sẽ được cộng điểm tự động vào tài khoản.</p>
+            </article>
+
+            <article class="guide-card">
+                <div class="guide-icon"><i class="fas fa-coins"></i></div>
+                <h3>10.000đ = 1 điểm</h3>
+                <p>Điểm tích lũy được tính dựa trên tổng giá trị đơn hàng đã thanh toán.</p>
+            </article>
+
+            <article class="guide-card">
+                <div class="guide-icon"><i class="fas fa-crown"></i></div>
+                <h3>Tự động nâng hạng</h3>
+                <p>Khi đủ điểm, hệ thống sẽ tự động nâng hạng thành viên của bạn.</p>
+            </article>
+
+            <article class="guide-card">
+                <div class="guide-icon"><i class="fas fa-gift"></i></div>
+                <h3>Đổi ưu đãi</h3>
+                <p>Dùng điểm để nhận ưu đãi vé xem phim, combo bắp nước và quà tặng độc quyền.</p>
+            </article>
+        </div>
+    </section>
+
+    <!-- FAQ Accordion section -->
+    <section class="membership-faq-section">
+        <div class="section-title">
+            <span></span>
+            <h2>CÂU HỎI THƯỜNG GẶP</h2>
         </div>
 
-        <!-- Tier 4: Diamond -->
-        <div class="tier-card diamond">
-            <div>
-                <h3 class="tier-name">Diamond</h3>
-                <span class="tier-requirement">Chi tiêu từ 8.000.000đ / năm</span>
+        <div class="faq-list">
+            <div class="faq-item">
+                <button class="faq-question" type="button">
+                    <span>1. Điểm được cộng khi nào?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Điểm được cộng sau khi giao dịch đặt vé được thanh toán thành công.</p>
+                </div>
             </div>
-            <ul class="tier-benefits">
-                <li><i class="fas fa-star"></i> Tích lũy 15% giá trị giao dịch thành điểm</li>
-                <li><i class="fas fa-star"></i> Tặng 02 cặp vé xem phim 2D sinh nhật</li>
-                <li><i class="fas fa-star"></i> Giảm 15% khi mua bắp nước</li>
-                <li><i class="fas fa-star"></i> Phòng chờ VIP riêng biệt tại cụm rạp lớn</li>
-            </ul>
-            <button class="btn-tier-action" onclick="window.location.href='/Account/Login'">Xem Chi Tiết</button>
+
+            <div class="faq-item">
+                <button class="faq-question" type="button">
+                    <span>2. Có bị cộng điểm trùng không?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Không. Hệ thống chỉ cộng điểm một lần cho mỗi đơn đặt vé.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" type="button">
+                    <span>3. Khi nào được nâng hạng?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Khi tổng điểm đạt mốc hạng mới, hệ thống tự động cập nhật hạng thành viên.</p>
+                </div>
+            </div>
+
+            <div class="faq-item">
+                <button class="faq-question" type="button">
+                    <span>4. Điểm hôm nay là gì?</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="faq-answer">
+                    <p>Là số điểm bạn tích lũy trong ngày hiện tại, được reset khi sang ngày mới.</p>
+                </div>
+            </div>
         </div>
-
-    </div>
-
-    <!-- Points accumulation rules -->
-    <div class="points-info-card">
-        <h3 class="points-title">Cơ chế quy đổi & Sử dụng điểm thưởng</h3>
-        <div class="points-steps">
-            
-            <div class="point-step-item">
-                <div class="point-step-icon"><i class="fas fa-shopping-cart"></i></div>
-                <h4>1. Chi Tiêu Tích Điểm</h4>
-                <p>Mỗi khi đặt vé xem phim online hoặc mua combo trực tiếp tại quầy, bạn chỉ cần xuất trình mã thành viên để hệ thống tự động cộng điểm.</p>
-            </div>
-
-            <div class="point-step-item">
-                <div class="point-step-icon"><i class="fas fa-calculator"></i></div>
-                <h4>2. Công Thức Quy Đổi</h4>
-                <p>1 điểm tích lũy có giá trị tương đương 1.000đ khi quy đổi. Điểm thưởng sẽ được tích lũy vào ví điểm của bạn trên hệ thống.</p>
-            </div>
-
-            <div class="point-step-item">
-                <div class="point-step-icon"><i class="fas fa-gift"></i></div>
-                <h4>3. Đổi Quà Giá Trị</h4>
-                <p>Sử dụng điểm tích lũy để đổi vé xem phim 2D/3D miễn phí, đổi combo bắp nước hoặc nhận các quà tặng độc quyền từ hãng phim.</p>
-            </div>
-
-        </div>
-    </div>
-
+    </section>
 </div>
+
+@section scripts {
+    <script type="module">
+        import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        let lastMembershipUserData = null;
+
+        function currentLang() {
+            return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+        }
+
+        function tr(key, fallback = "") {
+            return window.t ? window.t(key, fallback) : (fallback || key);
+        }
+
+        const membershipCopy = {
+            vi: {
+                title: "CHƯƠNG TRÌNH THÀNH VIÊN AERO STAR",
+                subtitle: "Tích điểm sau mỗi giao dịch, nâng hạng thành viên và nhận đặc quyền xem phim, combo bắp nước cùng nhiều ưu đãi độc quyền.",
+                register: "Đăng ký thành viên",
+                login: "Đăng nhập",
+                hello: "Xin chào",
+                currentRank: "Hạng hiện tại",
+                totalPoints: "Tổng điểm",
+                todayPoints: "Điểm hôm nay",
+                bookings: "Đơn đặt vé",
+                guestTitle: "Đăng nhập để xem hạng thành viên của bạn",
+                guestDesc: "Theo dõi điểm tích lũy, quyền lợi và tiến độ nâng hạng AERO STAR.",
+                guestBtn: "Đăng nhập ngay",
+                ranksTitle: "HẠNG THÀNH VIÊN AERO STAR",
+                pointsSuffix: "điểm",
+                maxRank: "Cao nhất",
+                maxRankText: "Bạn đã đạt thứ hạng Diamond cao nhất!",
+                progressText: "Còn {points} điểm để lên hạng {rank}",
+                rankBenefits: [
+                    ["Tích điểm sau mỗi giao dịch.", "Nhận ưu đãi thành viên.", "Theo dõi lịch sử vé điện tử.", "Nhận tin khuyến mãi mới nhất."],
+                    ["Tích điểm nhanh hơn.", "Ưu đãi combo bắp nước.", "Quà sinh nhật thành viên.", "Ưu tiên nhận voucher."],
+                    ["Tặng vé xem phim 2D sinh nhật.", "Giảm giá combo bắp nước.", "Ưu đãi suất chiếu đặc biệt.", "Ưu tiên quầy vé riêng."],
+                    ["Đặc quyền thành viên cao nhất.", "Ưu đãi vé và combo tốt nhất.", "Phòng chờ VIP tại cụm rạp lớn.", "Quà tặng và sự kiện độc quyền."]
+                ],
+                guideTitle: "CÁCH TÍCH ĐIỂM & ĐỔI ƯU ĐÃI",
+                guide: [
+                    ["Đặt vé thành công", "Mỗi giao dịch thanh toán thành công sẽ được cộng điểm tự động vào tài khoản."],
+                    ["10.000đ = 1 điểm", "Điểm tích lũy được tính dựa trên tổng giá trị đơn hàng đã thanh toán."],
+                    ["Tự động nâng hạng", "Khi đủ điểm, hệ thống sẽ tự động nâng hạng thành viên của bạn."],
+                    ["Đổi ưu đãi", "Dùng điểm để nhận ưu đãi vé xem phim, combo bắp nước và quà tặng độc quyền."]
+                ],
+                faqTitle: "CÂU HỎI THƯỜNG GẶP",
+                faq: [
+                    ["1. Điểm được cộng khi nào?", "Điểm được cộng sau khi giao dịch đặt vé được thanh toán thành công."],
+                    ["2. Có bị cộng điểm trùng không?", "Không. Hệ thống chỉ cộng điểm một lần cho mỗi đơn đặt vé."],
+                    ["3. Khi nào được nâng hạng?", "Khi tổng điểm đạt mốc hạng mới, hệ thống tự động cập nhật hạng thành viên."],
+                    ["4. Điểm hôm nay là gì?", "Là số điểm bạn tích lũy trong ngày hiện tại, được reset khi sang ngày mới."]
+                ]
+            },
+            en: {
+                title: "AERO STAR MEMBERSHIP PROGRAM",
+                subtitle: "Earn points after every transaction, level up your membership, and unlock exclusive movie, snack combo, and member-only rewards.",
+                register: "Join membership",
+                login: "Login",
+                hello: "Hello",
+                currentRank: "Current rank",
+                totalPoints: "Total points",
+                todayPoints: "Today's points",
+                bookings: "Bookings",
+                guestTitle: "Login to view your membership rank",
+                guestDesc: "Track your points, benefits, and AERO STAR rank progress.",
+                guestBtn: "Login now",
+                ranksTitle: "AERO STAR MEMBERSHIP TIERS",
+                pointsSuffix: "points",
+                maxRank: "Highest",
+                maxRankText: "You have reached the highest Diamond tier!",
+                progressText: "{points} points left to reach {rank}",
+                rankBenefits: [
+                    ["Earn points after every transaction.", "Receive member offers.", "Track e-ticket history.", "Get the latest promotions."],
+                    ["Earn points faster.", "Snack combo benefits.", "Member birthday gifts.", "Priority voucher access."],
+                    ["Birthday 2D movie ticket gift.", "Snack combo discounts.", "Special showtime offers.", "Priority ticket counter."],
+                    ["Highest member privileges.", "Best ticket and combo deals.", "VIP lounge access at major cinemas.", "Exclusive gifts and events."]
+                ],
+                guideTitle: "HOW TO EARN POINTS & REDEEM OFFERS",
+                guide: [
+                    ["Successful ticket booking", "Each successful paid transaction automatically adds points to your account."],
+                    ["10,000 VND = 1 point", "Points are calculated from the total paid order value."],
+                    ["Automatic tier upgrade", "When you reach the required points, the system automatically upgrades your membership tier."],
+                    ["Redeem offers", "Use points for movie ticket deals, snack combos, and exclusive gifts."]
+                ],
+                faqTitle: "FREQUENTLY ASKED QUESTIONS",
+                faq: [
+                    ["1. When are points added?", "Points are added after a ticket booking transaction is successfully paid."],
+                    ["2. Can points be counted twice?", "No. The system only adds points once for each booking order."],
+                    ["3. When do I get upgraded?", "When your total points reach a new tier threshold, the system updates your membership rank automatically."],
+                    ["4. What are today's points?", "They are the points you earn during the current day, reset on the next day."]
+                ]
+            }
+        };
+
+        function copy() {
+            return membershipCopy[currentLang()] || membershipCopy.vi;
+        }
+
+        function safeText(value, fallback = "") {
+            if (value === undefined || value === null) return fallback;
+            const text = String(value).trim();
+            if (!text || text.toLowerCase() === "undefined" || text.toLowerCase() === "null") return fallback;
+            return text;
+        }
+
+        function safeNumber(value, fallback = 0) {
+            const num = Number(value);
+            return Number.isFinite(num) ? num : fallback;
+        }
+
+        function calcMemberRank(points) {
+            points = safeNumber(points, 0);
+            if (points >= 3000) return "Diamond";
+            if (points >= 1000) return "Gold";
+            if (points >= 500) return "Silver";
+            return "Standard";
+        }
+
+        function getNextRankInfo(points) {
+            points = safeNumber(points, 0);
+            if (points < 500) {
+                return { current: "Standard", next: "Silver", min: 0, target: 500 };
+            }
+            if (points < 1000) {
+                return { current: "Silver", next: "Gold", min: 500, target: 1000 };
+            }
+            if (points < 3000) {
+                return { current: "Gold", next: "Diamond", min: 1000, target: 3000 };
+            }
+            return { current: "Diamond", next: copy().maxRank, min: 3000, target: 3000 };
+        }
+
+        function formatPoint(value) {
+            return safeNumber(value, 0).toLocaleString(currentLang() === "en" ? "en-US" : "vi-VN");
+        }
+
+        function escapeHtml(value) {
+            return safeText(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function renderUserMembership(userData) {
+            lastMembershipUserData = userData;
+            const panel = document.getElementById("myMembershipPanel");
+            const cta = document.getElementById("guestCTA");
+            const heroActions = document.getElementById("heroActions");
+            if (!panel || !cta) return;
+
+            // Update panels visibility
+            cta.style.display = "none";
+            if (heroActions) heroActions.style.display = "none";
+            panel.style.display = "block";
+
+            // Extract properties
+            const name = escapeHtml(safeText(userData.fullName, currentLang() === "en" ? "AERO Star Member" : "Thành viên AERO Star"));
+            const points = safeNumber(userData.points, 0);
+            const dailyPoints = safeNumber(userData.dailyPoints, 0);
+            const bookingCount = safeNumber(userData.bookingCount, 0);
+
+            // Compute loyalty metrics
+            const rank = calcMemberRank(points);
+            const progress = getNextRankInfo(points);
+
+            // Profile info render
+            panel.querySelector(".my-member-profile h2").innerHTML = `${copy().hello}, ${name}`;
+            panel.querySelector(".my-member-profile strong").innerHTML = rank;
+
+            // Generate avatar initials
+            const initials = name.split(" ").filter(Boolean).map(n => n[0]).join("").substring(0, 2).toUpperCase();
+            panel.querySelector(".my-member-avatar").textContent = initials || "AS";
+
+            // Statistics render
+            document.getElementById("myTotalPoints").textContent = formatPoint(points);
+            document.getElementById("myDailyPoints").textContent = formatPoint(dailyPoints);
+            document.getElementById("myBookingCount").textContent = formatPoint(bookingCount);
+
+            // Set progress bar
+            const progressBar = document.getElementById("rankProgressBar");
+            const progressText = document.getElementById("rankProgressText");
+            const progressPercent = document.getElementById("rankProgressPercent");
+
+            if (progress.next === copy().maxRank) {
+                progressText.textContent = copy().maxRankText;
+                progressPercent.textContent = "100%";
+                if (progressBar) progressBar.style.width = "100%";
+            } else {
+                const required = progress.target - progress.min;
+                const achieved = points - progress.min;
+                const percentage = Math.min(100, Math.max(0, Math.round((achieved / required) * 100)));
+                const remaining = progress.target - points;
+
+                progressText.textContent = copy().progressText.replace("{points}", formatPoint(remaining)).replace("{rank}", progress.next);
+                progressPercent.textContent = `${percentage}%`;
+                if (progressBar) progressBar.style.width = `${percentage}%`;
+            }
+        }
+
+        function showGuestCTA() {
+            const panel = document.getElementById("myMembershipPanel");
+            const cta = document.getElementById("guestCTA");
+            const heroActions = document.getElementById("heroActions");
+            if (!panel || !cta) return;
+
+            panel.style.display = "none";
+            cta.style.display = "block";
+            if (heroActions) heroActions.style.display = "flex";
+            applyMembershipLanguage();
+        }
+
+        function applyMembershipLanguage() {
+            const text = copy();
+            document.querySelector(".membership-hero h1").innerHTML = text.title.replace("AERO STAR", "<span>AERO STAR</span>");
+            document.querySelector(".membership-hero p").textContent = text.subtitle;
+            const heroBtns = document.querySelectorAll(".membership-hero-actions a");
+            if (heroBtns[0]) heroBtns[0].textContent = text.register;
+            if (heroBtns[1]) heroBtns[1].textContent = text.login;
+
+            const statLabels = document.querySelectorAll(".my-member-stats span");
+            [text.totalPoints, text.todayPoints, text.bookings].forEach((label, i) => {
+                if (statLabels[i]) statLabels[i].textContent = label;
+            });
+            const rankLabel = document.querySelector(".my-member-profile p");
+            if (rankLabel) rankLabel.childNodes[0].nodeValue = `${text.currentRank}: `;
+
+            const guest = document.getElementById("guestCTA");
+            if (guest) {
+                guest.querySelector("h2").textContent = text.guestTitle;
+                guest.querySelector("p").textContent = text.guestDesc;
+                guest.querySelector("a").textContent = text.guestBtn;
+            }
+
+            const sectionTitles = document.querySelectorAll(".section-title h2");
+            if (sectionTitles[0]) sectionTitles[0].textContent = text.ranksTitle;
+            if (sectionTitles[1]) sectionTitles[1].textContent = text.guideTitle;
+            if (sectionTitles[2]) sectionTitles[2].textContent = text.faqTitle;
+
+            document.querySelectorAll(".rank-points").forEach(el => {
+                el.textContent = el.textContent.replace(/điểm|points/gi, text.pointsSuffix);
+            });
+
+            document.querySelectorAll(".rank-card").forEach((card, cardIndex) => {
+                const benefits = text.rankBenefits[cardIndex] || [];
+                card.querySelectorAll(".rank-benefits span").forEach((span, i) => {
+                    if (benefits[i]) span.textContent = benefits[i];
+                });
+            });
+
+            document.querySelectorAll(".guide-card").forEach((card, i) => {
+                if (!text.guide[i]) return;
+                card.querySelector("h3").textContent = text.guide[i][0];
+                card.querySelector("p").textContent = text.guide[i][1];
+            });
+
+            document.querySelectorAll(".faq-item").forEach((item, i) => {
+                if (!text.faq[i]) return;
+                item.querySelector(".faq-question span").textContent = text.faq[i][0];
+                item.querySelector(".faq-answer p").textContent = text.faq[i][1];
+            });
+        }
+
+        async function initAuthListener() {
+            try {
+                const auth = window.auth;
+                const db = window.db;
+
+                if (!auth || !db) {
+                    setTimeout(initAuthListener, 200);
+                    return;
+                }
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        try {
+                            const userDocRef = doc(db, "users", user.uid);
+                            const userDocSnap = await getDoc(userDocRef);
+                            if (userDocSnap.exists()) {
+                                renderUserMembership(userDocSnap.data());
+                            } else {
+                                // Fallback user object using Auth parameters
+                                renderUserMembership({
+                                    fullName: user.displayName || "Thành viên AERO Star",
+                                    email: user.email,
+                                    points: 0,
+                                    dailyPoints: 0,
+                                    memberRank: "Standard",
+                                    bookingCount: 0
+                                });
+                            }
+                        } catch (err) {
+                            console.error("Error fetching user data from Firestore:", err);
+                        }
+                    } else {
+                        showGuestCTA();
+                    }
+                });
+            } catch (err) {
+                console.error("Error setting up Auth listener:", err);
+            }
+        }
+
+        // Accordion click transitions
+        document.querySelectorAll(".faq-question").forEach(q => {
+            q.addEventListener("click", () => {
+                const item = q.parentElement;
+                const answer = item.querySelector(".faq-answer");
+                const isActive = item.classList.contains("active");
+
+                // Close other accordions
+                document.querySelectorAll(".faq-item").forEach(other => {
+                    other.classList.remove("active");
+                    other.querySelector(".faq-answer").style.maxHeight = null;
+                });
+
+                if (!isActive) {
+                    item.classList.add("active");
+                    answer.style.maxHeight = answer.scrollHeight + "px";
+                }
+            });
+        });
+
+        // Start initialization
+        window.addEventListener("DOMContentLoaded", () => {
+            applyMembershipLanguage();
+            initAuthListener();
+        });
+
+        window.addEventListener("aero:languageChanged", () => {
+            if (window.applyLanguage) window.applyLanguage();
+            applyMembershipLanguage();
+            if (lastMembershipUserData) renderUserMembership(lastMembershipUserData);
+        });
+    </script>
+}

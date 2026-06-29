@@ -2,916 +2,78 @@
     ViewBag.Title = "Trang Chủ";
 }
 
-<style>
-    /* 1. HERO SLIDER BANNER (500px Height) */
-    .hero-slider-container {
-        position: relative;
-        height: 500px;
-        width: 100%;
-        overflow: hidden;
-        background-color: #000;
-    }
-
-    .hero-slide {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        z-index: 1;
-        transition: opacity 1.2s ease-in-out;
-        background-size: cover;
-        background-position: center 20%;
-    }
-
-    .hero-slide.active {
-        opacity: 1;
-        z-index: 2;
-    }
-
-    .hero-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(to right, rgba(0, 0, 0, 0.45) 30%, rgba(0, 0, 0, 0.15) 60%, rgba(0, 0, 0, 0.45) 100%),
-                    linear-gradient(to top, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 30%);
-        z-index: 2;
-    }
-
-    .hero-content {
-        position: relative;
-        z-index: 3;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 40px;
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        color: #ffffff;
-    }
-
-    .hero-content-inner {
-        max-width: 600px;
-        transform: translateY(30px);
-        opacity: 0;
-        transition: all 0.8s ease-out 0.3s;
-    }
-
-    .hero-slide.active .hero-content-inner {
-        transform: translateY(0);
-        opacity: 1;
-    }
-
-    .hero-rating {
-        background-color: var(--accent-color);
-        color: #ffffff;
-        padding: 4px 10px;
-        font-weight: 800;
-        font-size: 11px;
-        border-radius: 4px;
-        text-transform: uppercase;
-        display: inline-block;
-        margin-bottom: 15px;
-        letter-spacing: 0.5px;
-    }
-
-    .hero-title {
-        font-size: 42px;
-        font-weight: 900;
-        line-height: 1.2;
-        margin-bottom: 15px;
-        text-transform: uppercase;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
-    }
-
-    .hero-meta {
-        font-size: 13px;
-        font-weight: 600;
-        color: #ddd;
-        margin-bottom: 20px;
-        display: flex;
-        gap: 15px;
-    }
-
-    .hero-desc {
-        font-size: 14px;
-        line-height: 1.6;
-        color: #ccc;
-        margin-bottom: 30px;
-        text-shadow: 0 2px 8px rgba(0,0,0,0.8);
-    }
-
-    .hero-buttons {
-        display: flex;
-        gap: 15px;
-    }
-
-    .btn-hero-book {
-        background-color: var(--accent-color);
-        color: #ffffff;
-        font-weight: 700;
-        font-size: 14px;
-        padding: 10px 24px;
-        border-radius: 20px;
-        box-shadow: 0 4px 15px rgba(245, 128, 32, 0.4);
-        transition: var(--transition);
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .btn-hero-book:hover {
-        background-color: var(--accent-hover);
-        color: #ffffff;
-        transform: translateY(-2px);
-    }
-
-    .btn-hero-trailer {
-        background-color: transparent;
-        border: 2px solid #ffffff;
-        color: #ffffff;
-        font-weight: 700;
-        font-size: 14px;
-        padding: 8px 24px;
-        border-radius: 20px;
-        transition: var(--transition);
-    }
-
-    .btn-hero-trailer:hover {
-        background-color: #ffffff;
-        color: #000000;
-    }
-
-    /* Slider dots */
-    .hero-indicators {
-        position: absolute;
-        bottom: 60px;
-        right: 40px;
-        z-index: 10;
-        display: flex;
-        gap: 10px;
-    }
-
-    .hero-dot {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background-color: rgba(255,255,255,0.4);
-        border: none;
-        cursor: pointer;
-        transition: var(--transition);
-    }
-
-    .hero-dot.active {
-        background-color: var(--accent-color);
-        transform: scale(1.2);
-    }
-
-    /* 2. QUICK BOOKING BAR (Galaxy Cinema UX Style) */
-    .quick-booking-container {
-        max-width: 1200px;
-        margin: -40px auto 50px auto;
-        padding: 0 20px;
-        position: relative;
-        z-index: 15;
-    }
-
-    .quick-booking-bar {
-        background-color: #ffffff;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow-lg);
-        padding: 20px;
-        display: grid;
-        grid-template-columns: repeat(4, 1fr) 180px;
-        gap: 15px;
-        align-items: center;
-        border: 1px solid var(--border-color);
-    }
-
-    .qb-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .qb-group label {
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--text-sub);
-        letter-spacing: 0.5px;
-    }
-
-    .qb-select-wrapper {
-        position: relative;
-    }
-
-    .qb-select-wrapper select {
-        width: 100%;
-        background-color: #f8f9fa;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
-        padding: 10px 30px 10px 12px;
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--text-main);
-        outline: none;
-        appearance: none;
-        -webkit-appearance: none;
-        cursor: pointer;
-        transition: var(--transition);
-    }
-
-    .qb-select-wrapper select:focus {
-        border-color: var(--primary-color);
-        background-color: #ffffff;
-    }
-
-    .qb-select-wrapper::after {
-        content: '\f107';
-        font-family: 'Font Awesome 6 Free';
-        font-weight: 900;
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-sub);
-        pointer-events: none;
-    }
-
-    .btn-qb-submit {
-        background-color: var(--accent-color);
-        color: #ffffff;
-        font-weight: 700;
-        font-size: 14px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border: none;
-        border-radius: 6px;
-        padding: 12px;
-        width: 100%;
-        cursor: pointer;
-        transition: var(--transition);
-        box-shadow: 0 4px 10px rgba(245, 128, 32, 0.2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .btn-qb-submit:hover:not(:disabled) {
-        background-color: var(--accent-hover);
-        color: #ffffff;
-        box-shadow: 0 6px 15px rgba(245, 128, 32, 0.35);
-    }
-
-    .btn-qb-submit:disabled {
-        background-color: #e0e0e0;
-        color: #999;
-        cursor: not-allowed;
-        box-shadow: none;
-    }
-
-    /* 3. TABS MOVIE LIST SECTION */
-    .movies-section {
-        max-width: 1200px;
-        margin: 0 auto 60px auto;
-        padding: 0 20px;
-    }
-
-    .movies-tabs-nav {
-        display: flex;
-        justify-content: center;
-        gap: 30px;
-        margin-bottom: 40px;
-        border-bottom: 2px solid var(--border-color);
-        padding-bottom: 10px;
-    }
-
-    .movie-tab-btn {
-        background: none;
-        border: none;
-        font-size: 18px;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: var(--text-sub);
-        padding: 8px 15px;
-        cursor: pointer;
-        position: relative;
-        transition: var(--transition);
-    }
-
-    .movie-tab-btn:hover {
-        color: var(--primary-color);
-    }
-
-    .movie-tab-btn::after {
-        content: '';
-        position: absolute;
-        bottom: -12px;
-        left: 0;
-        width: 0;
-        height: 4px;
-        background-color: var(--primary-color);
-        transition: var(--transition);
-    }
-
-    .movie-tab-btn.active {
-        color: var(--primary-color);
-    }
-
-    .movie-tab-btn.active::after {
-        width: 100%;
-    }
-
-    /* 4. GRID MOVIE CARDS DESIGN */
-    .movies-grid-display {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 30px;
-    }
-
-    .movie-display-card {
-        background-color: var(--bg-card);
-        border-radius: var(--border-radius);
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-        border: 1px solid var(--border-color);
-        transition: var(--transition);
-        display: flex;
-        flex-direction: column;
-        position: relative;
-    }
-
-    .movie-display-card:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--shadow-md);
-        border-color: var(--primary-color);
-    }
-
-    .card-poster-wrapper {
-        position: relative;
-        padding-top: 145%; /* aspect ratio 2/3 roughly */
-        overflow: hidden;
-    }
-
-    .card-poster-wrapper img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: var(--transition);
-    }
-
-    .movie-display-card:hover .card-poster-wrapper img {
-        transform: scale(1.04);
-    }
-
-    /* Rating Tag on Poster */
-    .card-rating-tag {
-        position: absolute;
-        top: 12px;
-        left: 12px;
-        z-index: 5;
-        color: #ffffff;
-        font-weight: 800;
-        font-size: 11px;
-        padding: 4px 8px;
-        border-radius: 4px;
-        text-transform: uppercase;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-
-    .card-rating-tag.badge-t18 { background-color: #d60000; }
-    .card-rating-tag.badge-t16 { background-color: #e67e22; }
-    .card-rating-tag.badge-t13 { background-color: #3498db; }
-    .card-rating-tag.badge-p { background-color: #2ecc71; }
-
-    .card-details {
-        padding: 15px;
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-
-    .card-movie-title {
-        font-size: 15px;
-        font-weight: 800;
-        color: var(--text-main);
-        margin: 0 0 8px 0;
-        text-transform: uppercase;
-        line-height: 1.3;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 1;
-        -webkit-box-orient: vertical;
-    }
-
-    .card-movie-meta {
-        font-size: 12px;
-        color: var(--text-sub);
-        margin-bottom: 15px;
-        display: flex;
-        justify-content: space-between;
-    }
-
-    .card-actions-row {
-        margin-top: auto;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .btn-card-detail {
-        border: 1px solid var(--primary-color);
-        color: var(--primary-color);
-        font-weight: 700;
-        font-size: 12px;
-        padding: 8px;
-        text-align: center;
-        border-radius: 6px;
-        transition: var(--transition);
-        text-transform: uppercase;
-    }
-
-    .btn-card-detail:hover {
-        background-color: var(--primary-color);
-        color: #ffffff;
-    }
-
-    .btn-card-buy {
-        background-color: var(--accent-color);
-        color: #ffffff;
-        font-weight: 700;
-        font-size: 12px;
-        padding: 8px;
-        text-align: center;
-        border-radius: 6px;
-        transition: var(--transition);
-        text-transform: uppercase;
-    }
-
-    .btn-card-buy:hover {
-        background-color: var(--accent-hover);
-        color: #ffffff;
-    }
-
-    /* 5. OFFERS & PROMOTIONS SECTION */
-    .home-offers-section {
-        background-color: #ffffff;
-        padding: 60px 0;
-        border-top: 1px solid var(--border-color);
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .home-offers-inner {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 20px;
-    }
-
-    .home-section-header {
-        font-size: 22px;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: var(--primary-color);
-        margin-bottom: 30px;
-        border-left: 4px solid var(--accent-color);
-        padding-left: 12px;
-    }
-
-    .offers-layout-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 25px;
-    }
-
-    .offer-card {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: var(--border-radius);
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
-        transition: var(--transition);
-    }
-
-    .offer-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow-md);
-        border-color: var(--accent-color);
-    }
-
-    .offer-img-box {
-        position: relative;
-        padding-top: 56.25%;
-        overflow: hidden;
-    }
-
-    .offer-img-box img {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .offer-text-box {
-        padding: 20px;
-    }
-
-    .offer-title {
-        font-size: 15px;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: var(--text-main);
-        margin-bottom: 8px;
-    }
-
-    .offer-desc {
-        font-size: 13px;
-        color: var(--text-sub);
-        line-height: 1.6;
-        margin: 0;
-    }
-
-    /* 6. SYSTEM CINEMAS LIST */
-    .home-cinemas-section {
-        max-width: 1200px;
-        margin: 60px auto;
-        padding: 0 20px;
-    }
-
-    .cinemas-home-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 30px;
-    }
-
-    .cinema-card {
-        background-color: #ffffff;
-        border-radius: var(--border-radius);
-        border: 1px solid var(--border-color);
-        padding: 30px;
-        box-shadow: var(--shadow-sm);
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        gap: 20px;
-        transition: var(--transition);
-    }
-
-    .cinema-card:hover {
-        border-color: var(--primary-color);
-        box-shadow: var(--shadow-md);
-    }
-
-    .cinema-name {
-        font-size: 18px;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: var(--primary-color);
-        margin: 0 0 12px 0;
-    }
-
-    .cinema-info-row {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
-        font-size: 13px;
-        color: var(--text-sub);
-        margin-bottom: 8px;
-    }
-
-    .cinema-info-row i {
-        color: var(--accent-color);
-        margin-top: 4px;
-    }
-
-    .btn-cinema-schedule {
-        background-color: var(--primary-color);
-        color: #ffffff;
-        font-weight: 700;
-        font-size: 13px;
-        padding: 10px 20px;
-        border-radius: 6px;
-        text-transform: uppercase;
-        display: inline-block;
-        width: fit-content;
-        transition: var(--transition);
-    }
-
-    .btn-cinema-schedule:hover {
-        background-color: var(--primary-hover);
-        color: #ffffff;
-        box-shadow: 0 4px 10px rgba(0, 91, 170, 0.2);
-    }
-
-    /* Modal Trailer Styling */
-    .trailer-modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.95);
-        z-index: 9999;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 0.4s ease;
-    }
-
-    .trailer-modal.show {
-        display: flex;
-        opacity: 1;
-    }
-
-    .trailer-modal-content {
-        position: relative;
-        width: 85%;
-        max-width: 800px;
-        aspect-ratio: 16/9;
-        background: #000;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-    }
-
-    .trailer-close-btn {
-        position: absolute;
-        top: 15px;
-        right: 15px;
-        background: none;
-        border: none;
-        color: #fff;
-        font-size: 30px;
-        cursor: pointer;
-        z-index: 10;
-    }
-
-    .loading-spinner {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 250px;
-        font-size: 14px;
-        color: var(--text-sub);
-        width: 100%;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    /* RESPONSIVE LAYOUT */
-    @@media (max-width: 992px) {
-        .hero-slider-container {
-            height: 400px;
-        }
-
-        .hero-title {
-            font-size: 30px;
-        }
-
-        .quick-booking-bar {
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .btn-qb-submit {
-            grid-column: span 2;
-        }
-
-        .movies-grid-display {
-            grid-template-columns: repeat(3, 1fr);
-        }
-
-        .offers-layout-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @@media (max-width: 768px) {
-        .hero-slider-container {
-            height: 350px;
-        }
-
-        .hero-content {
-            padding: 0 20px;
-        }
-
-        .hero-title {
-            font-size: 24px;
-        }
-
-        .movies-grid-display {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .cinemas-home-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @@media (max-width: 480px) {
-        .quick-booking-bar {
-            grid-template-columns: 1fr;
-        }
-
-        .btn-qb-submit {
-            grid-column: span 1;
-        }
-
-        .movies-grid-display {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .offers-layout-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    /* Skeleton Shimmer Loading Effect */
-    .skeleton {
-        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.2s infinite;
-        border-radius: 12px;
-    }
-    @@keyframes shimmer {
-        0% {
-            background-position: 200% 0;
-        }
-        100% {
-            background-position: -200% 0;
-        }
-    }
-    .skeleton-banner {
-        width: 100%;
-        height: 500px;
-        border-radius: 0;
-    }
-    .skeleton-movie-card {
-        background: #fff;
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid var(--border-color);
-        display: flex;
-        flex-direction: column;
-    }
-    .skeleton-movie-poster {
-        width: 100%;
-        padding-top: 145%;
-        border-radius: 12px 12px 0 0;
-    }
-    .skeleton-movie-info {
-        padding: 15px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        flex-grow: 1;
-    }
-    .skeleton-movie-title {
-        height: 18px;
-        width: 80%;
-    }
-    .skeleton-movie-text {
-        height: 12px;
-        width: 50%;
-    }
-    .skeleton-movie-buttons {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-top: auto;
-    }
-    .skeleton-movie-btn {
-        height: 32px;
-        border-radius: 6px;
-    }
-    .skeleton-offer-card {
-        background: #fff;
-        border-radius: 12px;
-        overflow: hidden;
-        border: 1px solid var(--border-color);
-        display: flex;
-        flex-direction: column;
-    }
-    .skeleton-offer-image {
-        width: 100%;
-        padding-top: 56.25%;
-        border-radius: 12px 12px 0 0;
-    }
-    .skeleton-offer-info {
-        padding: 20px;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .skeleton-offer-title {
-        height: 18px;
-        width: 70%;
-    }
-    .skeleton-offer-desc {
-        height: 12px;
-        width: 90%;
-    }
-    .skeleton-cinema-card {
-        background: #fff;
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
-        padding: 30px;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-    .skeleton-cinema-title {
-        height: 20px;
-        width: 60%;
-    }
-    .skeleton-cinema-line {
-        height: 12px;
-        width: 80%;
-    }
-    .skeleton-cinema-btn {
-        height: 36px;
-        width: 120px;
-        border-radius: 6px;
-        margin-top: 10px;
-    }
-</style>
-
-<!-- 1. HERO SLIDER BANNER (500px Height) -->
-<section class="hero-slider-container" id="heroSliderCinema">
-    <div class="skeleton skeleton-banner" style="height: 100%;"></div>
-</section>
-
-<!-- 2. QUICK BOOKING WIDGET (Under Slider Banner) -->
-<div class="quick-booking-container">
-    <div class="quick-booking-bar">
-        <!-- Phim -->
-        <div class="qb-group">
-            <label for="qbMovie">Chọn Phim</label>
-            <div class="qb-select-wrapper">
+<link href="~/Content/home-performance.css" rel="stylesheet" />
+
+<!-- 1. HERO SLIDER BANNER (AERO Full-Width Style) -->
+<section class="aero-hero-galaxy" id="aeroHeroFullwidth">
+    <div class="aero-hero-stage" id="aeroHeroStage">
+        <!-- Prev Arrow -->
+        <button type="button" class="aero-hero-arrow aero-hero-prev" id="aeroHeroPrev" aria-label="Banner trước">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+
+        <!-- Slide Track -->
+        <div class="aero-hero-track" id="aeroHeroTrack">
+            <!-- slides rendered by JS -->
+            <article class="aero-hero-slide active">
+                <img src="data:image/svg+xml;charset=UTF-8,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 width%3D%221600%22 height%3D%22650%22 viewBox%3D%220 0 1600 650%22%3E%3Cdefs%3E%3ClinearGradient id%3D%22g%22 x1%3D%220%22 x2%221%22%3E%3Cstop offset%3D%220%22 stop-color%3D%22%230f172a%22%2F%3E%3Cstop offset%3D%220.55%22 stop-color%3D%22%23111827%22%2F%3E%3Cstop offset%3D%221%22 stop-color%3D%22%23005baa%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect width%3D%221600%22 height%3D%22650%22 fill%3D%22url(%23g)%22%2F%3E%3Ctext x%3D%2250%25%22 y%3D%2248%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 fill%3D%22%23ffffff%22 font-size%3D%2258%22 font-family%3D%22Arial%22 font-weight%3D%22800%22%3EAERO CINEMA%3C%2Ftext%3E%3Ctext x%3D%2250%25%22 y%3D%2258%25%22 dominant-baseline%3D%22middle%22 text-anchor%3D%22middle%22 fill%3D%22%23f58220%22 font-size%3D%2224%22 font-family%3D%22Arial%22 font-weight%3D%22700%22%3EPremium Movie Experience%3C%2Ftext%3E%3C%2Fsvg%3E" alt="AERO Cinema" loading="eager" onerror="window.heroHandleImgError && window.heroHandleImgError(this)" />
+            </article>
+        </div>
+
+        <!-- Next Arrow -->
+        <button type="button" class="aero-hero-arrow aero-hero-next" id="aeroHeroNext" aria-label="Banner tiếp theo">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+
+        <!-- Dots -->
+        <div class="aero-hero-dots" id="aeroHeroDots"></div>
+    </div>
+
+    <!-- Quick Booking Overlay Bar -->
+    <div class="aero-quick-booking-wrap">
+        <div class="aero-quick-booking">
+            <!-- Phim -->
+            <div class="quick-booking-field">
+                <span class="quick-step">1</span>
                 <select id="qbMovie" onchange="onQbMovieChange()">
-                    <option value="" disabled selected>Chọn Phim</option>
+                    <option value="" disabled selected data-i18n="select_movie">Chọn Phim</option>
                 </select>
             </div>
-        </div>
-        
-        <!-- Rạp -->
-        <div class="qb-group">
-            <label for="qbCinema">Chọn Rạp</label>
-            <div class="qb-select-wrapper">
+            <!-- Rạp -->
+            <div class="quick-booking-field">
+                <span class="quick-step">2</span>
                 <select id="qbCinema" disabled onchange="onQbCinemaChange()">
-                    <option value="" disabled selected>Chọn Rạp</option>
+                    <option value="" disabled selected data-i18n="select_cinema">Chọn Rạp</option>
                 </select>
             </div>
-        </div>
-
-        <!-- Ngày -->
-        <div class="qb-group">
-            <label for="qbDate">Chọn Ngày</label>
-            <div class="qb-select-wrapper">
+            <!-- Ngày -->
+            <div class="quick-booking-field">
+                <span class="quick-step">3</span>
                 <select id="qbDate" disabled onchange="onQbDateChange()">
-                    <option value="" disabled selected>Chọn Ngày</option>
+                    <option value="" disabled selected data-i18n="select_date">Chọn Ngày</option>
                 </select>
             </div>
-        </div>
-
-        <!-- Suất chiếu -->
-        <div class="qb-group">
-            <label for="qbShowtime">Chọn Suất</label>
-            <div class="qb-select-wrapper">
+            <!-- Suất -->
+            <div class="quick-booking-field">
+                <span class="quick-step">4</span>
                 <select id="qbShowtime" disabled onchange="onQbShowtimeChange()">
-                    <option value="" disabled selected>Chọn Suất</option>
+                    <option value="" disabled selected data-i18n="select_showtime">Chọn Suất</option>
                 </select>
             </div>
-        </div>
-
-        <!-- Nút đặt vé -->
-        <div class="qb-group" style="justify-content: flex-end;">
-            <button id="qbSubmitBtn" class="btn-qb-submit" disabled onclick="goToQuickBookingSeats()">
-                <span>Mua Vé</span>
-                <i class="fas fa-ticket-alt"></i>
+            <!-- Button -->
+            <button id="qbSubmitBtn" class="hero-booking-btn" disabled onclick="goToQuickBookingSeats()">
+                <i class="fas fa-ticket-alt"></i> <span data-i18n="buy_now">Mua Vé Ngay</span>
             </button>
         </div>
     </div>
-</div>
+</section>
+
 
 <!-- 3. TABS AND MOVIE CARD LISTING -->
 <div class="movies-section">
     <div class="movies-tabs-nav">
-        <button class="movie-tab-btn active" onclick="switchMovieTab('now_showing', this)">Phim Đang Chiếu</button>
-        <button class="movie-tab-btn" onclick="switchMovieTab('coming_soon', this)">Phim Sắp Chiếu</button>
+        <button class="movie-tab-btn active" data-i18n="now_showing" onclick="switchMovieTab('now_showing', this)">Phim Đang Chiếu</button>
+        <button class="movie-tab-btn" data-i18n="coming_soon" onclick="switchMovieTab('coming_soon', this)">Phim Sắp Chiếu</button>
     </div>
 
     <!-- Active Grid Listing -->
@@ -967,7 +129,7 @@
 <!-- 4. OFFERS AND PROMOTIONS -->
 <section class="home-offers-section" id="uu-dai">
     <div class="home-offers-inner">
-        <h2 class="home-section-header">Tin Khuyến Mãi</h2>
+        <h2 class="home-section-header" data-i18n="home_promotions_title">Tin Khuyến Mãi</h2>
         <div class="offers-layout-grid" id="offersGrid">
             <!-- 3 Offer Card Skeletons -->
             <div class="skeleton-offer-card">
@@ -998,7 +160,7 @@
 <!-- 4.5 NEWS AND ARTICLES -->
 <section class="home-offers-section" id="tin-tuc" style="background-color: #f9fafb; border-top: none;">
     <div class="home-offers-inner">
-        <h2 class="home-section-header">Tin Điện Ảnh</h2>
+        <h2 class="home-section-header" data-i18n="home_news_title">Tin Điện Ảnh</h2>
         <div class="offers-layout-grid" id="newsGrid">
             <!-- 3 News Card Skeletons -->
             <div class="skeleton-offer-card">
@@ -1026,23 +188,25 @@
     </div>
 </section>
 
-<!-- 5. HỆ THỐNG CỤM RẠP -->
-<section class="home-cinemas-section">
-    <h2 class="home-section-header">Cụm Rạp Hệ Thống</h2>
-    <div class="cinemas-home-grid" id="cinemasGrid">
-        <!-- 2 Cinema Card Skeletons -->
-        <div class="skeleton-cinema-card">
-            <div class="skeleton skeleton-cinema-title"></div>
-            <div class="skeleton skeleton-cinema-line"></div>
-            <div class="skeleton skeleton-cinema-line"></div>
-            <div class="skeleton skeleton-cinema-btn"></div>
-        </div>
-        <div class="skeleton-cinema-card">
-            <div class="skeleton skeleton-cinema-title"></div>
-            <div class="skeleton skeleton-cinema-line"></div>
-            <div class="skeleton skeleton-cinema-line"></div>
-            <div class="skeleton skeleton-cinema-btn"></div>
-        </div>
+<!-- 5. AERO CINEMA INTRO -->
+<section class="aero-home-intro">
+    <div class="section-title">
+        <span></span>
+        <h2 data-i18n="intro_title">Giới Thiệu AERO Cinema</h2>
+    </div>
+
+    <div class="aero-home-intro-card">
+        <p data-i18n="intro_para1_html" data-i18n-html><strong>AERO Cinema</strong> là hệ thống rạp chiếu phim hiện đại, mang đến trải nghiệm điện ảnh chất lượng cao với không gian thoải mái, âm thanh sống động và hình ảnh sắc nét.</p>
+
+        <p data-i18n="intro_para2_html" data-i18n-html>Với định hướng xây dựng một nền tảng <strong>đặt vé trực tuyến</strong> tiện lợi, <strong>AERO Cinema</strong> giúp khách hàng dễ dàng tra cứu phim đang chiếu, phim sắp chiếu, lịch chiếu theo rạp và đặt vé chỉ trong vài bước đơn giản.</p>
+
+        <p data-i18n="intro_para3_html" data-i18n-html>Tại <strong>AERO Cinema</strong>, người dùng có thể chọn phim, chọn rạp, chọn ngày chiếu, suất chiếu và ghế ngồi yêu thích. Sau khi đặt vé thành công, hệ thống tự động tạo <strong>vé điện tử</strong> kèm <strong>mã QR</strong> để khách hàng sử dụng khi đến rạp.</p>
+
+        <p data-i18n="intro_para4_html" data-i18n-html><strong>AERO Cinema</strong> cũng cung cấp nhiều tiện ích như quản lý lịch sử đặt vé, <strong>tích lũy điểm thành viên</strong>, nhận ưu đãi, xem tin tức điện ảnh và cập nhật các chương trình khuyến mãi mới nhất.</p>
+
+        <p data-i18n="intro_para5_html" data-i18n-html>Không chỉ tập trung vào trải nghiệm xem phim tại rạp, <strong>AERO Cinema</strong> còn chú trọng đến trải nghiệm số, giúp quá trình đặt vé nhanh chóng, rõ ràng và an toàn hơn cho khách hàng.</p>
+
+        <p data-i18n="intro_para6_html" data-i18n-html>Với giao diện thân thiện, dữ liệu được cập nhật liên tục và quy trình đặt vé tối ưu, <strong>AERO Cinema</strong> hướng đến mục tiêu trở thành một hệ thống rạp chiếu phim thông minh, tiện lợi và phù hợp với nhu cầu giải trí hiện đại.</p>
     </div>
 </section>
 
@@ -1060,15 +224,26 @@
         import { autoUpdateStatuses } from "/Scripts/aero-status-updater.js";
 
         const db = window.db;
+        const docsToArray = (snap) => snap.docs.map(dSnap => ({ id: dSnap.id, ...dSnap.data() }));
         const AERO_CACHE = window.AERO_CACHE;
 
         // State caches
+        const homeCache = {
+            movies: null,
+            banners: null,
+            promotions: null,
+            news: null,
+            cinemas: null,
+            loadedAt: 0
+        };
+        const HOME_CACHE_TTL = 5 * 60 * 1000;
+
         let cachedMovies = [];
         let cachedBanners = [];
         let cachedPromotions = [];
         let cachedNews = [];
-        let cachedShowtimes = [];
         let cachedCinemas = [];
+        let cachedShowtimes = [];
         let currentTab = "now_showing";
 
         function formatDateSafe(dateValue) {
@@ -1093,58 +268,145 @@
             return value.toLocaleString("vi-VN") + "đ";
         }
 
-        function safeText(value, fallback = "Đang cập nhật") {
+        function tr(key, fallback = "") {
+            return window.t ? window.t(key, fallback) : (fallback || key);
+        }
+
+        function currentLang() {
+            return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+        }
+
+        function safeText(value, fallback = tr("updated", "Đang cập nhật")) {
+            if (window.safeI18nText) return window.safeI18nText(value, fallback);
             return value === undefined || value === null || value === "" ? fallback : value;
         }
 
-        const docsToArray = (snap) => snap.docs.map(dSnap => ({ id: dSnap.id, ...dSnap.data() }));
+        function getLocalized(item, field, fallback = "") {
+            if (window.getLocalizedField) return window.getLocalizedField(item, field, fallback);
+            return safeText(item?.[field], fallback);
+        }
 
-        const getCachedDocs = async (cacheKey, queryRef, forceRefresh = false) => {
-            const cached = !forceRefresh && AERO_CACHE && AERO_CACHE.get ? AERO_CACHE.get(cacheKey) : null;
-            if (cached) return cached;
+        function getMovieTitle(movie) {
+            return getLocalized(movie, "title", tr("updated", "Đang cập nhật"));
+        }
 
-            const snap = await getDocs(queryRef);
-            const data = docsToArray(snap);
+        function getMovieGenre(movie) {
+            const genre = getLocalized(movie, "genre", tr("updated", "Đang cập nhật"));
+            return window.translateDynamic ? window.translateDynamic(genre, "genre") : genre;
+        }
 
-            if (AERO_CACHE && AERO_CACHE.set) {
-                AERO_CACHE.set(cacheKey, data);
+        function qbPlaceholder(key) {
+            return `<option value="" disabled selected>${tr(key)}</option>`;
+        }
+                // Offline Fallback & Warning variables
+        let firestoreWarningShown = false;
+
+        function warnFirestoreOnce(err) {
+            if (firestoreWarningShown) return;
+            firestoreWarningShown = true;
+            console.warn("Firestore unavailable, fallback mode enabled.", err);
+        }
+
+        function withTimeout(promise, ms = 8000) {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error("Firestore timeout")), ms)
+                )
+            ]);
+        }
+
+        function hideHomeSkeletons() {
+            const moviesContainer = document.getElementById("moviesGridDisplay");
+            if (moviesContainer) {
+                moviesContainer.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-sub);">
+                        <i class="fas fa-exclamation-triangle fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
+                        <span style="display:block; margin-top:10px;">${tr("offline_data_warning", "Đang dùng dữ liệu tạm thời, vui lòng thử lại sau.")}</span>
+                    </div>
+                `;
             }
 
-            return data;
-        };
+            const promoContainer = document.getElementById("offersGrid");
+            if (promoContainer) {
+                promoContainer.innerHTML = `
+                    <div style="grid-column: span 3; text-align: center; padding: 40px; color: var(--text-sub);">
+                        <i class="fas fa-gift fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
+                        <span>${tr("promo_empty")}</span>
+                    </div>
+                `;
+            }
 
-        // Load Homepage Main Data
+            const newsContainer = document.getElementById("newsGrid");
+            if (newsContainer) {
+                newsContainer.innerHTML = `
+                    <div style="grid-column: span 3; text-align: center; padding: 40px; color: var(--text-sub);">
+                        <i class="far fa-newspaper fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
+                        <span>${tr("no_data")}</span>
+                    </div>
+                `;
+            }
+        }
+
+        function showOfflineNotification() {
+            const toast = document.createElement("div");
+            toast.className = "aero-offline-toast";
+            toast.style.cssText = "position: fixed; bottom: 20px; right: 20px; background: rgba(239, 68, 68, 0.95); color: white; padding: 12px 24px; border-radius: 8px; z-index: 9999; font-weight: 600; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; transition: opacity 0.5s;";
+            toast.innerHTML = `<i class="fas fa-wifi-slash"></i> <span>${tr("offline_mode", "Đang dùng dữ liệu tạm thời, vui lòng thử lại sau.")}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                setTimeout(() => toast.remove(), 500);
+            }, 6000);
+        }
+
+        function renderHomeFallback() {
+            hideHomeSkeletons();
+            if (window.loadHeroBanners) {
+                window.loadHeroBanners([]); 
+            }
+            showOfflineNotification();
+        }
+
         const loadHomeContent = async () => {
             try {
-                // Auto update movie and showtime statuses
-                await autoUpdateStatuses(db);
+                // Auto update movie and showtime statuses (max 4s)
+                try {
+                    await withTimeout(autoUpdateStatuses(db), 4000);
+                } catch (err) {
+                    warnFirestoreOnce(err);
+                }
 
-                const [
-                    moviesData,
-                    bannersData,
-                    promotionsData,
-                    newsData,
-                    cinemasData,
-                    showtimesData
-                ] = await Promise.all([
-                    getCachedDocs("movies", query(collection(db, "movies"), limit(30))),
-                    getCachedDocs("banners", query(collection(db, "banners"), limit(5))),
-                    getCachedDocs("promotions", query(collection(db, "promotions"), limit(6))),
-                    getCachedDocs("news", query(collection(db, "news"), limit(6))),
-                    getCachedDocs("cinemas", query(collection(db, "cinemas"), limit(12))),
-                    getCachedDocs("showtimesHome", query(collection(db, "showtimes"), limit(150)))
-                ]);
+                const now = Date.now();
+                if (!homeCache.movies || (now - homeCache.loadedAt > HOME_CACHE_TTL)) {
+                    const snapPromise = Promise.all([
+                        getDocs(query(collection(db, "movies"), limit(30))),
+                        getDocs(query(collection(db, "banners"), limit(8))),
+                        getDocs(query(collection(db, "promotions"), limit(6))),
+                        getDocs(query(collection(db, "news"), limit(6))),
+                        getDocs(query(collection(db, "cinemas"), limit(15)))
+                    ]);
 
-                cachedMovies = moviesData;
-                cachedBanners = bannersData;
-                cachedPromotions = promotionsData;
-                cachedNews = newsData;
-                cachedCinemas = cinemasData;
-                // Filter client side
-                cachedShowtimes = showtimesData.filter(st => ["active", "upcoming", "showing"].includes(st.status)).slice(0, 80);
+                    const [moviesSnap, bannersSnap, promotionsSnap, newsSnap, cinemasSnap] = await withTimeout(snapPromise, 8000);
+
+                    homeCache.movies = docsToArray(moviesSnap);
+                    homeCache.banners = docsToArray(bannersSnap);
+                    homeCache.promotions = promotionsSnap ? docsToArray(promotionsSnap) : [];
+                    homeCache.news = newsSnap ? docsToArray(newsSnap) : [];
+                    homeCache.cinemas = docsToArray(cinemasSnap);
+                    homeCache.loadedAt = now;
+                }
+
+                cachedMovies = homeCache.movies;
+                cachedBanners = homeCache.banners;
+                cachedPromotions = homeCache.promotions;
+                cachedNews = homeCache.news;
+                cachedCinemas = homeCache.cinemas;
 
                 // 1. Render Hero Banner (Fade Slider)
-                renderHeroSlider();
+                if (window.loadHeroBanners) {
+                    await window.loadHeroBanners();
+                }
 
                 // 2. Load Quick Booking Movies dropdown
                 populateQbMovies();
@@ -1158,132 +420,330 @@
                 // 4.5 Render News dynamically
                 renderNews();
 
-                // 5. Render Cinemas List dynamically (optional but consistent)
-                renderCinemas();
-
             } catch (e) {
-                console.error("Home loading error: ", e);
+                warnFirestoreOnce(e);
+                renderHomeFallback();
             }
         };
 
-        // Render Hero Slider
-        const renderHeroSlider = () => {
-            const heroContainer = document.getElementById("heroSliderCinema");
-            if (cachedBanners.length === 0) {
-                heroContainer.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #aaa; flex-direction: column; gap: 10px;">
-                        <i class="far fa-image fa-3x" style="color: var(--accent-color);"></i>
-                        <span>Chưa có dữ liệu quảng cáo</span>
-                    </div>
-                `;
-                return;
+
+        // ─────────────────────────────────────────────────────────
+        // AERO-STYLE HERO SLIDER
+        // ─────────────────────────────────────────────────────────
+        // Wrap entire hero banner script in an IIFE to isolate scope
+        (() => {
+            if (window.AERO_HERO_INITIALIZED) return;
+            window.AERO_HERO_INITIALIZED = true;
+
+            const HERO_DEFAULT_BANNER =
+                "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(`
+                    <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="650" viewBox="0 0 1600 650">
+                        <defs>
+                            <linearGradient id="g" x1="0" x2="1">
+                                <stop offset="0" stop-color="#0f172a"/>
+                                <stop offset="0.55" stop-color="#111827"/>
+                                <stop offset="1" stop-color="#005baa"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="1600" height="650" fill="url(#g)"/>
+                        <text x="50%" y="48%" dominant-baseline="middle" text-anchor="middle"
+                              fill="#ffffff" font-size="58" font-family="Arial" font-weight="800">
+                            AERO CINEMA
+                        </text>
+                        <text x="50%" y="58%" dominant-baseline="middle" text-anchor="middle"
+                              fill="#f58220" font-size="24" font-family="Arial" font-weight="700">
+                            Premium Movie Experience
+                        </text>
+                    </svg>
+                `);
+
+            let heroBanners = [];
+            let currentHeroIndex = 0;
+            let heroTimer = null;
+
+            function heroSafeText(value, fallback = "") {
+                if (value === undefined || value === null) return fallback;
+                const text = String(value).trim();
+                if (!text || text.toLowerCase() === "undefined" || text.toLowerCase() === "null") return fallback;
+                return text;
             }
 
-            let slidesHtml = "";
-            let dotsHtml = "";
-            let slideIndex = 0;
+            function safeImageUrl(value) {
+                const url = String(value || "").trim();
+                if (!url || url === "undefined" || url === "null") return "";
+                return url;
+            }
 
-            cachedBanners.forEach((b) => {
-                const bannerMovieId = b && b.movieId != null ? String(b.movieId) : "";
-                const movie = cachedMovies.find(m =>
-                    String(m.tmdbId) === bannerMovieId ||
-                    String(m.id) === bannerMovieId ||
-                    String(m.docId) === bannerMovieId
-                );
-                const image = b.imageUrl || b.bannerUrl || b.backdropUrl || b.posterUrl || movie?.bannerUrl || movie?.backdropUrl || movie?.posterUrl || "";
-                const normalizedImage = typeof image === "string" ? image.trim().toLowerCase() : "";
+            function heroGetDesktopImage(item) {
+                return safeImageUrl(item?.desktopImageUrl || item?.bannerUrl || item?.backdropUrl || item?.imageUrl);
+            }
 
-                if (!normalizedImage || normalizedImage === "undefined" || normalizedImage === "null") {
-                    console.warn("Skipped banner because image missing", b);
-                    return;
+            function heroGetMobileImage(item) {
+                return safeImageUrl(item?.mobileImageUrl) || heroGetDesktopImage(item);
+            }
+
+            function isGoodHeroBanner(item) {
+                const url = heroGetDesktopImage(item);
+                const type = String(item?.type || item?.imageType || "").toLowerCase();
+
+                if (!url || url === HERO_DEFAULT_BANNER) return false;
+                if (type.includes("poster")) return false;
+                if (url.includes("/w500/")) return false;
+                if (url.includes("poster")) return false;
+
+                return true;
+            }
+
+            function heroHandleImgError(img) {
+                if (!img || img.dataset.fallbackApplied === "true") return;
+                img.dataset.fallbackApplied = "true";
+                img.src = HERO_DEFAULT_BANNER;
+            }
+
+            window.heroHandleImgError = heroHandleImgError;
+            window.handleBannerImgError = heroHandleImgError; // Support fallback name
+
+            function updateHeroSlider() {
+                const wrap = document.querySelector(".aero-hero-stage");
+                const track = document.getElementById("aeroHeroTrack");
+                const slides = document.querySelectorAll(".aero-hero-slide");
+                const dots = document.querySelectorAll(".aero-hero-dot");
+
+                if (!wrap || !track || !slides.length) return;
+
+                currentHeroIndex = Math.max(0, Math.min(currentHeroIndex, slides.length - 1));
+
+                // Assign coverflow positional classes
+                slides.forEach((slide, index) => {
+                    slide.classList.remove(
+                        "active",
+                        "is-active",
+                        "is-prev",
+                        "is-next",
+                        "is-far-left",
+                        "is-far-right"
+                    );
+
+                    let diff = index - currentHeroIndex;
+
+                    // Wrap around for circular carousel
+                    if (diff > slides.length / 2) diff -= slides.length;
+                    if (diff < -slides.length / 2) diff += slides.length;
+
+                    if (diff === 0) {
+                        slide.classList.add("is-active");
+                    } else if (diff === -1) {
+                        slide.classList.add("is-prev");
+                    } else if (diff === 1) {
+                        slide.classList.add("is-next");
+                    } else if (diff < -1) {
+                        slide.classList.add("is-far-left");
+                    } else if (diff > 1) {
+                        slide.classList.add("is-far-right");
+                    }
+                });
+
+                dots.forEach((dot, index) => {
+                    dot.classList.toggle("active", index === currentHeroIndex);
+                });
+
+                const activeSlide = slides[currentHeroIndex];
+                const slideWidth = activeSlide.offsetWidth;
+                const style = window.getComputedStyle(track);
+                const gap = parseFloat(style.columnGap || style.gap || 44) || 44;
+                const viewportWidth = wrap.clientWidth;
+
+                const offset = (viewportWidth - slideWidth) / 2 - currentHeroIndex * (slideWidth + gap);
+                track.style.transform = `translateX(${offset}px)`;
+            }
+
+            function currentLang() {
+                return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+            }
+
+            window.heroBannerClick = function(url) {
+                if (!url) return;
+                if (url.startsWith("http")) {
+                    window.open(url, "_blank");
+                } else {
+                    window.location.href = url.startsWith("/") ? url : ("/" + url);
+                }
+            };
+
+            function renderHeroBanners(items) {
+                const track = document.getElementById("aeroHeroTrack");
+                const dots = document.getElementById("aeroHeroDots");
+
+                if (!track || !dots) return;
+
+                if (items) {
+                    heroBanners = Array.isArray(items) && items.length
+                        ? items
+                        : [{ title: "AERO Cinema", desktopImageUrl: "" }];
+                    currentHeroIndex = 0;
                 }
 
-                const activeClass = slideIndex === 0 ? "active" : "";
-                const rating = movie?.rating || b.rating || "P";
-                const ratingClass = "badge-" + String(rating).toLowerCase();
-                const title = b.title || movie?.title || "AERO Cinema";
-                const duration = movie?.duration || b.duration || "Đang cập nhật";
-                const durationText = Number.isFinite(Number(duration)) ? `${duration} Phút` : duration;
-                const genre = movie?.genre || b.subtitle || "Đang cập nhật";
-                const country = movie?.country || b.country || "Đang cập nhật";
-                const description = movie?.description || movie?.overview || b.subtitle || "Khám phá bộ phim bom tấn đỉnh cao tại hệ thống rạp AERO Cinema.";
-                const trailerUrl = movie?.trailerUrl || b.trailerUrl || "";
-                const youtubeId = window.getYoutubeId(trailerUrl);
-                const trailerButtonHtml = youtubeId
-                    ? `<button type="button" class="btn-hero-trailer" onclick="openTrailerModal('${youtubeId}')"><i class="fas fa-play"></i> Trailer</button>`
-                    : "";
-                const detailsId = movie?.id || b.movieId || "";
-                const linkUrl = detailsId ? `/Movies/Details?id=${detailsId}` : "#";
-                b.rating = rating;
-                b.title = title;
-                b.duration = Number.isFinite(Number(duration)) ? duration : "Đang cập nhật";
-                b.genre = genre;
-                b.country = country;
-                b.description = description;
+                const lang = currentLang();
 
-                slidesHtml += `
-                    <div class="hero-slide ${activeClass}" style="background-image: url('${image}');">
-                        <div class="hero-overlay"></div>
-                        <div class="hero-content">
-                            <div class="hero-content-inner">
-                                <span class="hero-rating ${ratingClass}">${rating}</span>
-                                <h1 class="hero-title">${title}</h1>
-                                <div class="hero-meta">
-                                    <span><i class="far fa-clock" style="color: var(--accent-color);"></i> ${durationText}</span>
-                                    <span><i class="fas fa-tags" style="color: var(--accent-color);"></i> ${genre}</span>
-                                    <span><i class="fas fa-globe" style="color: var(--accent-color);"></i> ${country}</span>
-                                </div>
-                                <p class="hero-desc">${description}</p>
-                                <div class="hero-buttons">
-                                    <a href="${linkUrl}" class="btn-hero-book"><i class="fas fa-ticket-alt"></i> Mua Vé Ngay</a>
-                                    ${trailerButtonHtml}
-                                </div>
+                track.innerHTML = heroBanners.map((item, index) => {
+                    const desktopImg = heroGetDesktopImage(item);
+                    const mobileImg = heroGetMobileImage(item);
+                    
+                    const title = lang === "en" ? (item.titleEn || item.title) : item.title;
+                    const subtitle = lang === "en" ? (item.subtitleEn || item.subtitle) : item.subtitle;
+                    const btnText = lang === "en" ? (item.buttonTextEn || item.buttonText || "Book now") : (item.buttonText || "Mua vé ngay");
+                    const linkUrl = item.linkUrl ? item.linkUrl : "";
+                    
+                    const safeTitle = heroSafeText(title || item.name, "");
+                    const safeSubtitle = heroSafeText(subtitle, "");
+                    const safeBtnText = heroSafeText(btnText, "");
+
+                    let overlay = "";
+                    if (item.title || item.titleEn || item.name) {
+                        overlay = `
+                            <div class="aero-hero-content">
+                                <h2 class="aero-hero-title">${safeTitle || "AERO CINEMA"}</h2>
+                                ${safeSubtitle ? `<p class="aero-hero-subtitle">${safeSubtitle}</p>` : ""}
+                                ${linkUrl ? `<button type="button" class="aero-hero-btn" onclick="window.heroBannerClick('${linkUrl}')">${safeBtnText}</button>` : ""}
                             </div>
-                        </div>
-                    </div>
-                `;
+                        `;
+                    }
+                    
+                    const clickOverlay = linkUrl ? `<a href="javascript:void(0)" onclick="window.heroBannerClick('${linkUrl}')" style="position:absolute;inset:0;z-index:1;"></a>` : "";
 
-                dotsHtml += `
-                    <button type="button" class="hero-dot ${activeClass}" onclick="jumpToSlide(${slideIndex})"></button>
-                `;
-                slideIndex++;
+                    let slideContent = "";
+                    if (!desktopImg) {
+                        slideContent = `<div class="hero-fallback-slide" style="width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background: linear-gradient(135deg, #0f172a 0%, #111827 55%, #005baa 100%); color:white;">
+                            <h2 style="font-size:3rem; margin:0; font-weight:800; text-align:center;">AERO CINEMA</h2>
+                            <p style="font-size:1.5rem; color:#f58220; margin-top:10px; font-weight:700;">Premium Movie Experience</p>
+                        </div>`;
+                    } else {
+                        slideContent = `
+                            <picture>
+                                <source media="(max-width: 768px)" srcset="${mobileImg}">
+                                <img src="${desktopImg}"
+                                     alt="${safeTitle}"
+                                     loading="${index === 0 ? 'eager' : 'lazy'}"
+                                     decoding="async"
+                                     fetchpriority="${index === 0 ? 'high' : 'auto'}"
+                                     onerror="this.style.display='none'; this.parentElement.classList.add('image-error');">
+                            </picture>
+                        `;
+                    }
+
+                    return `
+                        <article class="aero-hero-slide ${index === 0 ? "active" : ""}" data-index="${index}">
+                            ${clickOverlay}
+                            ${slideContent}
+                            ${overlay}
+                        </article>
+                    `;
+                }).join("");
+
+                dots.innerHTML = heroBanners.map((_, index) => `
+                    <button type="button"
+                            class="aero-hero-dot ${index === 0 ? "active" : ""}"
+                            data-index="${index}"
+                            aria-label="Banner ${index + 1}">
+                    </button>
+                `).join("");
+
+                document.querySelectorAll(".aero-hero-slide img").forEach(img => {
+                    img.addEventListener("load", updateHeroSlider, { once: true });
+                });
+
+                requestAnimationFrame(updateHeroSlider);
+                if (items) startHeroAutoSlide();
+            }
+            
+            window.addEventListener("aero:languageChanged", () => {
+                if (heroBanners.length) renderHeroBanners();
             });
 
-            if (!slidesHtml) {
-                heroContainer.innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #aaa; flex-direction: column; gap: 10px;">
-                        <i class="far fa-image fa-3x" style="color: var(--accent-color);"></i>
-                        <span>Chưa có dữ liệu quảng cáo hợp lệ</span>
-                    </div>
-                `;
-                return;
+            function nextHeroSlide() {
+                if (!heroBanners.length) return;
+                currentHeroIndex = (currentHeroIndex + 1) % heroBanners.length;
+                updateHeroSlider();
             }
 
-            heroContainer.innerHTML = slidesHtml + `<div class="hero-indicators">${dotsHtml}</div>`;
+            function prevHeroSlide() {
+                if (!heroBanners.length) return;
+                currentHeroIndex = (currentHeroIndex - 1 + heroBanners.length) % heroBanners.length;
+                updateHeroSlider();
+            }
 
-            // Setup autoplay logic
-            window.activeSlideIdx = 0;
-            window.slides = document.querySelectorAll(".hero-slide");
-            window.dots = document.querySelectorAll(".hero-dot");
+            function startHeroAutoSlide() {
+                stopHeroAutoSlide();
+                heroTimer = setInterval(nextHeroSlide, 5000);
+            }
 
-            if (window.sliderInterval) clearInterval(window.sliderInterval);
-            window.sliderInterval = setInterval(() => {
-                if (window.slides.length > 0) {
-                    window.jumpToSlide((window.activeSlideIdx + 1) % window.slides.length);
+            function stopHeroAutoSlide() {
+                if (heroTimer) {
+                    clearInterval(heroTimer);
+                    heroTimer = null;
                 }
-            }, 5000);
-        };
+            }
 
-        // Jump to specific banner slide
-        window.jumpToSlide = (idx) => {
-            if (!window.slides || window.slides.length === 0) return;
-            window.slides[window.activeSlideIdx].classList.remove("active");
-            window.dots[window.activeSlideIdx].classList.remove("active");
-            window.activeSlideIdx = idx;
-            window.slides[window.activeSlideIdx].classList.add("active");
-            window.dots[window.activeSlideIdx].classList.add("active");
-        };
+            async function loadHeroBanners() {
+                try {
+                    let items = cachedBanners
+                        .filter(x => x.isActive !== false)
+                        .filter(x => String(x.status || "active").toLowerCase() !== "inactive")
+                        .filter(x => isGoodHeroBanner(x))
+                        .sort((a, b) => Number(a.order || 999) - Number(b.order || 999));
 
+                    if (!items.length) {
+                        items = cachedMovies
+                            .filter(x => x.isActive !== false)
+                            .filter(x => String(x.status || "active").toLowerCase() !== "inactive")
+                            .filter(x => isGoodHeroBanner(x))
+                            .sort((a, b) => Number(a.order || 999) - Number(b.order || 999))
+                            .slice(0, 8);
+                    }
+
+                    renderHeroBanners(items);
+                } catch (error) {
+                    console.error("Load hero banners failed:", error);
+                    renderHeroBanners([]);
+                }
+            }
+
+            // Expose public API
+            window.loadHeroBanners = loadHeroBanners;
+
+            // Kept for backward compatibility
+            window.jumpToSlide = (idx) => {
+                if (!heroBanners.length) return;
+                currentHeroIndex = Math.max(0, Math.min(idx, heroBanners.length - 1));
+                updateHeroSlider();
+            };
+
+            document.querySelector(".aero-hero-next")?.addEventListener("click", () => {
+                nextHeroSlide();
+                startHeroAutoSlide();
+            });
+
+            document.querySelector(".aero-hero-prev")?.addEventListener("click", () => {
+                prevHeroSlide();
+                startHeroAutoSlide();
+            });
+
+            document.getElementById("aeroHeroDots")?.addEventListener("click", e => {
+                const dot = e.target.closest(".aero-hero-dot");
+                if (!dot) return;
+
+                currentHeroIndex = Number(dot.dataset.index || 0);
+                updateHeroSlider();
+                startHeroAutoSlide();
+            });
+
+            window.addEventListener("resize", updateHeroSlider);
+
+            // Pause auto-slide on hover
+            const stage = document.getElementById("aeroHeroStage");
+            stage?.addEventListener("mouseenter", stopHeroAutoSlide);
+            stage?.addEventListener("mouseleave", startHeroAutoSlide);
+        })();
         // =====================================================
         // normalizeMovieStatus: chuẩn hoá mọi variant status
         // Trả về: "now_showing" | "coming_soon" | "ended"
@@ -1331,20 +791,20 @@
         // Populate Quick Booking Movies select dropdown
         const populateQbMovies = () => {
             const select = document.getElementById("qbMovie");
-            select.innerHTML = '<option value="" disabled selected>Chọn Phim</option>';
+            select.innerHTML = qbPlaceholder("select_movie");
 
             // Load only now showing movies in the selector (dùng normalizeMovieStatus)
             const nowShowingList = cachedMovies.filter(m => normalizeMovieStatus(m) === "now_showing");
             nowShowingList.forEach(m => {
                 const opt = document.createElement("option");
                 opt.value = m.id;
-                opt.innerText = m.title || "Đang cập nhật";
+                opt.innerText = getMovieTitle(m);
                 select.appendChild(opt);
             });
         };
 
         // Quick Booking selections logic chains
-        window.onQbMovieChange = () => {
+        window.onQbMovieChange = async () => {
             const movieId = document.getElementById("qbMovie").value;
             const selectCinema = document.getElementById("qbCinema");
             const selectDate = document.getElementById("qbDate");
@@ -1352,34 +812,42 @@
             const submitBtn = document.getElementById("qbSubmitBtn");
 
             // Reset downstream selections
-            selectCinema.innerHTML = '<option value="" disabled selected>Chọn Rạp</option>';
+            selectCinema.innerHTML = `<option value="" disabled selected>${tr("loading", "Đang tải...")}</option>`;
             selectCinema.disabled = true;
-            selectDate.innerHTML = '<option value="" disabled selected>Chọn Ngày</option>';
+            selectDate.innerHTML = qbPlaceholder("select_date");
             selectDate.disabled = true;
-            selectShowtime.innerHTML = '<option value="" disabled selected>Chọn Suất</option>';
+            selectShowtime.innerHTML = qbPlaceholder("select_showtime");
             selectShowtime.disabled = true;
             submitBtn.disabled = true;
 
-            // Load cinemas that have showtimes for this movie
-            const activeCinemaIds = cachedCinemas.filter(c => c.status !== "inactive").map(c => c.id);
-            const validCinemas = {};
-            cachedShowtimes.forEach(st => {
-                if (st.movieId === movieId && ["active", "upcoming", "showing"].includes(st.status) && activeCinemaIds.includes(st.cinemaId)) {
-                    validCinemas[st.cinemaId] = st.cinemaName;
-                }
-            });
+            try {
+                const snap = await getDocs(query(collection(db, "showtimes"), where("movieId", "==", movieId)));
+                cachedShowtimes = docsToArray(snap).filter(st => ["active", "upcoming", "showing"].includes(st.status));
 
-            if (Object.keys(validCinemas).length > 0) {
-                selectCinema.innerHTML = '<option value="" disabled selected>Chọn Rạp</option>';
-                for (const cId in validCinemas) {
-                    const opt = document.createElement("option");
-                    opt.value = cId;
-                    opt.innerText = validCinemas[cId];
-                    selectCinema.appendChild(opt);
+                // Load cinemas that have showtimes for this movie
+                const activeCinemaIds = cachedCinemas.filter(c => c.status !== "inactive").map(c => c.id);
+                const validCinemas = {};
+                cachedShowtimes.forEach(st => {
+                    if (activeCinemaIds.includes(st.cinemaId)) {
+                        validCinemas[st.cinemaId] = st.cinemaName;
+                    }
+                });
+
+                if (Object.keys(validCinemas).length > 0) {
+                    selectCinema.innerHTML = qbPlaceholder("select_cinema");
+                    for (const cId in validCinemas) {
+                        const opt = document.createElement("option");
+                        opt.value = cId;
+                        opt.innerText = validCinemas[cId];
+                        selectCinema.appendChild(opt);
+                    }
+                    selectCinema.disabled = false;
+                } else {
+                    selectCinema.innerHTML = `<option value="" disabled selected>${tr("no_showtimes")}</option>`;
                 }
-                selectCinema.disabled = false;
-            } else {
-                selectCinema.innerHTML = '<option value="" disabled selected>Không có lịch chiếu</option>';
+            } catch (err) {
+                console.error("Lỗi tải showtimes: ", err);
+                selectCinema.innerHTML = `<option value="" disabled selected>Lỗi tải rạp</option>`;
             }
         };
 
@@ -1391,9 +859,9 @@
             const submitBtn = document.getElementById("qbSubmitBtn");
 
             // Reset
-            selectDate.innerHTML = '<option value="" disabled selected>Chọn Ngày</option>';
+            selectDate.innerHTML = qbPlaceholder("select_date");
             selectDate.disabled = true;
-            selectShowtime.innerHTML = '<option value="" disabled selected>Chọn Suất</option>';
+            selectShowtime.innerHTML = qbPlaceholder("select_showtime");
             selectShowtime.disabled = true;
             submitBtn.disabled = true;
 
@@ -1408,7 +876,7 @@
             const sortedDates = Object.keys(validDates).sort();
 
             if (sortedDates.length > 0) {
-                selectDate.innerHTML = '<option value="" disabled selected>Chọn Ngày</option>';
+                selectDate.innerHTML = qbPlaceholder("select_date");
                 sortedDates.forEach(dateStr => {
                     const opt = document.createElement("option");
                     opt.value = dateStr;
@@ -1419,7 +887,7 @@
                 });
                 selectDate.disabled = false;
             } else {
-                selectDate.innerHTML = '<option value="" disabled selected>Không có ngày chiếu</option>';
+                selectDate.innerHTML = `<option value="" disabled selected>${tr("showtimes_no_date", tr("no_dates"))}</option>`;
             }
         };
 
@@ -1431,7 +899,7 @@
             const submitBtn = document.getElementById("qbSubmitBtn");
 
             // Reset
-            selectShowtime.innerHTML = '<option value="" disabled selected>Chọn Suất</option>';
+            selectShowtime.innerHTML = qbPlaceholder("select_showtime");
             selectShowtime.disabled = true;
             submitBtn.disabled = true;
 
@@ -1446,7 +914,7 @@
             slots.sort((a, b) => a.time.localeCompare(b.time));
 
             if (slots.length > 0) {
-                selectShowtime.innerHTML = '<option value="" disabled selected>Chọn Suất</option>';
+                selectShowtime.innerHTML = qbPlaceholder("select_showtime");
                 slots.forEach(slot => {
                     const opt = document.createElement("option");
                     opt.value = slot.id;
@@ -1455,7 +923,7 @@
                 });
                 selectShowtime.disabled = false;
             } else {
-                selectShowtime.innerHTML = '<option value="" disabled selected>Hết suất</option>';
+                selectShowtime.innerHTML = `<option value="" disabled selected>${tr("sold_out")}</option>`;
             }
         };
 
@@ -1497,8 +965,8 @@
 
             if (filteredMovies.length === 0) {
                 const emptyMsg = currentTab === "now_showing"
-                    ? "Hiện chưa có phim đang chiếu."
-                    : "Hiện chưa có phim sắp chiếu.";
+                    ? (currentLang() === "en" ? "No now showing movies are available yet." : "Hiện chưa có phim đang chiếu.")
+                    : (currentLang() === "en" ? "No coming soon movies are available yet." : "Hiện chưa có phim sắp chiếu.");
                 container.innerHTML = `
                     <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-sub);">
                         <i class="far fa-folder-open fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
@@ -1514,13 +982,13 @@
                 const ratingVal = m.rating || "P";
                 const ratingClass = "badge-" + ratingVal.toLowerCase().replace(/[^a-z0-9]/g, "");
                 const posterSrc = m.posterUrl || m.imageUrl || m.bannerUrl || "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85";
-                const titleVal = m.title || "Đang cập nhật";
-                const genreVal = (m.genre || "Đang cập nhật").split(",")[0].trim();
-                const durationVal = m.duration ? `${m.duration} Phút` : "Đang cập nhật";
+                const titleVal = getMovieTitle(m);
+                const genreVal = getMovieGenre(m).split(",")[0].trim();
+                const durationVal = m.duration ? `${m.duration} ${tr("minutes")}` : tr("updated", "Đang cập nhật");
 
                 const buyBtnHtml = normalizedStatus === "now_showing"
-                    ? `<a href="/Movies/Details?id=${m.id}#booking-section" class="btn-card-buy"><i class="fas fa-ticket-alt"></i> Đặt Vé</a>`
-                    : `<button class="btn-card-buy" style="background-color:#999; border-color:#999; cursor:not-allowed;"><i class="far fa-bell"></i> Sắp Chiếu</button>`;
+                    ? `<a href="/Movies/Details?id=${m.id}#booking-section" class="btn-card-buy"><i class="fas fa-ticket-alt"></i> ${tr("book_ticket")}</a>`
+                    : `<button class="btn-card-buy" style="background-color:#999; border-color:#999; cursor:not-allowed;"><i class="far fa-bell"></i> ${tr("coming_soon_badge")}</button>`;
 
                 html += `
                     <div class="movie-display-card">
@@ -1536,7 +1004,7 @@
                                 <span><i class="far fa-clock"></i> ${durationVal}</span>
                             </div>
                             <div class="card-actions-row">
-                                <a href="/Movies/Details?id=${m.id}" class="btn-card-detail">Chi Tiết</a>
+                                <a href="/Movies/Details?id=${m.id}" class="btn-card-detail">${tr("detail")}</a>
                                 ${buyBtnHtml}
                             </div>
                         </div>
@@ -1553,7 +1021,7 @@
                 container.innerHTML = `
                     <div style="grid-column: span 3; text-align: center; padding: 40px; color: var(--text-sub);">
                         <i class="fas fa-gift fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
-                        <span>Hiện chưa có chương trình khuyến mãi nào.</span>
+                        <span>${tr("promo_empty")}</span>
                     </div>
                 `;
                 return;
@@ -1561,14 +1029,17 @@
 
             let html = "";
             cachedPromotions.forEach(p => {
+                const title = getLocalized(p, "title", tr("promo_default_title"));
+                const desc = getLocalized(p, "description", tr("promo_default_desc"));
+                const image = safeText(p.desktopImageUrl || p.bannerUrl || p.imageUrl || p.thumbnailUrl, "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85");
                 html += `
                     <div class="offer-card">
                         <div class="offer-img-box">
-                            <img src="${p.imageUrl}" alt="${p.title}" loading="lazy" decoding="async" onerror="this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
+                            <img src="${image}" alt="${title}" loading="lazy" decoding="async" onerror="this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
                         </div>
                         <div class="offer-text-box">
-                            <h3 class="offer-title">${p.title}</h3>
-                            <p class="offer-desc">${p.description}</p>
+                            <h3 class="offer-title">${title}</h3>
+                            <p class="offer-desc">${desc}</p>
                         </div>
                     </div>
                 `;
@@ -1584,7 +1055,7 @@
                 container.innerHTML = `
                     <div style="grid-column: span 3; text-align: center; padding: 40px; color: var(--text-sub);">
                         <i class="far fa-newspaper fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
-                        <span>Hiện chưa có tin tức điện ảnh mới.</span>
+                        <span>${tr("no_data")}</span>
                     </div>
                 `;
                 return;
@@ -1592,14 +1063,17 @@
 
             let html = "";
             cachedNews.forEach(n => {
+                const title = getLocalized(n, "title", tr("movie_news"));
+                const desc = getLocalized(n, "description", tr("updated"));
+                const image = safeText(n.desktopImageUrl || n.bannerUrl || n.imageUrl || n.thumbnailUrl, "https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=600&q=85");
                 html += `
                     <div class="offer-card">
                         <div class="offer-img-box">
-                            <img src="${n.imageUrl}" alt="${n.title}" loading="lazy" decoding="async" onerror="this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
+                            <img src="${image}" alt="${title}" loading="lazy" decoding="async" onerror="this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
                         </div>
                         <div class="offer-text-box">
-                            <h3 class="offer-title">${n.title}</h3>
-                            <p class="offer-desc">${n.description}</p>
+                            <h3 class="offer-title">${title}</h3>
+                            <p class="offer-desc">${desc}</p>
                         </div>
                     </div>
                 `;
@@ -1607,45 +1081,23 @@
             container.innerHTML = html;
         };
 
-        // Populate system cinemas
-        const renderCinemas = () => {
-            const container = document.getElementById("cinemasGrid");
-            const activeCinemas = cachedCinemas.filter(c => c.status !== "inactive");
-            if (activeCinemas.length === 0) {
-                container.innerHTML = `
-                    <div style="grid-column: span 2; text-align: center; padding: 40px; color: var(--text-sub);">
-                        <i class="fas fa-film fa-3x" style="color: var(--accent-color); margin-bottom: 15px; display: block;"></i>
-                        <span>Chưa tìm thấy thông tin cụm rạp.</span>
-                    </div>
-                `;
-                return;
-            }
-
-            let html = "";
-            activeCinemas.forEach(c => {
-                html += `
-                    <div class="cinema-card">
-                        <div>
-                            <h3 class="cinema-name">${c.name}</h3>
-                            <div class="cinema-info-row">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>${c.address}</span>
-                            </div>
-                            <div class="cinema-info-row">
-                                <i class="fas fa-phone-alt"></i>
-                                <span>Hotline: ${c.phone || '1900 1234'}</span>
-                            </div>
-                        </div>
-                        <a href="/Showtimes" class="btn-cinema-schedule">Xem lịch chiếu</a>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        };
+        // Cinema cluster rendering removed from Home page
+        // Cinema list is available at /Home/Cinemas
 
         // On Page Load Init
+        let homeInitialized = false;
         window.addEventListener('DOMContentLoaded', () => {
+            if (homeInitialized) return;
+            homeInitialized = true;
             loadHomeContent();
+        });
+
+        window.addEventListener("aero:languageChanged", () => {
+            if (window.applyLanguage) window.applyLanguage();
+            populateQbMovies();
+            renderMovieGrid();
+            renderPromotions();
+            renderNews();
         });
     </script>
 

@@ -6,16 +6,39 @@ console.log("AERO Chatbot loaded");
 console.log("window.db", window.db);
 console.log("window.auth", window.auth);
 
-const EMPTY_TEXT = "Hiện chưa có dữ liệu phù hợp.";
-const ERROR_TEXT = "Xin lỗi, hiện chưa thể tải dữ liệu. Vui lòng thử lại sau.";
-const FALLBACK_TEXT = "Tôi có thể hỗ trợ:\n\n• Phim đang chiếu\n• Lịch chiếu\n• Vé của tôi\n• Giá vé\n• Khuyến mãi\n• Gợi ý phim";
+function getLang() {
+    return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+}
+
+function tr(key) {
+    return window.t ? window.t(key) : key;
+}
+
+function isEn() {
+    return getLang() === "en";
+}
+
+function emptyText() {
+    return tr("chatbot_empty");
+}
+
+function errorText() {
+    return tr("chatbot_error");
+}
+
+function fallbackText() {
+    return isEn()
+        ? "I can help with:\n\n• Now Showing\n• Showtimes\n• My Tickets\n• Ticket Prices\n• Promotions\n• Movie Recommendations"
+        : "Tôi có thể hỗ trợ:\n\n• Phim đang chiếu\n• Lịch chiếu\n• Vé của tôi\n• Giá vé\n• Khuyến mãi\n• Gợi ý phim";
+}
+
 const quickActions = [
-    { label: "🎬 Phim hot", prompt: "Phim đang chiếu" },
-    { label: "🍿 Suất chiếu hôm nay", prompt: "Lịch chiếu hôm nay" },
-    { label: "🎟 Đặt vé", prompt: "Lịch chiếu hôm nay" },
-    { label: "⭐ Khuyến mãi", prompt: "Khuyến mãi" },
-    { label: "🏢 Rạp", prompt: "Rạp phim" },
-    { label: "📞 Hỗ trợ", prompt: "Bạn có thể hỗ trợ gì?" }
+    { key: "chatbot_now_showing", icon: "🎬", promptVi: "Phim đang chiếu", promptEn: "Now showing" },
+    { key: "chatbot_today_showtimes", icon: "🍿", promptVi: "Lịch chiếu hôm nay", promptEn: "Today's showtimes" },
+    { key: "booking", icon: "🎟", promptVi: "Lịch chiếu hôm nay", promptEn: "Book tickets" },
+    { key: "chatbot_promotions", icon: "⭐", promptVi: "Khuyến mãi", promptEn: "Promotions" },
+    { key: "chatbot_cinemas", icon: "🏢", promptVi: "Rạp phim", promptEn: "Cinemas" },
+    { key: "support", icon: "📞", promptVi: "Bạn có thể hỗ trợ gì?", promptEn: "What can you help with?" }
 ];
 
 const genreAliases = {
@@ -87,30 +110,30 @@ function waitForFirebaseReady(maxRetries = 20, retryDelay = 200) {
 function injectChatbot() {
     if (document.getElementById("aeroChatbot")) return;
     const chatbotHtml = `<div id="aeroChatbot">
-        <button id="aeroChatbotLauncher" class="aero-chat-toggle aero-chatbot-launcher" type="button" aria-label="Mở AERO AI" aria-expanded="false" aria-controls="aeroChatbox">
+        <button id="aeroChatbotLauncher" class="aero-chat-toggle aero-chatbot-launcher" type="button" aria-label="AERO AI" aria-expanded="false" aria-controls="aeroChatbox">
             <span class="aero-chatbot-launcher-icon"><i class="fas fa-robot" aria-hidden="true"></i></span>
-            <span class="aero-chatbot-launcher-text">Hỗ trợ</span>
+            <span class="aero-chatbot-launcher-text" data-i18n="chatbot_support">Hỗ trợ</span>
             <span class="aero-chatbot-online-badge" aria-hidden="true"></span>
         </button>
         <section class="aero-chatbox aero-chatbot-panel" id="aeroChatbox" role="dialog" aria-labelledby="aeroChatTitle" aria-hidden="true">
             <header class="aero-chat-header">
-                <div class="aero-chat-brand"><span class="aero-chat-avatar" aria-hidden="true"><i class="fas fa-robot"></i></span><div><strong id="aeroChatTitle">AERO AI Assistant</strong><small><i></i> Online · Trợ lý đặt vé thông minh</small></div></div>
+                <div class="aero-chat-brand"><span class="aero-chat-avatar" aria-hidden="true"><i class="fas fa-robot"></i></span><div><strong id="aeroChatTitle">AERO AI Assistant</strong><small data-i18n="chatbot_subtitle"><i></i> Online · Trợ lý đặt vé thông minh</small></div></div>
                 <div class="aero-chat-window-actions">
-                    <button class="aero-chat-minimize" type="button" aria-label="Thu nhỏ chatbot"><i class="fas fa-minus" aria-hidden="true"></i></button>
-                    <button class="aero-chat-close" type="button" aria-label="Đóng chatbot"><i class="fas fa-times" aria-hidden="true"></i></button>
+                    <button class="aero-chat-minimize" type="button" aria-label="Minimize chatbot"><i class="fas fa-minus" aria-hidden="true"></i></button>
+                    <button class="aero-chat-close" type="button" aria-label="Close chatbot"><i class="fas fa-times" aria-hidden="true"></i></button>
                 </div>
             </header>
             <div class="aero-chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
             <form class="aero-chat-form">
                 <div class="aero-chat-composer">
-                    <textarea class="aero-chat-input" rows="1" maxlength="500" placeholder="Hỏi AERO về phim, lịch chiếu..." aria-label="Câu hỏi cho AERO AI Assistant"></textarea>
+                    <textarea class="aero-chat-input" rows="1" maxlength="500" data-i18n-placeholder="chatbot_placeholder" placeholder="Hỏi AERO về phim, lịch chiếu..." aria-label="AERO AI Assistant question"></textarea>
                     <div class="aero-chat-tools">
-                        <button class="aero-chat-tool aero-chat-voice" type="button" aria-label="Nhập bằng giọng nói"><i class="fas fa-microphone"></i></button>
-                        <button class="aero-chat-tool aero-chat-emoji" type="button" aria-label="Thêm biểu tượng cảm xúc"><i class="far fa-smile"></i></button>
-                        <button class="aero-chat-tool aero-chat-attachment" type="button" aria-label="Đính kèm tệp"><i class="fas fa-paperclip"></i></button>
+                        <button class="aero-chat-tool aero-chat-voice" type="button" aria-label="Voice input"><i class="fas fa-microphone"></i></button>
+                        <button class="aero-chat-tool aero-chat-emoji" type="button" aria-label="Add emoji"><i class="far fa-smile"></i></button>
+                        <button class="aero-chat-tool aero-chat-attachment" type="button" aria-label="Attach file"><i class="fas fa-paperclip"></i></button>
                         <input class="aero-chat-file" type="file" hidden />
-                        <span class="aero-chat-enter-hint">Enter để gửi</span>
-                        <button class="aero-chat-send" type="submit" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane" aria-hidden="true"></i></button>
+                        <span class="aero-chat-enter-hint">Enter</span>
+                        <button class="aero-chat-send" type="submit" aria-label="Send message"><i class="fas fa-paper-plane" aria-hidden="true"></i></button>
                     </div>
                 </div>
             </form>
@@ -137,7 +160,7 @@ function injectChatbot() {
     root.querySelector(".aero-chat-attachment").addEventListener("click", () => root.querySelector(".aero-chat-file").click());
     root.querySelector(".aero-chat-file").addEventListener("change", event => {
         const file = event.target.files?.[0];
-        if (file) appendMessage("bot", `Đã nhận tệp “${file.name}”. Tính năng phân tích tệp sẽ sớm được cập nhật.`);
+        if (file) appendMessage("bot", isEn() ? `Received "${file.name}". File analysis will be updated soon.` : `Đã nhận tệp “${file.name}”. Tính năng phân tích tệp sẽ sớm được cập nhật.`);
         event.target.value = "";
     });
     root.querySelector(".aero-chat-voice").addEventListener("click", () => startVoiceInput(input));
@@ -183,14 +206,14 @@ function insertAtCursor(input, text) {
 function startVoiceInput(input) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        appendMessage("bot", "Trình duyệt này chưa hỗ trợ nhập bằng giọng nói.");
+        appendMessage("bot", isEn() ? "This browser does not support voice input yet." : "Trình duyệt này chưa hỗ trợ nhập bằng giọng nói.");
         return;
     }
     const recognition = new SpeechRecognition();
-    recognition.lang = "vi-VN";
+    recognition.lang = isEn() ? "en-US" : "vi-VN";
     recognition.interimResults = false;
     recognition.addEventListener("result", event => insertAtCursor(input, event.results[0][0].transcript));
-    recognition.addEventListener("error", () => appendMessage("bot", "Tôi chưa nghe rõ. Bạn vui lòng thử lại nhé."));
+    recognition.addEventListener("error", () => appendMessage("bot", isEn() ? "I could not hear that clearly. Please try again." : "Tôi chưa nghe rõ. Bạn vui lòng thử lại nhé."));
     recognition.start();
 }
 
@@ -250,13 +273,13 @@ function renderCards(parent, cards) {
             const detailLink = document.createElement("a");
             detailLink.className = "aero-result-action secondary";
             detailLink.href = card.href;
-            detailLink.textContent = card.action || "Xem chi tiết";
+            detailLink.textContent = card.action || tr("detail");
             actions.appendChild(detailLink);
             if (card.secondaryHref) {
                 const primaryLink = document.createElement("a");
                 primaryLink.className = "aero-result-action primary";
                 primaryLink.href = card.secondaryHref;
-                primaryLink.textContent = card.secondaryAction || "Đặt vé ngay";
+                primaryLink.textContent = card.secondaryAction || tr("movie_book_now");
                 actions.appendChild(primaryLink);
             }
             body.appendChild(actions);
@@ -270,13 +293,13 @@ function renderCards(parent, cards) {
 function renderQuickActions() {
     const container = document.createElement("div");
     container.className = "aero-quick-actions";
-    container.setAttribute("aria-label", "Câu hỏi gợi ý");
+    container.setAttribute("aria-label", isEn() ? "Suggested questions" : "Câu hỏi gợi ý");
     quickActions.forEach(action => {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "aero-quick-action";
-        button.textContent = action.label;
-        button.addEventListener("click", () => sendMessage(action.prompt));
+        button.textContent = `${action.icon} ${tr(action.key)}`;
+        button.addEventListener("click", () => sendMessage(isEn() ? action.promptEn : action.promptVi));
         container.appendChild(button);
     });
     messagesElement()?.appendChild(container);
@@ -319,29 +342,29 @@ function renderWelcomeMessage() {
     welcome.className = "aero-welcome";
     welcome.innerHTML = `
         <div class="aero-welcome-avatar"><i class="fas fa-robot" aria-hidden="true"></i></div>
-        <h2>Xin chào <span>👋</span></h2>
-        <p>Tôi là <strong>AERO AI Assistant</strong>.<br />Tôi có thể giúp bạn:</p>
+        <h2>${tr("chatbot_welcome_title")} <span>👋</span></h2>
+        <p>${tr("chatbot_welcome_text")}</p>
         <div class="aero-welcome-capabilities">
-            <span>🎬 Xem phim đang chiếu</span><span>🍿 Tra cứu suất chiếu</span>
-            <span>🎟 Đặt vé nhanh</span><span>🏢 Thông tin rạp</span>
-            <span>💳 Thanh toán</span><span>⭐ Khuyến mãi</span>
+            <span>🎬 ${tr("chatbot_now_showing")}</span><span>🍿 ${tr("chatbot_today_showtimes")}</span>
+            <span>🎟 ${tr("booking")}</span><span>🏢 ${tr("chatbot_cinemas")}</span>
+            <span>💳 ${tr("seats_step_payment")}</span><span>⭐ ${tr("chatbot_promotions")}</span>
         </div>`;
     messages.appendChild(welcome);
     renderQuickActions();
 }
 
-function value(data, fields, fallback = "Đang cập nhật") {
+function value(data, fields, fallback = tr("updating")) {
     for (const field of fields) if (data?.[field] !== undefined && data[field] !== null && data[field] !== "") return data[field];
     return fallback;
 }
 
 function currency(number) {
     const parsed = Number(number);
-    return Number.isFinite(parsed) ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(parsed) : "Đang cập nhật";
+    return Number.isFinite(parsed) ? new Intl.NumberFormat(isEn() ? "en-US" : "vi-VN", { style: "currency", currency: "VND" }).format(parsed) : tr("updating");
 }
 
 function displayDate(input) {
-    if (!input) return "Đang cập nhật";
+    if (!input) return tr("updating");
     const date = input?.toDate ? input.toDate() : new Date(input);
     return Number.isNaN(date.getTime()) ? String(input) : date.toLocaleDateString("vi-VN");
 }
@@ -351,11 +374,11 @@ function movieCard(movie) {
     return {
         image: movie.posterUrl || movie.imageUrl || movie.bannerUrl || movie.poster || "https://placehold.co/160x240/0f172a/ffffff?text=AERO",
         title: value(movie, ["title", "name"]),
-        lines: [`⭐ ${value(movie, ["voteAverage"], "-")}/10`, `⏱ ${value(movie, ["duration"], "-")} phút`, `🏷 ${value(movie, ["genre"], "Đang cập nhật")}`, `🔞 ${value(movie, ["rating"], "P")}`],
+        lines: [`⭐ ${value(movie, ["voteAverage"], "-")}/10`, `⏱ ${value(movie, ["duration"], "-")} ${isEn() ? "mins" : "phút"}`, `🏷 ${window.translateDynamic ? window.translateDynamic(value(movie, ["genre"], tr("updating")), "genre") : value(movie, ["genre"], tr("updating"))}`, `🔞 ${value(movie, ["rating"], "P")}`],
         href: detailsUrl,
-        action: "Xem chi tiết",
+        action: tr("detail"),
         secondaryHref: `${detailsUrl}#booking-section`,
-        secondaryAction: "Đặt vé ngay"
+        secondaryAction: tr("movie_book_now")
     };
 }
 
@@ -364,7 +387,7 @@ function showtimeCard(showtime) {
         title: value(showtime, ["movieTitle", "movieName"]),
         lines: [`🕒 ${value(showtime, ["time", "startTime"])}`, `📍 ${value(showtime, ["cinemaName"])} · ${value(showtime, ["roomName"])}`, `💰 ${currency(value(showtime, ["price", "standardPrice"], NaN))}`],
         href: showtime.movieId ? `/Movies/Details?id=${encodeURIComponent(showtime.movieId)}` : "/Showtimes",
-        action: "Đặt vé ngay"
+        action: tr("movie_book_now")
     };
 }
 
@@ -422,13 +445,13 @@ function distanceKm(a, b) {
 
 async function answerNowShowing() {
     const movies = await services.getNowShowingMovies();
-    return movies.length ? { text: "Phim đang chiếu tại AERO Cinema:", cards: movies.slice(0, 6).map(movieCard) } : EMPTY_TEXT;
+    return movies.length ? { text: isEn() ? "Now showing at AERO Cinema:" : "Phim đang chiếu tại AERO Cinema:", cards: movies.slice(0, 6).map(movieCard) } : emptyText();
 }
 
 async function answerMovieSearch(message) {
     const movies = await services.getMovies();
     const matches = movies.map(movie => ({ movie, score: fuzzyScore(value(movie, ["title", "name"], ""), message) })).filter(item => item.score > 0).sort((a, b) => b.score - a.score).slice(0, 5);
-    return matches.length ? { text: `Kết quả phim gần nhất với “${message}”:`, cards: matches.map(item => movieCard(item.movie)) } : FALLBACK_TEXT;
+    return matches.length ? { text: isEn() ? `Closest movie results for "${message}":` : `Kết quả phim gần nhất với “${message}”:`, cards: matches.map(item => movieCard(item.movie)) } : fallbackText();
 }
 
 async function answerShowtimes(message) {
@@ -456,21 +479,21 @@ async function answerShowtimes(message) {
         const secondTime = String(value(b, ["time"], ""));
         return firstTime.localeCompare(secondTime);
     });
-    return filtered.length ? { text: minimumHour !== null ? `Các suất chiếu từ ${minimumHour}:00 hôm nay:` : "Lịch chiếu hôm nay:", cards: filtered.slice(0, 8).map(showtimeCard) } : EMPTY_TEXT;
+    return filtered.length ? { text: minimumHour !== null ? (isEn() ? `Showtimes from ${minimumHour}:00 today:` : `Các suất chiếu từ ${minimumHour}:00 hôm nay:`) : tr("chatbot_today_showtimes") + ":", cards: filtered.slice(0, 8).map(showtimeCard) } : emptyText();
 }
 
 async function answerTickets() {
-    if (!currentUser) return "Vui lòng đăng nhập để xem vé của bạn.";
+    if (!currentUser) return isEn() ? "Please log in to view your tickets." : "Vui lòng đăng nhập để xem vé của bạn.";
     const bookings = await services.getMyTickets(currentUser);
-    if (!bookings?.length) return EMPTY_TEXT;
+    if (!bookings?.length) return emptyText();
     return {
-        text: "Các vé gần đây của bạn:",
+        text: isEn() ? "Your recent tickets:" : "Các vé gần đây của bạn:",
         private: true,
         cards: bookings.map(booking => ({
             title: value(booking, ["movieTitle", "movieName"]),
-            lines: [`🎫 Ghế: ${Array.isArray(booking.seats) ? booking.seats.join(", ") : value(booking, ["seats"])}`, `🗓 ${displayDate(booking.date)} · ${value(booking, ["time", "showTime"])}`, `Trạng thái: ${value(booking.ticket || booking, ["status"], "Đang xử lý")}`],
+            lines: [`🎫 ${tr("history_seats")}: ${Array.isArray(booking.seats) ? booking.seats.join(", ") : value(booking, ["seats"])}`, `🗓 ${displayDate(booking.date)} · ${value(booking, ["time", "showTime"])}`, `${tr("history_status")}: ${value(booking.ticket || booking, ["status"], isEn() ? "Processing" : "Đang xử lý")}`],
             href: "/Account/TicketHistory",
-            action: "Xem chi tiết"
+            action: tr("detail")
         }))
     };
 }
@@ -487,21 +510,21 @@ async function answerGenre(message, situation = false) {
     if (!genre) {
         if (normalize(message).includes("goi y phim")) {
             const recommended = [...movies].filter(movie => ["now_showing", "active"].includes(normalize(movie.status))).sort((a, b) => Number(b.voteAverage || 0) - Number(a.voteAverage || 0)).slice(0, 6);
-            return recommended.length ? { text: "Các phim nổi bật AERO gợi ý cho bạn:", cards: recommended.map(movieCard) } : EMPTY_TEXT;
+            return recommended.length ? { text: isEn() ? "Featured movies AERO recommends:" : "Các phim nổi bật AERO gợi ý cho bạn:", cards: recommended.map(movieCard) } : emptyText();
         }
         const genres = [...new Set(movies.flatMap(movie => String(movie.genre || "").split(",")).map(item => item.trim()).filter(Boolean))];
-        return genres.length ? `Các thể loại hiện có:\n\n${genres.slice(0, 12).map(item => `• ${item}`).join("\n")}` : EMPTY_TEXT;
+        return genres.length ? `${isEn() ? "Available genres" : "Các thể loại hiện có"}:\n\n${genres.slice(0, 12).map(item => `• ${window.translateDynamic ? window.translateDynamic(item, "genre") : item}`).join("\n")}` : emptyText();
     }
     const aliases = genreAliases[genre] || [genre];
     const matches = movies.filter(movie => aliases.some(alias => normalize(movie.genre).includes(normalize(alias)))).slice(0, 6);
-    return matches.length ? { text: `AERO gợi ý phim ${aliases[0]} cho bạn:`, cards: matches.map(movieCard) } : EMPTY_TEXT;
+    return matches.length ? { text: isEn() ? `AERO recommends ${aliases[0]} movies for you:` : `AERO gợi ý phim ${aliases[0]} cho bạn:`, cards: matches.map(movieCard) } : emptyText();
 }
 
 async function answerBudget(message) {
     const budget = extractBudget(message);
-    if (!budget) return "Bạn hãy cho tôi biết ngân sách, ví dụ: “Tôi có 100k”.";
+    if (!budget) return isEn() ? "Please tell me your budget, for example: \"I have 100k\"." : "Bạn hãy cho tôi biết ngân sách, ví dụ: “Tôi có 100k”.";
     const showtimes = (await services.getActiveShowtimes()).filter(item => Number(value(item, ["price", "standardPrice"], Infinity)) <= budget).sort((a, b) => Number(value(a, ["price"], 0)) - Number(value(b, ["price"], 0)));
-    return showtimes.length ? { text: `Các suất chiếu trong ngân sách ${currency(budget)}:`, cards: showtimes.slice(0, 8).map(showtimeCard) } : "Chưa có suất chiếu phù hợp ngân sách này.";
+    return showtimes.length ? { text: isEn() ? `Showtimes within ${currency(budget)}:` : `Các suất chiếu trong ngân sách ${currency(budget)}:`, cards: showtimes.slice(0, 8).map(showtimeCard) } : (isEn() ? "No showtimes match this budget yet." : "Chưa có suất chiếu phù hợp ngân sách này.");
 }
 
 async function answerCinemas() {
@@ -511,9 +534,9 @@ async function answerCinemas() {
         return { cinema, distance: userLocation && point ? distanceKm(userLocation, point) : null };
     }).sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     return ranked.length ? {
-        text: userLocation && ranked.some(item => item.distance !== null) ? "Các rạp gần bạn nhất:" : "Chưa xác định được khoảng cách. Đây là danh sách rạp AERO:",
+        text: userLocation && ranked.some(item => item.distance !== null) ? (isEn() ? "Nearest cinemas:" : "Các rạp gần bạn nhất:") : (isEn() ? "Distance could not be detected. Here is the AERO cinema list:" : "Chưa xác định được khoảng cách. Đây là danh sách rạp AERO:"),
         cards: ranked.slice(0, 6).map(item => ({ title: value(item.cinema, ["name"]), lines: [`📍 ${value(item.cinema, ["address"])}`, item.distance !== null ? `Cách khoảng ${item.distance.toFixed(1)} km` : value(item.cinema, ["city"], "")] }))
-    } : EMPTY_TEXT;
+    } : emptyText();
 }
 
 async function answerPromotions() {
@@ -521,14 +544,14 @@ async function answerPromotions() {
     return promotions.length ? {
         text: "Ưu đãi đang áp dụng:",
         cards: promotions.slice(0, 6).map(item => ({ title: value(item, ["couponCode", "title"]), lines: [value(item, ["title", "description"]), `🎁 Giảm ${value(item, ["discount"], 0)}%`, `Hết hạn: ${displayDate(item.endDate)}`] }))
-    } : EMPTY_TEXT;
+    } : emptyText();
 }
 
 async function answerPrices() {
     const showtimes = await services.getActiveShowtimes();
-    if (!showtimes.length) return "Giá vé đang được cập nhật theo từng suất chiếu.";
+    if (!showtimes.length) return isEn() ? "Ticket prices are being updated by showtime." : "Giá vé đang được cập nhật theo từng suất chiếu.";
     const prices = showtimes.flatMap(item => [item.price, item.standardPrice]).map(Number).filter(Number.isFinite);
-    return prices.length ? `Giá vé hiện tại từ ${currency(Math.min(...prices))} đến ${currency(Math.max(...prices))}. Giá chính xác hiển thị trong từng suất chiếu.` : "Giá vé đang được cập nhật theo từng suất chiếu.";
+    return prices.length ? (isEn() ? `Current ticket prices range from ${currency(Math.min(...prices))} to ${currency(Math.max(...prices))}. Exact prices are shown for each showtime.` : `Giá vé hiện tại từ ${currency(Math.min(...prices))} đến ${currency(Math.max(...prices))}. Giá chính xác hiển thị trong từng suất chiếu.`) : (isEn() ? "Ticket prices are being updated by showtime." : "Giá vé đang được cập nhật theo từng suất chiếu.");
 }
 
 const handlers = {
@@ -542,20 +565,24 @@ const handlers = {
     cinema_search: () => answerCinemas(),
     promotion_search: () => answerPromotions(),
     price_search: () => answerPrices(),
-    seat_advice: () => "Hàng E–F thường là vị trí trung tâm, cân bằng tốt giữa góc nhìn và âm thanh. Ghế VIP phù hợp trải nghiệm tốt nhất; ghế đôi là lựa chọn thoải mái cho các cặp đôi.",
-    fallback: () => FALLBACK_TEXT
+    seat_advice: () => isEn()
+        ? "Rows E-F are usually central, balancing viewing angle and sound well. VIP seats are best for a premium experience; couple seats are a comfortable option for pairs."
+        : "Hàng E–F thường là vị trí trung tâm, cân bằng tốt giữa góc nhìn và âm thanh. Ghế VIP phù hợp trải nghiệm tốt nhất; ghế đôi là lựa chọn thoải mái cho các cặp đôi.",
+    fallback: () => fallbackText()
 };
 
 function typingLabel(intent) {
-    const labels = { movie_search: "Đang tìm phim...", now_showing: "Đang tìm phim...", genre_search: "Đang chọn phim phù hợp...", situation_recommendation: "Đang chọn phim phù hợp...", showtime_search: "Đang tải lịch chiếu...", ticket_search: "Đang tải vé của bạn...", cinema_search: "Đang tìm rạp gần bạn...", promotion_search: "Đang tải khuyến mãi..." };
-    return labels[intent] || "AERO AI đang trả lời...";
+    const labels = isEn()
+        ? { movie_search: "Searching movies...", now_showing: "Searching movies...", genre_search: "Finding suitable movies...", situation_recommendation: "Finding suitable movies...", showtime_search: "Loading showtimes...", ticket_search: "Loading your tickets...", cinema_search: "Finding nearby cinemas...", promotion_search: "Loading promotions..." }
+        : { movie_search: "Đang tìm phim...", now_showing: "Đang tìm phim...", genre_search: "Đang chọn phim phù hợp...", situation_recommendation: "Đang chọn phim phù hợp...", showtime_search: "Đang tải lịch chiếu...", ticket_search: "Đang tải vé của bạn...", cinema_search: "Đang tìm rạp gần bạn...", promotion_search: "Đang tải khuyến mãi..." };
+    return labels[intent] || tr("chatbot_typing");
 }
 
 async function createResponse(message, detectedIntent = null) {
     const intent = detectedIntent || detectIntent(message);
     const localResponse = await handlers[intent.name](message, intent);
-    if (localResponse !== FALLBACK_TEXT || !AIProvider.useGemini) return localResponse;
-    return await AIProvider.generateResponse(message, { intent, history: [] }) || FALLBACK_TEXT;
+    if (localResponse !== fallbackText() || !AIProvider.useGemini) return localResponse;
+    return await AIProvider.generateResponse(message, { intent, history: [], lang: getLang() }) || fallbackText();
 }
 
 async function sendMessage(rawMessage) {
@@ -577,7 +604,7 @@ async function sendMessage(rawMessage) {
     } catch (error) {
         console.error("[AERO AI] Không thể xử lý câu hỏi:", error);
         typing.remove();
-        appendMessage("bot", ERROR_TEXT);
+        appendMessage("bot", errorText());
     } finally {
         isSending = false;
         if (button) button.disabled = false;
@@ -589,6 +616,10 @@ async function initAeroChatbot() {
     clearChatHistoryOnPageLoad();
     injectChatbot();
     renderWelcomeMessage();
+    document.addEventListener("aero:languageChanged", () => {
+        if (window.applyLanguage) window.applyLanguage(getLang());
+        renderWelcomeMessage();
+    });
     try {
         const firebase = await waitForFirebaseReady();
         console.log("window.db", window.db);

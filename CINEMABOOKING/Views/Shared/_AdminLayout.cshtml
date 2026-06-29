@@ -130,6 +130,10 @@
                     <i class="fas fa-newspaper"></i>
                     <span>Tin tức</span>
                 </a>
+                <a class="aero-admin-menu-item @(adminActionName == "Banners" ? "active" : "")" href="@Url.Action("Banners", "Admin")">
+                    <i class="fas fa-panorama"></i>
+                    <span>Banner</span>
+                </a>
                 <a class="aero-admin-menu-item @(adminActionName == "Reviews" ? "active" : "")" href="@Url.Action("Reviews", "Admin")">
                     <i class="fas fa-star"></i>
                     <span>Đánh giá</span>

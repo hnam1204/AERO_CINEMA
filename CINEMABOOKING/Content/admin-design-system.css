@@ -695,7 +695,8 @@ h1, h2, h3, h4, h5, h6, .hero h1 {
     display: flex;
     opacity: 1;
 }
-.admin-modal-panel {
+.admin-modal-panel,
+.admin-modal-content {
     width: min(840px, 100%);
     max-height: 90vh;
     display: flex;
@@ -722,17 +723,23 @@ h1, h2, h3, h4, h5, h6, .hero h1 {
     position: sticky;
     top: 0;
     z-index: 10;
+    flex-shrink: 0;
 }
 .admin-modal-header h3 {
     margin: 0;
     font-size: 16px;
     font-weight: 800;
 }
-.admin-modal-body {
+.admin-modal-body,
+.movie-modal-body,
+#movieFormBody {
     padding: 24px;
+    min-height: 0;
+    flex: 1 1 auto;
     overflow-y: auto;
+    overflow-x: hidden;
     background: var(--admin-card);
-    flex-grow: 1;
+    padding-right: 8px;
 }
 .admin-modal-footer {
     display: flex;
@@ -745,6 +752,26 @@ h1, h2, h3, h4, h5, h6, .hero h1 {
     position: sticky;
     bottom: 0;
     z-index: 10;
+    flex-shrink: 0;
+}
+#movieForm {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    flex-direction: column;
+}
+.admin-modal-body::-webkit-scrollbar,
+.movie-modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+.admin-modal-body::-webkit-scrollbar-thumb,
+.movie-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(100, 116, 139, 0.35);
+    border-radius: 999px;
+}
+.admin-modal-body::-webkit-scrollbar-thumb:hover,
+.movie-modal-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.55);
 }
 
 /* 4. Toolbars & Filters */
@@ -1126,6 +1153,13 @@ html[data-theme="dark"] .admin-badge.secondary { color: #cbd5e1; }
 }
 
 @media (max-width: 560px) {
+    #movieFormModal {
+        padding: 8px;
+    }
+    #movieFormModal .admin-modal-panel {
+        width: 96vw;
+        max-height: 92vh;
+    }
     .aero-admin-page-title strong {
         font-size: 16px;
     }

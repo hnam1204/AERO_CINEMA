@@ -129,7 +129,16 @@
 @section scripts {
     <script type="module">
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { doc, getDoc, onSnapshot, collection, query, where, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import {
+            isShowtimeLate,
+            holdSeat,
+            releaseSeat,
+            releaseAllMySeats,
+            releaseExpiredHolds,
+            isSeatHeld,
+            isSeatHeldByMe
+        } from "/Scripts/aero-business-logic.js";
 
         const auth = window.auth;
         const db = window.db;
@@ -140,6 +149,7 @@
         let selectedSeats = [];
         let totalPrice = 0;
         let showtimeData = null;
+        let unsubShowtime = null;
 
         // === Auth guard: unsubscribe after first check ===
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -247,6 +257,66 @@
             `;
         }
 
+        async function suggestNextShowtime(movieId) {
+            if (!movieId) return null;
+            try {
+                const now = Date.now();
+                const q = query(
+                    collection(db, "showtimes"),
+                    where("movieId", "==", movieId),
+                    limit(10)
+                );
+                const snap = await getDocs(q);
+                let candidates = [];
+                snap.forEach(d => {
+                    const s = d.data();
+                    let startMs = null;
+                    if (s.startAt) {
+                        if (s.startAt.toDate) startMs = s.startAt.toDate().getTime();
+                        else startMs = new Date(s.startAt).getTime();
+                    } else if (s.date && s.time) {
+                        startMs = new Date(`${s.date}T${s.time}:00`).getTime();
+                    }
+                    if (startMs && startMs > now && String(s.status || "").toLowerCase() !== "completed") {
+                        candidates.push({ id: d.id, ...s, startMs });
+                    }
+                });
+                candidates.sort((a, b) => a.startMs - b.startMs);
+                return candidates[0] || null;
+            } catch (err) {
+                console.error("Error suggesting next showtime:", err);
+                return null;
+            }
+        }
+
+        async function showLateBookingBlock(st) {
+            const lang = localStorage.getItem("language") || "vi";
+            const nextShowtime = await suggestNextShowtime(st.movieId);
+            const title = lang === "en" ? "Booking Closed" : "Hết thời gian đặt vé";
+            const text = lang === "en" 
+                ? "This showtime started more than 30 minutes ago." 
+                : "Suất chiếu này đã bắt đầu hơn 30 phút, bạn không thể đặt vé nữa.";
+            const confirmButtonText = nextShowtime 
+                ? (lang === "en" ? "Book Next" : "Đặt suất tiếp theo") 
+                : (lang === "en" ? "Go Back" : "Quay lại");
+            
+            const res = await Swal.fire({
+                icon: "warning",
+                title: title,
+                text: text,
+                confirmButtonText: confirmButtonText,
+                showCancelButton: true,
+                cancelButtonText: lang === "en" ? "Home" : "Trang chủ",
+                confirmButtonColor: "#f58220",
+                cancelButtonColor: "#475569"
+            });
+            if (res.isConfirmed && nextShowtime) {
+                window.location.replace(`/Booking/Seats?showtimeId=${nextShowtime.id}`);
+            } else {
+                window.location.replace("/");
+            }
+        }
+
         async function loadBookingData() {
             try {
                 const showtimeDoc = await getDoc(doc(db, "showtimes", showtimeId));
@@ -261,6 +331,16 @@
                 }
 
                 showtimeData = showtimeDoc.data();
+
+                // === Check 30 mins late ===
+                if (isShowtimeLate(showtimeData)) {
+                    await showLateBookingBlock(showtimeData);
+                    return;
+                }
+
+                // Clean up expired holds first
+                await releaseExpiredHolds(db, showtimeId);
+
                 const dateFormatted = formatDateSafe(showtimeData.date);
                 const valElements = document.querySelectorAll(".invoice-detail-row .val");
 
@@ -281,6 +361,13 @@
 
                 // === Restore draft seats after login ===
                 restoreDraftSeats(showtimeData);
+
+                // Realtime sync holds and sold seats
+                unsubShowtime = onSnapshot(doc(db, "showtimes", showtimeId), (snap) => {
+                    if (snap.exists()) {
+                        updateSeatStates(snap.data());
+                    }
+                });
             } catch (error) {
                 console.error("Error loading showtime details: ", error);
                 const currentLang = localStorage.getItem("language") || "vi";
@@ -289,6 +376,47 @@
                     (currentLang === "en" ? "Cannot load showtime details: " : "Không thể tải thông tin chi tiết suất chiếu: ") + error.message
                 );
             }
+        }
+
+        // === Update UI seats based on firestore live data ===
+        function updateSeatStates(liveData) {
+            const soldSeats = new Set(normalizeSeatCodes(liveData.soldSeats));
+            const holdSeats = liveData.holdSeats || [];
+
+            document.querySelectorAll(".seat-element").forEach(el => {
+                const seatCode = el.getAttribute("data-id");
+                
+                // Clear dynamic state classes
+                el.classList.remove("sold", "held");
+
+                if (soldSeats.has(seatCode)) {
+                    el.classList.add("sold");
+                    // If selected locally, remove it
+                    if (selectedSeats.some(s => s.id === seatCode)) {
+                        selectedSeats = selectedSeats.filter(s => s.id !== seatCode);
+                        el.classList.remove("selected");
+                    }
+                } else if (isSeatHeld(holdSeats, seatCode, currentUser?.uid)) {
+                    el.classList.add("held");
+                    // If selected locally, remove it (stolen hold or expired)
+                    if (selectedSeats.some(s => s.id === seatCode)) {
+                        selectedSeats = selectedSeats.filter(s => s.id !== seatCode);
+                        el.classList.remove("selected");
+                    }
+                } else if (isSeatHeldByMe(holdSeats, seatCode, currentUser?.uid)) {
+                    el.classList.add("selected");
+                    if (!selectedSeats.some(s => s.id === seatCode)) {
+                        const price = Number(el.getAttribute("data-price") || 0);
+                        selectedSeats.push({ id: seatCode, price });
+                    }
+                } else {
+                    // Not sold, not held by other, not held by me
+                    if (!el.classList.contains("selected") && selectedSeats.some(s => s.id === seatCode)) {
+                        selectedSeats = selectedSeats.filter(s => s.id !== seatCode);
+                    }
+                }
+            });
+            updateSummary();
         }
 
         // === Restore draft booking after login redirect ===
@@ -311,12 +439,13 @@
                 }
 
                 const soldSeats = new Set(normalizeSeatCodes(showtime.soldSeats));
+                const activeHolds = showtime.holdSeats || [];
                 const restoredSeats = [];
                 const lostSeats = [];
 
                 draftSeats.forEach(seat => {
                     const seatCode = String(seat.id || "").toUpperCase();
-                    if (soldSeats.has(seatCode)) {
+                    if (soldSeats.has(seatCode) || isSeatHeld(activeHolds, seatCode, currentUser?.uid)) {
                         lostSeats.push(seatCode);
                     } else {
                         // Find the seat element and select it
@@ -327,6 +456,8 @@
                             selectedSeats.push({ id: seatCode, price });
                             totalPrice += price;
                             restoredSeats.push(seatCode);
+                            // Hold in Firestore
+                            holdSeat(db, showtimeId, seatCode, currentUser.uid);
                         }
                     }
                 });
@@ -499,11 +630,18 @@
             return { type: "standard", price: standardPrice };
         }
 
-        function toggleSeat(seatElement, seatId, seatPrice) {
-            if (seatElement.classList.contains("selected")) {
-                seatElement.classList.remove("selected");
-                selectedSeats = selectedSeats.filter(seat => seat.id !== seatId);
-                totalPrice -= seatPrice;
+        async function toggleSeat(seatElement, seatId, seatPrice) {
+            if (seatElement.classList.contains("sold") || seatElement.classList.contains("held")) {
+                return;
+            }
+            const isSelected = seatElement.classList.contains("selected") || selectedSeats.some(s => s.id === seatId);
+            if (isSelected) {
+                const res = await releaseSeat(db, showtimeId, seatId, currentUser.uid);
+                if (res.success) {
+                    selectedSeats = selectedSeats.filter(seat => seat.id !== seatId);
+                    totalPrice -= seatPrice;
+                    seatElement.classList.remove("selected");
+                }
             } else {
                 if (selectedSeats.length >= 8) {
                     const currentLang = localStorage.getItem("language") || "vi";
@@ -518,9 +656,22 @@
                     return;
                 }
 
-                seatElement.classList.add("selected");
-                selectedSeats.push({ id: seatId, price: seatPrice });
-                totalPrice += seatPrice;
+                const res = await holdSeat(db, showtimeId, seatId, currentUser.uid);
+                if (res.success) {
+                    seatElement.classList.add("selected");
+                    selectedSeats.push({ id: seatId, price: seatPrice });
+                    totalPrice += seatPrice;
+                } else {
+                    const currentLang = localStorage.getItem("language") || "vi";
+                    Swal.fire({
+                        icon: "error",
+                        title: currentLang === "en" ? "Seat Unavailable" : "Ghế không khả dụng",
+                        text: res.message || (currentLang === "en" ? "This seat has been held or booked by another user." : "Ghế này đã được giữ hoặc đặt bởi người khác."),
+                        background: "#ffffff",
+                        color: "#333333",
+                        confirmButtonColor: "#f58220"
+                    });
+                }
             }
 
             updateSummary();
@@ -544,7 +695,9 @@
             }
         }
 
+        let navigatingToNextStep = false;
         window.goToCheckout = function() {
+            navigatingToNextStep = true;
             const seatIds = selectedSeats.map(seat => seat.id).join(",");
             sessionStorage.setItem("seats", seatIds);
             sessionStorage.setItem("total", totalPrice);
@@ -584,5 +737,11 @@
                 updateSummary();
             }
         };
+
+        window.addEventListener("pagehide", () => {
+            if (!navigatingToNextStep && currentUser && selectedSeats.length > 0) {
+                releaseAllMySeats(db, showtimeId, currentUser.uid);
+            }
+        });
     </script>
 }

@@ -111,6 +111,10 @@
         let otpSent = false;
         let pendingEmail = "";
 
+        function getLang() {
+            return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+        }
+
         function setError(id, show) {
             document.getElementById(id).classList.toggle("show", show);
         }
@@ -164,7 +168,7 @@
         }
 
         async function sendRegisterOtp(data) {
-            const isEn = localStorage.getItem("language") === "en";
+            const isEn = getLang() === "en";
             submitBtn.disabled = true;
             submitText.textContent = isEn ? "Sending..." : "Đang gửi...";
 
@@ -178,7 +182,7 @@
             });
 
             try {
-                const currentLang = localStorage.getItem("language") || "vi";
+                const currentLang = getLang();
                 const result = await postForm("/Otp/SendRegisterOtp", { email: data.email, lang: currentLang });
 
                 if (!result.success) {
@@ -225,7 +229,7 @@
         }
 
         async function verifyOtpAndRegister(data) {
-            const isEn = localStorage.getItem("language") === "en";
+            const isEn = getLang() === "en";
             const otpInvalid = !/^[0-9]{6}$/.test(data.otpCode);
             setError("otpError", otpInvalid);
             if (otpInvalid) return;
@@ -255,7 +259,7 @@
             });
 
             try {
-                const currentLang = localStorage.getItem("language") || "vi";
+                const currentLang = getLang();
                 const verifyResult = await postForm("/Otp/VerifyRegisterOtp", {
                     email: data.email,
                     code: data.otpCode,

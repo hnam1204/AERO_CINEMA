@@ -254,6 +254,20 @@
         gap: 15px;
     }
 
+    .showtimes-empty {
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-sub, #777777);
+        background-color: var(--bg-card, #ffffff);
+        border-radius: 12px;
+        border: 1px solid var(--border-color, #e0e0e0);
+        width: 100%;
+        margin-bottom: 60px;
+    }
+
     /* Skeleton Loader & Shimmer Animation */
     .skeleton {
         background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
@@ -322,13 +336,13 @@
     
     <!-- HEADER -->
     <div class="showtimes-header">
-        <h1>Lịch Chiếu Phim</h1>
+        <h1 data-i18n="movie_showtimes">Lịch Chiếu Phim</h1>
     </div>
     
     <!-- FILTER BAR -->
     <div class="filter-bar">
         <div class="filter-group">
-            <label for="filterCinema">Chọn Rạp</label>
+            <label for="filterCinema" data-i18n="choose_cinema">Chọn Rạp</label>
             <div class="select-wrapper">
                 <select id="filterCinema" onchange="applyFilters()">
                     <!-- Populated dynamically -->
@@ -337,7 +351,7 @@
         </div>
         
         <div class="filter-group">
-            <label for="filterDate">Chọn Ngày</label>
+            <label for="filterDate" data-i18n="choose_date">Chọn Ngày</label>
             <div class="select-wrapper">
                 <select id="filterDate" onchange="applyFilters()">
                     <!-- Populated dynamically -->
@@ -346,7 +360,7 @@
         </div>
         
         <div class="filter-group">
-            <label for="filterMovie">Chọn Phim</label>
+            <label for="filterMovie" data-i18n="choose_movie">Chọn Phim</label>
             <div class="select-wrapper">
                 <select id="filterMovie" onchange="applyFilters()">
                     <!-- Populated dynamically -->
@@ -355,9 +369,9 @@
         </div>
     </div>
 
-    <!-- SHOWTIMES LIST GROUPED BY MOVIE -->
-    <div id="showtimesContainer" class="showtimes-container">
-        <div class="movie-showtime-card">
+    <!-- SHOWTIMES UI STATES -->
+    <div id="showtimesSkeleton" class="showtimes-container showtime-skeleton" style="display:none;">
+        <div class="movie-showtime-card skeleton-card">
             <div class="movie-poster-box skeleton" style="border-radius: 8px; background-color: #ddd;"></div>
             <div class="movie-info-details" style="width: 100%;">
                 <div class="movie-title-row">
@@ -378,7 +392,7 @@
                 </div>
             </div>
         </div>
-        <div class="movie-showtime-card">
+        <div class="movie-showtime-card skeleton-card">
             <div class="movie-poster-box skeleton" style="border-radius: 8px; background-color: #ddd;"></div>
             <div class="movie-info-details" style="width: 100%;">
                 <div class="movie-title-row">
@@ -400,34 +414,116 @@
         </div>
     </div>
 
+    <div id="showtimesEmpty" class="showtimes-empty" style="display:none;">
+        <i class="far fa-calendar-times fa-3x" style="color: var(--accent-color, #f58020); margin-bottom: 15px; display: block;"></i>
+        <h3 id="showtimesEmptyTitle" data-i18n="showtimes_empty_title" style="font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Không có lịch chiếu</h3>
+        <p id="showtimesEmptyMessage" data-i18n="showtimes_empty_message" style="margin: 0; font-size: 14px;">Chưa có lịch chiếu cho rạp/ngày đã chọn.</p>
+    </div>
+
+    <div id="showtimesContainer" class="showtimes-container"></div>
+
 </div>
 
 @section scripts {
     <script type="module">
-        import { collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { autoUpdateStatuses } from "/Scripts/aero-status-updater.js";
 
         const db = window.db;
-        const AERO_CACHE = window.AERO_CACHE;
 
         let allMoviesMap = {};
+        let cinemas = [];
         let selectedCinemaId = "";
         let selectedDate = "";
         let selectedMovieId = "all";
+        let isLoading = false;
+        let currentShowtimeRequestId = 0;
 
-        const getCachedDocs = async (cacheKey, collectionName) => {
-            const cached = AERO_CACHE && AERO_CACHE.get ? AERO_CACHE.get(cacheKey) : null;
-            if (cached) return cached;
+        function getLang() {
+            return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+        }
 
-            const querySnapshot = await getDocs(collection(db, collectionName));
-            const data = querySnapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-            if (AERO_CACHE && AERO_CACHE.set) AERO_CACHE.set(cacheKey, data);
-            return data;
-        };
+        function tr(key, fallback = "") {
+            return window.t ? window.t(key, fallback) : (fallback || key);
+        }
+
+        function localizeDynamic(value, type) {
+            return window.translateDynamic ? window.translateDynamic(value, type) : value;
+        }
+
+        function getLocalized(item, field, fallback = "") {
+            if (window.getLocalizedField) return window.getLocalizedField(item, field, fallback);
+            return safeText(item?.[field], fallback);
+        }
+
+        function safeText(value, fallback = "") {
+            if (value === undefined || value === null || value === "undefined" || value === "null") return fallback;
+            return String(value).trim();
+        }
+
+        function clearShowtimeResults() {
+            const container = document.getElementById("showtimesContainer");
+            if (container) container.innerHTML = "";
+        }
+
+        function hideEmptyState() {
+            const emptyBox = document.getElementById("showtimesEmpty");
+            if (emptyBox) emptyBox.style.display = "none";
+        }
+
+        function showSkeleton() {
+            const skeleton = document.getElementById("showtimesSkeleton");
+            if (skeleton) skeleton.style.display = "flex";
+        }
+
+        function hideSkeleton() {
+            const skeleton = document.getElementById("showtimesSkeleton");
+            if (skeleton) skeleton.style.display = "none";
+
+            document.querySelectorAll("#showtimesContainer .showtime-skeleton, #showtimesContainer .movie-skeleton, #showtimesContainer .skeleton-card")
+                .forEach(el => el.remove());
+        }
+
+        function showLoadingState() {
+            isLoading = true;
+            hideEmptyState();
+            clearShowtimeResults();
+            showSkeleton();
+        }
+
+        function showEmptyState(message = tr("showtimes_empty_message")) {
+            isLoading = false;
+            hideSkeleton();
+            clearShowtimeResults();
+
+            const emptyBox = document.getElementById("showtimesEmpty");
+            const emptyTitle = document.getElementById("showtimesEmptyTitle");
+            const emptyMessage = document.getElementById("showtimesEmptyMessage");
+            if (emptyTitle) emptyTitle.textContent = tr("showtimes_empty_title");
+            if (emptyMessage) emptyMessage.textContent = message;
+            if (emptyBox) emptyBox.style.display = "flex";
+        }
+
+        function showResultsState() {
+            isLoading = false;
+            hideSkeleton();
+            hideEmptyState();
+        }
+
+        async function withTimeout(promise, ms = 12000) {
+            return Promise.race([
+                promise,
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error("Firestore timeout")), ms)
+                )
+            ]);
+        }
 
         // Generate 7-day selector
         function initDateFilter() {
-            const daysOfWeek = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+            const daysOfWeek = getLang() === "en"
+                ? ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+                : ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
             const today = new Date();
             const filterDate = document.getElementById("filterDate");
             filterDate.innerHTML = "";
@@ -436,7 +532,7 @@
                 const d = new Date();
                 d.setDate(today.getDate() + i);
                 const dateStr = d.toISOString().split('T')[0]; // YYYY-MM-DD
-                const dayLabel = i === 0 ? "Hôm nay" : daysOfWeek[d.getDay()];
+                const dayLabel = i === 0 ? (getLang() === "en" ? "Today" : "Hôm nay") : daysOfWeek[d.getDay()];
                 const dayNum = d.getDate();
                 const monthNum = d.getMonth() + 1;
                 const displayLabel = `${dayLabel} (${dayNum < 10 ? '0' + dayNum : dayNum}/${monthNum < 10 ? '0' + monthNum : monthNum})`;
@@ -449,31 +545,56 @@
             selectedDate = filterDate.value;
         }
 
-        // Fetch cinemas from Firestore
+        function renderCinemaSelect() {
+            const filterCinema = document.getElementById("filterCinema");
+            filterCinema.innerHTML = `<option value="">${tr("choose_cinema")}</option>`;
+
+            cinemas.forEach(c => {
+                const opt = document.createElement("option");
+                opt.value = c.id;
+                opt.textContent = getLocalized(c, "name", c.name || c.cinemaName || "AERO Cinema");
+                filterCinema.appendChild(opt);
+            });
+        }
+
         async function loadCinemas() {
+            const cacheKey = "aero_cinemas_cache";
             try {
-                const cinemas = await getCachedDocs("cinemas", "cinemas");
-                const filterCinema = document.getElementById("filterCinema");
-                filterCinema.innerHTML = "";
+                const snap = await withTimeout(getDocs(collection(db, "cinemas")), 12000);
+                cinemas = snap.docs
+                    .map(d => ({ id: d.id, ...d.data() }))
+                    .filter(c => c.isActive !== false)
+                    .filter(c => !["inactive", "disabled", "deleted"].includes(String(c.status || "").toLowerCase()))
+                    .sort((a,b) => safeText(a.name).localeCompare(safeText(b.name), "vi"));
                 
-                cinemas.forEach((data) => {
-                    const option = document.createElement("option");
-                    option.value = data.id;
-                    option.innerText = data.name;
-                    filterCinema.appendChild(option);
-                });
-                selectedCinemaId = filterCinema.value;
-            } catch (e) {
-                console.error("Error loading cinemas: ", e);
+                localStorage.setItem(cacheKey, JSON.stringify({
+                    savedAt: Date.now(),
+                    data: cinemas
+                }));
+            } catch (err) {
+                console.error("Load cinemas failed:", err);
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) {
+                    try {
+                        cinemas = JSON.parse(cached).data;
+                        console.warn("Using cached cinema data because the network is slow.");
+                    } catch(e) {
+                        cinemas = [];
+                    }
+                } else {
+                    showEmptyState(tr("cinema_error"));
+                }
             }
         }
 
         // Fetch movies from Firestore to populate filters and cache metadata
         async function loadMovies() {
             try {
-                const movies = await getCachedDocs("movies", "movies");
+                const snap = await withTimeout(getDocs(collection(db, "movies")), 12000);
+                const movies = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
                 const filterMovie = document.getElementById("filterMovie");
-                filterMovie.innerHTML = '<option value="all">Tất Cả Phim</option>';
+                filterMovie.innerHTML = `<option value="all">${tr("movies_all")}</option>`;
                 
                 allMoviesMap = {};
                 movies.forEach((data) => {
@@ -482,7 +603,7 @@
                     if (data.status === "now_showing") {
                         const option = document.createElement("option");
                         option.value = data.id;
-                        option.innerText = data.title;
+                        option.innerText = getLocalized(data, "title", data.title || "AERO Cinema");
                         filterMovie.appendChild(option);
                     }
                 });
@@ -491,171 +612,128 @@
             }
         }
 
+        function getFilteredShowtimes(docs) {
+            return docs
+                .map(d => ({ id: d.id, ...d.data() }))
+                .filter(st => st.cinemaId === selectedCinemaId)
+                .filter(st => st.date === selectedDate)
+                .filter(st => selectedMovieId === "all" || st.movieId === selectedMovieId)
+                .filter(st => ["active", "upcoming", "showing"].includes(String(st.status || "").toLowerCase()));
+        }
+
+        function renderShowtimes(showtimesList) {
+            const container = document.getElementById("showtimesContainer");
+            if (!container) return;
+
+            const grouped = {};
+            showtimesList.forEach((st) => {
+                const movieId = safeText(st.movieId, "unknown");
+                if (!grouped[movieId]) {
+                    grouped[movieId] = {
+                        movieTitle: safeText(st.movieTitle, "AERO Cinema"),
+                        slots: []
+                    };
+                }
+                grouped[movieId].slots.push(st);
+            });
+
+            for (const movieId in grouped) {
+                grouped[movieId].slots.sort((a, b) => safeText(a.time).localeCompare(safeText(b.time)));
+            }
+
+            let html = "";
+            for (const movieId in grouped) {
+                const mMeta = allMoviesMap[movieId] || {
+                    posterUrl: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=90",
+                    genre: "N/A",
+                    duration: 120,
+                    rating: "P",
+                    language: "2D"
+                };
+
+                const rating = safeText(mMeta.rating, "P");
+                const ratingClass = "badge-" + rating.toLowerCase().replace(/[^a-z0-9]/g, "");
+                const movieTitle = getLocalized(mMeta, "title", safeText(grouped[movieId].movieTitle, "AERO Cinema"));
+                const posterUrl = safeText(mMeta.posterUrl, "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=90");
+                const genre = localizeDynamic(safeText(mMeta.genre, "N/A"), "genre");
+                const duration = safeText(mMeta.duration, "120");
+                const language = localizeDynamic(safeText(mMeta.language, "2D"), "language");
+
+                const slotsHtml = grouped[movieId].slots.map((st) => `
+                    <a href="/Booking/Seats?showtimeId=${st.id}" class="hour-btn">${safeText(st.time, "--:--")}</a>
+                `).join("");
+
+                html += `
+                    <div class="movie-showtime-card">
+                        <div class="movie-poster-box">
+                            <span class="movie-rating-badge ${ratingClass}">${rating}</span>
+                            <img src="${posterUrl}" alt="${movieTitle}" onerror="this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=90'" />
+                        </div>
+                        <div class="movie-info-details">
+                            <div class="movie-title-row">
+                                <h3>${movieTitle}</h3>
+                                <div class="movie-meta-tags">
+                                    <div class="movie-meta-tag">
+                                        <i class="fas fa-tags"></i>
+                                        <span>${genre}</span>
+                                    </div>
+                                    <div class="movie-meta-tag">
+                                        <i class="far fa-clock"></i>
+                                        <span>${duration} ${tr("minutes")}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="showtimes-divider"></div>
+
+                            <div class="format-group">
+                                <div class="format-title">${language}</div>
+                                <div class="hours-grid">
+                                    ${slotsHtml}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
         // Load showtimes and render grouped by movie
         async function loadShowtimes() {
-            const container = document.getElementById("showtimesContainer");
-            container.innerHTML = `
-                <div class="movie-showtime-card">
-                    <div class="movie-poster-box skeleton" style="border-radius: 8px; background-color: #ddd;"></div>
-                    <div class="movie-info-details" style="width: 100%;">
-                        <div class="movie-title-row">
-                            <div class="skeleton" style="width: 50%; height: 24px; margin-bottom: 8px;"></div>
-                            <div class="movie-meta-tags">
-                                <div class="skeleton" style="width: 100px; height: 18px;"></div>
-                                <div class="skeleton" style="width: 80px; height: 18px;"></div>
-                            </div>
-                        </div>
-                        <div class="showtimes-divider"></div>
-                        <div class="format-group">
-                            <div class="skeleton" style="width: 120px; height: 14px; margin-bottom: 8px;"></div>
-                            <div class="hours-grid">
-                                <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
-                                <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
-                                <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="movie-showtime-card">
-                    <div class="movie-poster-box skeleton" style="border-radius: 8px; background-color: #ddd;"></div>
-                    <div class="movie-info-details" style="width: 100%;">
-                        <div class="movie-title-row">
-                            <div class="skeleton" style="width: 40%; height: 24px; margin-bottom: 8px;"></div>
-                            <div class="movie-meta-tags">
-                                <div class="skeleton" style="width: 90px; height: 18px;"></div>
-                                <div class="skeleton" style="width: 70px; height: 18px;"></div>
-                            </div>
-                        </div>
-                        <div class="showtimes-divider"></div>
-                        <div class="format-group">
-                            <div class="skeleton" style="width: 100px; height: 14px; margin-bottom: 8px;"></div>
-                            <div class="hours-grid">
-                                <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
-                                <div class="skeleton" style="width: 80px; height: 42px; border-radius: 6px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+            const requestId = ++currentShowtimeRequestId;
+
+            if (!selectedCinemaId) {
+                showEmptyState(tr("showtimes_select_cinema_msg"));
+                return;
+            }
+
+            showLoadingState();
 
             try {
-                let q;
-                if (selectedMovieId === "all") {
-                    q = query(
-                        collection(db, "showtimes"),
-                        where("cinemaId", "==", selectedCinemaId),
-                        where("date", "==", selectedDate)
-                    );
-                } else {
-                    q = query(
-                        collection(db, "showtimes"),
-                        where("cinemaId", "==", selectedCinemaId),
-                        where("date", "==", selectedDate),
-                        where("movieId", "==", selectedMovieId)
-                    );
-                }
+                const snap = await withTimeout(getDocs(collection(db, "showtimes")), 12000);
+                if (requestId !== currentShowtimeRequestId) return;
 
-                const querySnapshot = await getDocs(q);
-                const showtimesList = [];
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    if (["active", "upcoming", "showing"].includes(data.status)) {
-                        showtimesList.push({ id: docSnap.id, ...data });
-                    }
-                });
+                const showtimesList = getFilteredShowtimes(snap.docs);
 
-                if (showtimesList.length === 0) {
-                    container.innerHTML = `
-                        <div style="text-align: center; padding: 60px 20px; color: var(--text-sub, #777777); background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); width: 100%;">
-                            <i class="far fa-calendar-times fa-3x" style="color: var(--accent-color, #f58020); margin-bottom: 15px; display: block;"></i>
-                            <h3 style="font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Không có lịch chiếu</h3>
-                            <p style="margin: 0; font-size: 14px;">Không tìm thấy suất chiếu nào phù hợp với bộ lọc đã chọn. Vui lòng chọn ngày hoặc rạp khác.</p>
-                        </div>
-                    `;
+                if (!showtimesList.length) {
+                    showEmptyState(tr("showtimes_empty_message"));
                     return;
                 }
 
-                // Group showtimes by movieId
-                const grouped = {};
-                showtimesList.forEach((st) => {
-                    if (!grouped[st.movieId]) {
-                        grouped[st.movieId] = {
-                            movieTitle: st.movieTitle,
-                            slots: []
-                        };
-                    }
-                    grouped[st.movieId].slots.push(st);
-                });
-
-                // Sort time slots chronologically
-                for (const mId in grouped) {
-                    grouped[mId].slots.sort((a, b) => a.time.localeCompare(b.time));
-                }
-
-                // Build HTML
-                let html = "";
-                for (const mId in grouped) {
-                    const mMeta = allMoviesMap[mId] || {
-                        posterUrl: "https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=90",
-                        genre: "Hành động",
-                        duration: 120,
-                        rating: "P",
-                        language: "2D Phụ Đề"
-                    };
-
-                    const ratingClass = "badge-" + (mMeta.rating ? mMeta.rating.toLowerCase() : "p");
-                    let slotsHtml = "";
-                    grouped[mId].slots.forEach((st) => {
-                        slotsHtml += `
-                            <a href="/Booking/Seats?showtimeId=${st.id}" class="hour-btn">${st.time}</a>
-                        `;
-                    });
-
-                    html += `
-                        <div class="movie-showtime-card">
-                            <div class="movie-poster-box">
-                                <span class="movie-rating-badge ${ratingClass}">${mMeta.rating || 'P'}</span>
-                                <img src="${mMeta.posterUrl}" alt="${grouped[mId].movieTitle}" onerror="this.src='https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=300&q=90'" />
-                            </div>
-                            <div class="movie-info-details">
-                                <div class="movie-title-row">
-                                    <h3>${grouped[mId].movieTitle}</h3>
-                                    <div class="movie-meta-tags">
-                                        <div class="movie-meta-tag">
-                                            <i class="fas fa-tags"></i>
-                                            <span>${mMeta.genre || 'N/A'}</span>
-                                        </div>
-                                        <div class="movie-meta-tag">
-                                            <i class="far fa-clock"></i>
-                                            <span>${mMeta.duration || 120} Phút</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="showtimes-divider"></div>
-                                
-                                <div class="format-group">
-                                    <div class="format-title">${mMeta.language || '2D Phụ Đề Tiếng Việt'}</div>
-                                    <div class="hours-grid">
-                                        ${slotsHtml}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-
-                container.innerHTML = html;
+                showResultsState();
+                renderShowtimes(showtimesList);
 
             } catch (e) {
+                if (requestId !== currentShowtimeRequestId) return;
                 console.error("Error loading showtimes: ", e);
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 60px 20px; color: var(--text-sub, #777777); background-color: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-color); width: 100%;">
-                        <i class="fas fa-exclamation-triangle fa-3x" style="color: var(--accent-color, #f58020); margin-bottom: 15px; display: block;"></i>
-                        <h3 style="font-weight: 700; color: var(--text-main); margin-bottom: 8px;">Lỗi kết nối</h3>
-                        <p style="margin: 0; font-size: 14px;">Không thể tải dữ liệu lịch chiếu: ${e.message}</p>
-                    </div>
-                `;
+                showEmptyState(tr("showtimes_error"));
+            } finally {
+                if (requestId === currentShowtimeRequestId) {
+                    hideSkeleton();
+                    isLoading = false;
+                }
             }
         }
 
@@ -664,16 +742,85 @@
             selectedCinemaId = document.getElementById("filterCinema").value;
             selectedDate = document.getElementById("filterDate").value;
             selectedMovieId = document.getElementById("filterMovie").value;
-            loadShowtimes();
+            if (selectedCinemaId) {
+                loadShowtimes();
+            } else {
+                ++currentShowtimeRequestId;
+                showEmptyState(tr("showtimes_select_cinema_msg"));
+            }
         };
 
-        // DOM Loaded Init
-        window.addEventListener('DOMContentLoaded', async () => {
-            await autoUpdateStatuses(db);
+        async function initShowtimesPage() {
+            try {
+                await autoUpdateStatuses(db);
+            } catch (e) { console.error(e); }
+
+            // 1. init date
             initDateFilter();
+
+            // 2. load cinemas
             await loadCinemas();
+
+            // 3. get cinemaId from URL
+            const params = new URLSearchParams(window.location.search);
+            const urlCinemaId = params.get("cinemaId");
+
+            if (urlCinemaId) {
+                // If the cinema isn't in the active list, try to fetch it as a fallback
+                if (!cinemas.some(c => c.id === urlCinemaId)) {
+                    try {
+                        const fallbackDoc = await getDoc(doc(db, "cinemas", urlCinemaId));
+                        if (fallbackDoc.exists()) {
+                            const c = { id: fallbackDoc.id, ...fallbackDoc.data() };
+                            if (c.isActive !== false) {
+                                cinemas.push(c);
+                            }
+                        }
+                    } catch(e) { console.error("Fallback load cinema failed", e); }
+                }
+            }
+
+            // 4. render cinema select
+            renderCinemaSelect();
+
+            // 5. set selected cinema
+            const filterCinema = document.getElementById("filterCinema");
+            if (urlCinemaId && cinemas.some(c => c.id === urlCinemaId)) {
+                selectedCinemaId = urlCinemaId;
+                filterCinema.value = urlCinemaId;
+            } else if (cinemas.length > 0) {
+                selectedCinemaId = filterCinema.value; 
+            }
+
+            // 6. load movies
             await loadMovies();
-            await loadShowtimes();
+
+            // 7. load showtimes
+            if (selectedCinemaId) {
+                await loadShowtimes();
+            } else {
+                ++currentShowtimeRequestId;
+                showEmptyState(tr("showtimes_select_cinema_msg"));
+            }
+        }
+
+        // DOM Loaded Init
+        window.addEventListener('DOMContentLoaded', () => {
+            initShowtimesPage();
+        });
+
+        window.addEventListener("aero:languageChanged", async () => {
+            if (window.applyLanguage) window.applyLanguage();
+            initDateFilter();
+            renderCinemaSelect();
+            const filterCinema = document.getElementById("filterCinema");
+            if (filterCinema && selectedCinemaId) filterCinema.value = selectedCinemaId;
+            await loadMovies();
+            if (selectedCinemaId) {
+                await loadShowtimes();
+            } else {
+                showEmptyState(tr("showtimes_select_cinema_msg"));
+            }
         });
     </script>
 }

@@ -3,16 +3,348 @@
     ViewBag.Title = "Quản lý banner";
 }
 
+<style>
+.admin-control.error-input {
+    border-color: var(--admin-danger, #ef4444) !important;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+.error-message {
+    color: var(--admin-danger, #ef4444);
+    font-size: 12px;
+    margin-top: 4px;
+    display: none;
+    font-weight: 600;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
+
+.admin-main,
+.admin-content,
+.admin-page,
+.admin-card,
+.admin-table,
+.admin-table button,
+.admin-toolbar button {
+    pointer-events: auto;
+}
+
+.banner-modal .admin-modal-panel {
+    width: min(1080px, calc(100vw - 32px));
+    height: 90vh; /* Set a fixed height so the body scrolls consistently */
+}
+
+@@media (max-width: 768px) {
+    .banner-modal .admin-modal-panel {
+        width: calc(100vw - 20px);
+        height: 96vh;
+    }
+}
+
+/* Section styling */
+.banner-form-section {
+    margin-bottom: 22px;
+    padding: 20px;
+    border: 1px solid var(--admin-border, #e5e7eb);
+    border-radius: 16px;
+    background: var(--admin-surface-2, #f8fafc);
+}
+
+.banner-form-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 16px;
+    color: var(--admin-text, #0f172a);
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.banner-form-section-title i {
+    color: var(--admin-primary, #f58220);
+}
+
+.banner-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.banner-form-grid .full {
+    grid-column: 1 / -1;
+}
+
+@@media (max-width: 768px) {
+    .banner-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Image preview styling */
+.banner-preview-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+}
+
+.banner-preview-card {
+    padding: 12px;
+    border: 1px solid var(--admin-border, #e5e7eb);
+    border-radius: 14px;
+    background: #fff;
+}
+
+.banner-preview-label {
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+.banner-preview-frame {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #0b1020, #1e293b);
+    border: 1px solid #e5e7eb;
+}
+
+.banner-preview-frame.desktop {
+    aspect-ratio: 16 / 5;
+}
+
+.banner-preview-frame.mobile {
+    aspect-ratio: 9 / 12;
+}
+
+.banner-preview-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: none;
+}
+
+.banner-preview-frame.has-image img {
+    display: block;
+}
+
+.banner-preview-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.banner-preview-frame.has-image .banner-preview-empty {
+    display: none;
+}
+
+.banner-preview-frame.image-error::after {
+    content: "Không thể tải ảnh";
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fef2f2;
+    color: var(--admin-danger, #ef4444);
+    font-size: 13px;
+    font-weight: 700;
+}
+
+@@media (max-width: 768px) {
+    .banner-preview-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.bulk-banner-modal .admin-modal-panel {
+    width: min(1040px, calc(100vw - 40px));
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.bulk-banner-modal .admin-modal-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 24px;
+    max-height: calc(88vh - 140px);
+}
+
+.bulk-banner-modal .admin-modal-footer {
+    flex: 0 0 auto;
+    padding: 16px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #fff;
+    box-shadow: 0 -10px 24px rgba(15, 23, 42, .06);
+}
+
+.bulk-banner-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.65fr) minmax(300px, .9fr);
+    gap: 20px;
+    align-items: stretch;
+}
+
+.bulk-banner-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 420px;
+}
+
+#bulkBannerInput {
+    width: 100%;
+    min-height: 360px;
+    max-height: 420px;
+    resize: vertical;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid #dbe3ef;
+    font-family: Consolas, Monaco, monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    overflow-x: hidden;
+    background: #fff;
+}
+
+.bulk-banner-guide-panel {
+    padding: 18px;
+    border-radius: 16px;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+}
+
+.bulk-banner-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.bulk-banner-preview-list {
+    display: grid;
+    gap: 10px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.bulk-banner-preview-item {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    font-size: 13px;
+}
+
+.bulk-banner-preview-item.error {
+    border-color: #fecaca;
+    background: #fff1f2;
+    color: #b91c1c;
+}
+
+@@media (max-width: 900px) {
+    .bulk-banner-layout {
+        grid-template-columns: 1fr;
+    }
+    #bulkBannerInput {
+        min-height: 280px;
+    }
+}
+@@media (max-width: 768px) {
+    .bulk-banner-modal .admin-modal-panel {
+        width: calc(100vw - 20px);
+        max-height: 92vh;
+    }
+}
+
+.bulk-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.bulk-tab-btn {
+    padding: 10px 14px;
+    border: 0;
+    background: transparent;
+    font-weight: 900;
+    color: #64748b;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+}
+
+.bulk-tab-btn.active {
+    color: #f58220;
+    border-bottom-color: #f58220;
+}
+
+.bulk-tab-pane {
+    display: none;
+}
+
+.bulk-tab-pane.active {
+    display: block;
+}
+
+.manual-banner-row {
+    padding: 18px;
+    margin-bottom: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    background: #f8fafc;
+}
+
+.manual-banner-row-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.manual-banner-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.manual-banner-grid .full {
+    grid-column: 1 / -1;
+}
+
+@@media (max-width: 768px) {
+    .manual-banner-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+
 <div class="banner-admin">
     <!-- Hero Section -->
     <section class="hero" aria-labelledby="heroTitle">
         <div>
             <h1 id="heroTitle">Quản lý banner</h1>
-            <p>Quản trị ảnh sự kiện nổi bật, thứ tự hiển thị, thời gian chạy và trạng thái kích hoạt trên trang chủ AERO Cinema.</p>
+            <p>Quản lý banner hiển thị ở trang chủ, ảnh desktop/mobile, thứ tự và trạng thái.</p>
         </div>
-        <button class="admin-btn admin-btn-primary" id="btnAdd" aria-label="Thêm banner mới">
-            <i class="fas fa-plus"></i> Thêm banner
-        </button>
+        <div style="display: flex; gap: 8px;">
+            <button type="button" class="admin-btn admin-btn-secondary" data-action="bulk-add-banner" aria-label="Thêm nhiều banner">
+                <i class="fas fa-layer-group"></i> Thêm nhiều banner
+            </button>
+            <button type="button" class="admin-btn admin-btn-primary" data-action="add-banner" aria-label="Thêm banner mới">
+                <i class="fas fa-plus"></i> Thêm banner
+            </button>
+        </div>
     </section>
 
     <!-- Stats Overview -->
@@ -25,19 +357,19 @@
         </div>
         <div class="admin-stat-card">
             <span class="stat-icon"><i class="fas fa-check-circle"></i></span>
-            <span class="stat-label">Đang bật</span>
+            <span class="stat-label">Đang hiển thị</span>
             <div class="stat-value skeleton" id="sActive">0</div>
             <div class="stat-note">Đang kích hoạt hiển thị</div>
         </div>
         <div class="admin-stat-card">
-            <span class="stat-icon"><i class="fas fa-calendar-alt"></i></span>
-            <span class="stat-label">Sắp chạy</span>
-            <div class="stat-value skeleton" id="sFuture">0</div>
-            <div class="stat-note">Lên lịch chạy tương lai</div>
+            <span class="stat-icon"><i class="fas fa-power-off"></i></span>
+            <span class="stat-label">Đã tắt</span>
+            <div class="stat-value skeleton" id="sInactive">0</div>
+            <div class="stat-note">Đã bị tắt hiển thị</div>
         </div>
         <div class="admin-stat-card">
             <span class="stat-icon"><i class="fas fa-history"></i></span>
-            <span class="stat-label">Đã hết hạn</span>
+            <span class="stat-label">Hết hạn</span>
             <div class="stat-value skeleton" id="sExpired">0</div>
             <div class="stat-note">Hết hạn thời gian chạy</div>
         </div>
@@ -47,11 +379,21 @@
     <section class="admin-toolbar" aria-label="Bộ lọc banner">
         <div class="admin-field search-input" style="grid-column: span 2;">
             <label for="q">Tìm kiếm banner</label>
-            <input type="search" class="admin-control" id="q" placeholder="Tìm theo tiêu đề, phụ đề, mã phim..." aria-label="Tìm kiếm banner" />
+            <input type="search" class="admin-control" id="q" placeholder="Tìm theo tiêu đề, link, loại..." aria-label="Tìm kiếm banner" />
+        </div>
+        <div class="admin-field">
+            <label for="typeFilter">Loại</label>
+            <select class="admin-control" id="typeFilter">
+                <option value="">Tất cả</option>
+                <option value="hero">Hero</option>
+                <option value="promotion">Promotion</option>
+                <option value="movie">Movie</option>
+                <option value="event">Event</option>
+            </select>
         </div>
         <div class="admin-field">
             <label for="activeFilter">Trạng thái</label>
-            <select class="admin-control" id="activeFilter" aria-label="Lọc theo trạng thái active">
+            <select class="admin-control" id="activeFilter">
                 <option value="">Tất cả trạng thái</option>
                 <option value="true">Đang bật</option>
                 <option value="false">Đang tắt</option>
@@ -59,7 +401,7 @@
         </div>
         <div class="admin-field">
             <label for="dateFilter">Thời gian chạy</label>
-            <select class="admin-control" id="dateFilter" aria-label="Lọc theo thời gian chạy">
+            <select class="admin-control" id="dateFilter">
                 <option value="">Tất cả thời gian</option>
                 <option value="running">Đang chạy</option>
                 <option value="future">Sắp chạy</option>
@@ -78,23 +420,34 @@
                 <span>Kéo thả dòng <i class="fas fa-grip-vertical"></i> để sắp xếp</span>
             </div>
         </div>
+        <div id="bulkActionBar" style="display: none; padding: 12px 20px; background: #f8fafc; border-bottom: 1px solid var(--admin-border); align-items: center; justify-content: space-between;">
+            <span style="font-weight: 600; font-size: 14px;"><span id="selectedCount">0</span> banner đang được chọn</span>
+            <div style="display: flex; gap: 8px;">
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnBulkActive" style="padding: 6px 12px; font-size: 13px;">Bật hiển thị</button>
+                <button type="button" class="admin-btn admin-btn-secondary" id="btnBulkInactive" style="padding: 6px 12px; font-size: 13px;">Tắt hiển thị</button>
+                <button type="button" class="admin-btn" id="btnBulkDelete" style="padding: 6px 12px; font-size: 13px; background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5;">Xóa đã chọn</button>
+            </div>
+        </div>
         <div class="admin-table-wrap">
             <table class="admin-table">
                 <thead>
                     <tr>
-                        <th style="width: 40px;"></th>
-                        <th style="width: 100px;">Ảnh</th>
-                        <th><span class="sort-header" data-sort="title">Nội dung <i class="fas fa-sort"></i></span></th>
-                        <th><span class="sort-header" data-sort="movieId">Mã phim <i class="fas fa-sort"></i></span></th>
-                        <th><span class="sort-header" data-sort="displayOrder">Thứ tự <i class="fas fa-sort"></i></span></th>
+                        <th style="width: 40px;">
+                            <input type="checkbox" id="selectAllBanners" />
+                        </th>
+                        <th style="width: 140px;">Ảnh preview</th>
+                        <th><span class="sort-header" data-sort="title">Tiêu đề <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="position">Vị trí <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="type">Loại <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="order">Thứ tự <i class="fas fa-sort"></i></span></th>
                         <th>Thời gian chạy</th>
-                        <th><span class="sort-header" data-sort="active">Trạng thái <i class="fas fa-sort"></i></span></th>
+                        <th><span class="sort-header" data-sort="isActive">Trạng thái <i class="fas fa-sort"></i></span></th>
                         <th class="action-col" style="text-align: right; width: 140px;">Hành động</th>
                     </tr>
                 </thead>
                 <tbody id="body">
                     <tr>
-                        <td colspan="8"><div class="empty-state"><span>Đang tải banner...</span></div></td>
+                        <td colspan="9"><div class="empty-state"><span>Đang tải banner...</span></div></td>
                     </tr>
                 </tbody>
             </table>
@@ -110,71 +463,237 @@
 </div>
 
 <!-- Modal Form -->
-<div class="admin-modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
+<div class="admin-modal banner-modal" id="modal" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="admin-modal-panel">
-        <div class="admin-modal-header">
+        <form id="form" style="display: flex; flex-direction: column; height: 100%; margin: 0; width: 100%;">
+            <div class="admin-modal-header">
             <h3 id="modalTitle">Thêm banner</h3>
-            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="modal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-action="close-banner-modal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
         </div>
-        <form id="form">
-            <div class="admin-modal-body">
-                <input type="hidden" id="docId" />
-                <div class="admin-form-grid">
+        <div class="admin-modal-body">
+            <input type="hidden" id="docId" />
+            
+            <!-- Section 1: Nội dung -->
+            <div class="banner-form-section">
+                <div class="banner-form-section-title">
+                    <i class="fas fa-file-alt"></i> <span>1. Thông tin nội dung</span>
+                </div>
+                <div class="banner-form-grid">
                     <div class="admin-field">
-                        <label for="title">Tiêu đề</label>
-                        <input class="admin-control" id="title" maxlength="140" />
+                        <label for="title">Tiêu đề VI *</label>
+                        <input class="admin-control" id="title" required maxlength="140" />
+                        <span class="error-message" id="error-title"></span>
                     </div>
                     <div class="admin-field">
-                        <label for="movieId">Movie ID</label>
-                        <input class="admin-control" id="movieId" maxlength="120" />
+                        <label for="titleEn">Tiêu đề EN</label>
+                        <input class="admin-control" id="titleEn" maxlength="140" />
+                        <span class="error-message" id="error-titleEn"></span>
                     </div>
-                    <div class="admin-field full">
-                        <label for="subtitle">Phụ đề</label>
+                    <div class="admin-field">
+                        <label for="subtitle">Mô tả VI</label>
                         <textarea class="admin-control" style="min-height: 80px;" id="subtitle"></textarea>
-                    </div>
-                    <div class="admin-field full">
-                        <label for="imageUrl">Image URL *</label>
-                        <input class="admin-control" id="imageUrl" required />
-                    </div>
-                    <div class="admin-field full">
-                        <label for="posterUrl">Poster URL</label>
-                        <input class="admin-control" id="posterUrl" />
+                        <span class="error-message" id="error-subtitle"></span>
                     </div>
                     <div class="admin-field">
-                        <label for="displayOrder">Thứ tự *</label>
-                        <input class="admin-control" id="displayOrder" type="number" min="1" value="1" required />
+                        <label for="subtitleEn">Mô tả EN</label>
+                        <textarea class="admin-control" style="min-height: 80px;" id="subtitleEn"></textarea>
+                        <span class="error-message" id="error-subtitleEn"></span>
                     </div>
                     <div class="admin-field">
-                        <label for="active">Trạng thái</label>
-                        <select class="admin-control" id="active">
-                            <option value="true">Đang bật</option>
-                            <option value="false">Đang tắt</option>
+                        <label for="buttonText">Text nút VI</label>
+                        <input class="admin-control" id="buttonText" placeholder="Mua vé ngay" />
+                        <span class="error-message" id="error-buttonText"></span>
+                    </div>
+                    <div class="admin-field">
+                        <label for="buttonTextEn">Text nút EN</label>
+                        <input class="admin-control" id="buttonTextEn" placeholder="Book now" />
+                        <span class="error-message" id="error-buttonTextEn"></span>
+                    </div>
+                    <div class="admin-field full">
+                        <label for="linkUrl">Link điều hướng</label>
+                        <input class="admin-control" id="linkUrl" placeholder="/Movies/Details?id=xxx" />
+                        <span class="error-message" id="error-linkUrl"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Hình ảnh -->
+            <div class="banner-form-section">
+                <div class="banner-form-section-title">
+                    <i class="fas fa-image"></i> <span>2. Hình ảnh banner</span>
+                </div>
+                <div class="banner-form-grid">
+                    <div class="admin-field full">
+                        <label for="desktopImageUrl">Desktop Image URL *</label>
+                        <div style="display:flex; gap:8px;">
+                            <input class="admin-control" id="desktopImageUrl" required style="flex:1;" />
+                            <button type="button" class="admin-btn admin-btn-secondary" id="btnOpenDesktopImg" style="display:none; padding: 0 12px;"><i class="fas fa-external-link-alt"></i></button>
+                        </div>
+                        <small style="color:var(--admin-subtle);margin-top:4px;display:block;">Gợi ý: 1920x600 hoặc 1920x700 để hiển thị đẹp trên hero carousel.</small>
+                        <span class="error-message" id="error-desktopImageUrl"></span>
+                    </div>
+                    <div class="admin-field full">
+                        <label for="mobileImageUrl">Mobile Image URL</label>
+                        <div style="display:flex; gap:8px;">
+                            <input class="admin-control" id="mobileImageUrl" style="flex:1;" />
+                            <button type="button" class="admin-btn admin-btn-secondary" id="btnOpenMobileImg" style="display:none; padding: 0 12px;"><i class="fas fa-external-link-alt"></i></button>
+                        </div>
+                        <small style="color:var(--admin-subtle);margin-top:4px;display:block;">Gợi ý: 750x900 hoặc 900x1200.</small>
+                        <span class="error-message" id="error-mobileImageUrl"></span>
+                    </div>
+                    
+                    <div class="admin-field full">
+                        <div class="banner-preview-grid">
+                            <div class="banner-preview-card">
+                                <div class="banner-preview-label">Desktop Preview</div>
+                                <div class="banner-preview-frame desktop" id="desktopPreviewFrame">
+                                    <img id="desktopPreviewImg" alt="Desktop banner preview">
+                                    <div class="banner-preview-empty">Chưa có ảnh desktop</div>
+                                </div>
+                            </div>
+                            <div class="banner-preview-card">
+                                <div class="banner-preview-label">Mobile Preview</div>
+                                <div class="banner-preview-frame mobile" id="mobilePreviewFrame">
+                                    <img id="mobilePreviewImg" alt="Mobile banner preview">
+                                    <div class="banner-preview-empty">Chưa có ảnh mobile</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Cấu hình hiển thị -->
+            <div class="banner-form-section">
+                <div class="banner-form-section-title">
+                    <i class="fas fa-sliders-h"></i> <span>3. Cấu hình hiển thị</span>
+                </div>
+                <div class="banner-form-grid">
+                    <div class="admin-field">
+                        <label for="position">Vị trí</label>
+                        <select class="admin-control" id="position">
+                            <option value="home_hero">Home Hero</option>
                         </select>
+                        <span class="error-message" id="error-position"></span>
                     </div>
                     <div class="admin-field">
-                        <label for="startDate">Ngày bắt đầu</label>
-                        <input class="admin-control" id="startDate" type="date" />
+                        <label for="type">Loại</label>
+                        <select class="admin-control" id="type">
+                            <option value="hero">Hero</option>
+                            <option value="promotion">Promotion</option>
+                            <option value="movie">Movie</option>
+                            <option value="event">Event</option>
+                        </select>
+                        <span class="error-message" id="error-type"></span>
                     </div>
                     <div class="admin-field">
-                        <label for="endDate">Ngày kết thúc</label>
-                        <input class="admin-control" id="endDate" type="date" />
+                        <label for="order">Thứ tự *</label>
+                        <input class="admin-control" id="order" type="number" min="1" value="1" required />
+                        <span class="error-message" id="error-order"></span>
                     </div>
-                </div>
-                <div class="preview" style="margin-top: 18px;">
-                    <div class="banner-preview" id="desktopPreview">
-                        <img alt="" />
-                        <div><strong>Banner Desktop</strong><span>Preview nội dung hero</span></div>
-                    </div>
-                    <div class="banner-preview mobile" id="mobilePreview">
-                        <img alt="" />
-                        <div><strong>Mobile</strong><span>Preview</span></div>
+                    <div class="admin-field">
+                        <label for="isActive">Trạng thái</label>
+                        <select class="admin-control" id="isActive">
+                            <option value="true">Đang bật (active)</option>
+                            <option value="false">Đang tắt (inactive)</option>
+                        </select>
+                        <span class="error-message" id="error-isActive"></span>
                     </div>
                 </div>
             </div>
-            <div class="admin-modal-footer">
-                <button class="admin-btn admin-btn-secondary" type="button" data-close-modal="modal">Hủy</button>
-                <button class="admin-btn admin-btn-primary" type="submit">Lưu banner</button>
+
+            <!-- Section 4: Thời gian chạy -->
+            <div class="banner-form-section">
+                <div class="banner-form-section-title">
+                    <i class="fas fa-calendar-alt"></i> <span>4. Thời gian chạy</span>
+                </div>
+                <div class="banner-form-grid">
+                    <div class="admin-field">
+                        <label for="startAt">Ngày bắt đầu</label>
+                        <input class="admin-control" id="startAt" type="date" />
+                        <span class="error-message" id="error-startAt"></span>
+                    </div>
+                    <div class="admin-field">
+                        <label for="endAt">Ngày kết thúc</label>
+                        <input class="admin-control" id="endAt" type="date" />
+                        <span class="error-message" id="error-endAt"></span>
+                    </div>
+                </div>
             </div>
+
+        </div>
+        <div class="admin-modal-footer">
+            <button class="admin-btn admin-btn-secondary" type="button" data-action="close-banner-modal">Hủy</button>
+            <button class="admin-btn admin-btn-primary" type="submit">Lưu banner</button>
+        </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bulk Modal -->
+<div class="admin-modal banner-modal bulk-banner-modal" id="bulkModal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="admin-modal-panel">
+        <form id="bulkForm" style="display: flex; flex-direction: column; height: 100%; width: 100%; margin: 0;">
+            <div class="admin-modal-header">
+            <h3 id="bulkModalTitle">Thêm nhiều banner</h3>
+            <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-action="close-banner-modal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
+        </div>
+        <div class="admin-modal-body">
+            <div class="bulk-tabs">
+                <button type="button" class="bulk-tab-btn active" data-tab="manualBulkBannerTab">Thêm thủ công</button>
+                <button type="button" class="bulk-tab-btn" data-tab="pasteBulkBannerTab">Dán hàng loạt</button>
+            </div>
+
+            <div id="manualBulkBannerTab" class="bulk-tab-pane active">
+                <div id="manualBannerRows"></div>
+                <button type="button" class="admin-btn admin-btn-secondary" data-action="add-manual-banner-row">
+                    + Thêm dòng banner
+                </button>
+            </div>
+
+            <div id="pasteBulkBannerTab" class="bulk-tab-pane">
+                <div class="bulk-banner-layout">
+                    <div class="bulk-banner-panel">
+                        <label style="font-weight: 700; margin-bottom: 8px; display: block;">Danh sách banner</label>
+                        <textarea id="bulkBannerInput" placeholder="title | desktopImageUrl | mobileImageUrl | linkUrl | order
+The Punisher | https://...jpg | https://...jpg | /Movies/Details?id=xxx | 1
+AERO Summer | https://...jpg | | /Home/Promotions | 2"></textarea>
+                        
+                        <div style="font-size: 13px; font-weight: 600; color: #475569; margin-top: 10px;" id="bulkLiveCounter">
+                            Đã nhập: 0 dòng &bull; Hợp lệ: 0 &bull; Lỗi: 0
+                        </div>
+
+                        <div class="bulk-banner-tools">
+                            <button type="button" class="admin-btn admin-btn-secondary" data-action="paste-bulk-sample">Dán mẫu</button>
+                            <button type="button" class="admin-btn admin-btn-secondary" style="background:#fee2e2; color:#ef4444; border-color:#fca5a5;" data-action="clear-bulk-input">Xóa nội dung</button>
+                            <button type="button" class="admin-btn admin-btn-primary" data-action="validate-bulk-input">Kiểm tra dữ liệu</button>
+                        </div>
+                    </div>
+                    <div class="bulk-banner-panel bulk-banner-guide-panel">
+                        <h4 style="font-size: 14px; font-weight: 900; margin: 0 0 10px;">Định dạng nhập</h4>
+                        <p style="font-size: 12px; margin-bottom: 8px; color: #475569;">Mỗi dòng tương ứng với một banner. Các trường (field) cách nhau bởi dấu <code>|</code>:</p>
+                        
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
+                            <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">title *</span>
+                            <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700;">desktopImageUrl *</span>
+                            <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">mobileImageUrl</span>
+                            <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">linkUrl</span>
+                            <span style="background: #e2e8f0; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;">order</span>
+                        </div>
+                        <p style="font-size: 12px; color: #b91c1c; font-weight: 600; margin-bottom: 0;">(*) title và desktopImageUrl là bắt buộc.</p>
+
+                        <h4 style="font-size: 14px; font-weight: 900; margin: 20px 0 10px; padding-top: 16px; border-top: 1px solid #e5e7eb;">Preview dữ liệu</h4>
+                        <div class="bulk-banner-preview-list" id="bulkBannerPreview">
+                            <div style="font-size: 12px; color: #94a3b8; text-align: center; padding: 20px 0;">Nhập dữ liệu rồi bấm Kiểm tra dữ liệu.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="admin-modal-footer">
+            <button class="admin-btn admin-btn-secondary" type="button" data-action="close-banner-modal">Hủy</button>
+            <button class="admin-btn admin-btn-primary" type="submit" id="btnBulkSave">Lưu hàng loạt</button>
+        </div>
         </form>
     </div>
 </div>
@@ -188,7 +707,8 @@
             addDoc,
             updateDoc,
             deleteDoc,
-            serverTimestamp
+            serverTimestamp,
+            writeBatch
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const db = window.AeroAdmin?.db || window.db;
@@ -199,15 +719,17 @@
             filtered: [],
             page: 1,
             size: 8,
-            sortKey: "displayOrder",
+            sortKey: "order",
             sortDirection: "asc",
             dragId: null,
+            selectedIds: new Set(),
             unsub: null
         };
 
         const $ = id => document.getElementById(id);
         const el = {
             q: $("q"),
+            typeFilter: $("typeFilter"),
             active: $("activeFilter"),
             date: $("dateFilter"),
             body: $("body"),
@@ -216,11 +738,21 @@
             prev: $("prev"),
             next: $("next"),
             modal: $("modal"),
-            form: $("form")
+            form: $("form"),
+            bulkModal: $("bulkModal"),
+            bulkForm: $("bulkForm")
         };
 
-        const norm = v => String(v || "").trim().toLowerCase();
-        const safe = (v, f = "-") => v === undefined || v === null || v === "" ? f : v;
+        function bannerSafeText(value, fallback = "") {
+            if (value === undefined || value === null) return fallback;
+            const text = String(value).trim();
+            if (!text || text.toLowerCase() === "undefined" || text.toLowerCase() === "null") {
+                return fallback;
+            }
+            return text;
+        }
+
+        const safe = (v, f = "-") => bannerSafeText(v, f);
         const today = () => new Date(new Date().toDateString());
         const toDate = v => v?.toDate ? v.toDate() : (v ? new Date(v) : null);
         const fmt = v => {
@@ -234,19 +766,19 @@
 
         function period(x) {
             const n = today();
-            const s = toDate(x.startDate);
-            const e = toDate(x.endDate);
+            const s = toDate(x.startAt);
+            const e = toDate(x.endAt);
             if (s && s > n) return "future";
             if (e && e < n) return "expired";
             return "running";
         }
 
         function fillStats() {
-            const a = state.items;
+            const a = state.items.filter(x => x.status !== "deleted");
             const p = a.map(period);
             setTextElement("sTotal", a.length);
-            setTextElement("sActive", a.filter(x => x.active === true).length);
-            setTextElement("sFuture", p.filter(x => x === "future").length);
+            setTextElement("sActive", a.filter(x => x.isActive === true).length);
+            setTextElement("sInactive", a.filter(x => x.isActive === false).length);
             setTextElement("sExpired", p.filter(x => x === "expired").length);
         }
 
@@ -266,7 +798,7 @@
                 let valA = a[key];
                 let valB = b[key];
 
-                if (key === "startDate" || key === "endDate" || key === "createdAt" || key === "updatedAt") {
+                if (key === "startAt" || key === "endAt" || key === "createdAt" || key === "updatedAt") {
                     valA = toDate(valA)?.getTime() || 0;
                     valB = toDate(valB)?.getTime() || 0;
                 } else if (typeof valA === "string") {
@@ -286,9 +818,12 @@
         function filter() {
             const q = norm(el.q.value);
             state.filtered = state.items.filter(x => {
-                const text = norm([x.title, x.subtitle, x.movieId].join(" "));
+                if (x.status === "deleted") return false;
+                
+                const text = norm([x.title, x.titleEn, x.subtitle, x.linkUrl].join(" "));
                 return (!q || text.includes(q))
-                    && (!el.active.value || String(x.active) === el.active.value)
+                    && (!el.active.value || String(x.isActive) === el.active.value)
+                    && (!el.typeFilter.value || String(x.type || "") === el.typeFilter.value)
                     && (!el.date.value || period(x) === el.date.value);
             });
 
@@ -297,6 +832,16 @@
             const max = Math.max(1, Math.ceil(state.filtered.length / state.size));
             if (state.page > max) state.page = max;
             render();
+        }
+
+        function updateBulkActionBar() {
+            const count = state.selectedIds.size;
+            $("selectedCount").innerText = count;
+            $("bulkActionBar").style.display = count > 0 ? "flex" : "none";
+            const selectAll = $("selectAllBanners");
+            if(selectAll) {
+                selectAll.checked = count > 0 && count === state.filtered.length;
+            }
         }
 
         function render() {
@@ -310,112 +855,370 @@
             el.next.disabled = state.page >= max;
 
             if (!items.length) {
-                el.body.innerHTML = '<tr><td colspan="8"><div class="empty-state"><span>Không có banner phù hợp.</span></div></td></tr>';
+                el.body.innerHTML = '<tr><td colspan="9"><div class="empty-state"><span>Không có banner phù hợp.</span></div></td></tr>';
+                updateBulkActionBar();
                 return;
             }
 
-            el.body.innerHTML = items.map(x => `
+            el.body.innerHTML = items.map(x => {
+                const isChecked = state.selectedIds.has(x.id) ? "checked" : "";
+                return `
                 <tr draggable="true" data-row="${x.id}">
-                    <td><i class="fas fa-grip-vertical drag"></i></td>
-                    <td data-label="Ảnh"><img class="thumb" src="${safe(x.imageUrl, x.posterUrl || "")}" alt=""></td>
-                    <td data-label="Nội dung">
+                    <td><input type="checkbox" class="banner-row-check" value="${x.id}" ${isChecked}></td>
+                    <td data-label="Ảnh preview"><img class="thumb" src="${safe(x.desktopImageUrl, "")}" style="width:100px; height:40px; object-fit:cover; border-radius:4px;" alt=""></td>
+                    <td data-label="Tiêu đề">
                         <div class="main">
                             <strong>${safe(x.title, "AERO Cinema")}</strong>
-                            <span>${safe(x.subtitle, "Không có phụ đề")}</span>
+                            <span>${safe(x.linkUrl, "Không có link")}</span>
                         </div>
                     </td>
-                    <td data-label="Mã phim">${safe(x.movieId)}</td>
-                    <td data-label="Thứ tự">${Number(x.displayOrder || 0)}</td>
-                    <td data-label="Thời gian chạy">${fmt(x.startDate)} - ${fmt(x.endDate)}</td>
-                    <td data-label="Trạng thái"><span class="admin-badge ${x.active === true ? 'success' : 'secondary'}">${x.active === true ? 'Bật' : 'Tắt'}</span></td>
+                    <td data-label="Vị trí">${safe(x.position, "home_hero")}</td>
+                    <td data-label="Loại">${safe(x.type)}</td>
+                    <td data-label="Thứ tự">${Number(x.order || 0)}</td>
+                    <td data-label="Thời gian chạy">${fmt(x.startAt)} - ${fmt(x.endAt)}</td>
+                    <td data-label="Trạng thái"><span class="admin-badge ${x.isActive === true ? 'success' : 'secondary'}">${x.isActive === true ? 'Bật' : 'Tắt'}</span></td>
                     <td data-label="Hành động" class="action-col">
                         <div class="admin-actions">
-                            <button type="button" class="admin-icon-btn approve" data-a="toggle" data-id="${x.id}" title="Bật/tắt" aria-label="Bật tắt trạng thái hoạt động">
+                            <button type="button" class="admin-icon-btn approve" data-action="toggle-banner" data-id="${x.id}" title="Bật/tắt" aria-label="Bật tắt trạng thái hoạt động">
                                 <i class="fas fa-power-off"></i>
                             </button>
-                            <button type="button" class="admin-icon-btn view" style="color:var(--admin-warning);" data-a="edit" data-id="${x.id}" title="Sửa" aria-label="Chỉnh sửa banner">
+                            <button type="button" class="admin-icon-btn view" style="color:var(--admin-warning);" data-action="edit-banner" data-id="${x.id}" title="Sửa" aria-label="Chỉnh sửa banner">
                                 <i class="fas fa-pen"></i>
                             </button>
-                            <button type="button" class="admin-icon-btn reject" data-a="delete" data-id="${x.id}" title="Xóa" aria-label="Xóa banner">
+                            <button type="button" class="admin-icon-btn reject" data-action="delete-banner" data-id="${x.id}" title="Xóa" aria-label="Xóa banner">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </td>
-                </tr>`).join("");
-        }
-
-        function openForm(item) {
-            el.form.reset();
-            $("docId").value = item?.id || "";
-            $("modalTitle").innerText = item ? "Sửa banner" : "Thêm banner";
-            $("title").value = item?.title || "";
-            $("subtitle").value = item?.subtitle || "";
-            $("imageUrl").value = item?.imageUrl || "";
-            $("posterUrl").value = item?.posterUrl || "";
-            $("movieId").value = item?.movieId || "";
-            $("displayOrder").value = item?.displayOrder || nextOrder();
-            $("active").value = String(item?.active ?? true);
-            $("startDate").value = item?.startDate || "";
-            $("endDate").value = item?.endDate || "";
-            preview();
+                </tr>`;
+            }).join("");
             
-            el.modal.classList.add("show");
-            document.body.style.overflow = "hidden";
+            updateBulkActionBar();
         }
 
-        function closeForm() {
-            el.modal.classList.remove("show");
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        }
+
+        function updateImagePreview(inputId, imgId, frameId, openBtnId) {
+            const input = $(inputId);
+            const img = $(imgId);
+            const frame = $(frameId);
+            const openBtn = $(openBtnId);
+
+            if (!input || !img || !frame) return;
+
+            const url = input.value.trim();
+
+            frame.classList.remove("has-image", "image-error");
+
+            if (openBtn) openBtn.style.display = "none";
+
+            if (!url) {
+                img.removeAttribute("src");
+                return;
+            }
+
+            img.onload = function () {
+                frame.classList.add("has-image");
+                frame.classList.remove("image-error");
+                if (openBtn) openBtn.style.display = "block";
+            };
+
+            img.onerror = function () {
+                frame.classList.remove("has-image");
+                frame.classList.add("image-error");
+                img.removeAttribute("src");
+                if (openBtn) openBtn.style.display = "none";
+            };
+
+            img.src = url;
+        }
+
+        function openBannerModal(mode = "create", id = null) {
+            const modal = document.getElementById("modal");
+
+            if (!modal) {
+                console.error("Banner modal not found");
+                return;
+            }
+
+            // Clear validation indicators
+            document.querySelectorAll(".error-message").forEach(el => {
+                el.innerText = "";
+                el.style.display = "none";
+            });
+            document.querySelectorAll(".admin-control").forEach(el => {
+                el.classList.remove("error-input");
+            });
+
+            modal.classList.add("show");
+            document.body.classList.add("modal-open");
+
+            if (mode === "create") {
+                el.form.reset();
+                $("docId").value = "";
+                $("modalTitle").innerText = "Thêm banner";
+                $("position").value = "home_hero";
+                $("type").value = "hero";
+                $("order").value = nextOrder();
+                $("isActive").value = "true";
+                
+                updateImagePreview("desktopImageUrl", "desktopPreviewImg", "#desktopPreviewFrame", "btnOpenDesktopImg");
+                updateImagePreview("mobileImageUrl", "mobilePreviewImg", "#mobilePreviewFrame", "btnOpenMobileImg");
+            }
+            if (mode === "edit") {
+                const item = state.items.find(x => x.id === id);
+                if (item) {
+                    $("docId").value = item.id || "";
+                    $("modalTitle").innerText = "Sửa banner";
+                    $("title").value = item.title || "";
+                    $("titleEn").value = item.titleEn || "";
+                    $("subtitle").value = item.subtitle || "";
+                    $("subtitleEn").value = item.subtitleEn || "";
+                    $("buttonText").value = item.buttonText || "";
+                    $("buttonTextEn").value = item.buttonTextEn || "";
+                    $("linkUrl").value = item.linkUrl || "";
+                    $("desktopImageUrl").value = item.desktopImageUrl || "";
+                    $("mobileImageUrl").value = item.mobileImageUrl || "";
+                    $("position").value = item.position || "home_hero";
+                    $("type").value = item.type || "hero";
+                    $("order").value = item.order || nextOrder();
+                    $("isActive").value = String(item.isActive ?? true);
+                    $("startAt").value = item.startAt || "";
+                    $("endAt").value = item.endAt || "";
+                    
+                    updateImagePreview("desktopImageUrl", "desktopPreviewImg", "#desktopPreviewFrame", "btnOpenDesktopImg");
+                    updateImagePreview("mobileImageUrl", "mobilePreviewImg", "#mobilePreviewFrame", "btnOpenMobileImg");
+                }
+            }
+        }
+
+        let manualRowCounter = 0;
+
+        function createManualBannerRow() {
+            manualRowCounter++;
+            const div = document.createElement("div");
+            div.className = "manual-banner-row";
+            div.dataset.rowIndex = manualRowCounter;
+            div.innerHTML = `
+                <div class="manual-banner-row-header">
+                    <strong>Banner #${manualRowCounter}</strong>
+                    <button type="button" class="admin-btn admin-btn-secondary" style="padding: 4px 10px; font-size: 12px; background: #fee2e2; color: #ef4444; border-color: #fca5a5;" data-action="remove-manual-banner-row">Xóa</button>
+                </div>
+                <div class="manual-banner-grid">
+                    <div class="admin-field">
+                        <label>Tiêu đề VI *</label>
+                        <input class="admin-control" name="title" placeholder="Nhập tiêu đề banner">
+                    </div>
+                    <div class="admin-field">
+                        <label>Tiêu đề EN</label>
+                        <input class="admin-control" name="titleEn" placeholder="English title">
+                    </div>
+                    <div class="admin-field full">
+                        <label>Desktop Image URL *</label>
+                        <input class="admin-control" name="desktopImageUrl" placeholder="https://...jpg">
+                    </div>
+                    <div class="admin-field full">
+                        <label>Mobile Image URL</label>
+                        <input class="admin-control" name="mobileImageUrl" placeholder="https://...jpg">
+                    </div>
+                    <div class="admin-field">
+                        <label>Link điều hướng</label>
+                        <input class="admin-control" name="linkUrl" placeholder="/Movies/Details?id=xxx">
+                    </div>
+                    <div class="admin-field">
+                        <label>Thứ tự</label>
+                        <input class="admin-control" name="order" type="number" placeholder="1">
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+
+        function addManualBannerRow() {
+            const container = $("manualBannerRows");
+            if (container) {
+                container.appendChild(createManualBannerRow());
+            }
+        }
+
+        function switchBulkTab(tabId) {
+            document.querySelectorAll(".bulk-tab-btn").forEach(btn => {
+                if (btn.dataset.tab === tabId) {
+                    btn.classList.add("active");
+                } else {
+                    btn.classList.remove("active");
+                }
+            });
+            document.querySelectorAll(".bulk-tab-pane").forEach(pane => {
+                if (pane.id === tabId) {
+                    pane.classList.add("active");
+                } else {
+                    pane.classList.remove("active");
+                }
+            });
+
+            const btnSave = $("btnBulkSave");
+            if (btnSave) {
+                if (tabId === "manualBulkBannerTab") {
+                    btnSave.innerText = "Lưu banner thủ công";
+                    btnSave.disabled = false; // Always enabled for manual tab
+                } else {
+                    btnSave.innerText = "Lưu hàng loạt";
+                    btnSave.disabled = false; // Always enabled for paste tab, we auto-validate
+                }
+            }
+        }
+
+        function openBulkAddBannerModal() {
+            const modal = document.getElementById("bulkModal");
+
+            if (!modal) {
+                console.error("Bulk banner modal not found");
+                return;
+            }
+
+            modal.classList.add("show");
+            document.body.classList.add("modal-open");
+
+            el.bulkForm.reset();
+            $("bulkBannerPreview").innerHTML = '<div style="font-size: 12px; color: #94a3b8; text-align: center; padding: 20px 0;">Nhập dữ liệu rồi bấm Kiểm tra dữ liệu.</div>';
+            updateLiveCounter([]);
+
+            const manualRowsContainer = $("manualBannerRows");
+            if (manualRowsContainer) {
+                manualRowsContainer.innerHTML = "";
+                manualRowCounter = 0;
+                addManualBannerRow();
+            }
+
+            switchBulkTab("manualBulkBannerTab");
+        }
+
+        function closeBannerModal() {
+            document.querySelectorAll(".admin-modal, .banner-modal, .premium-banner-modal")
+                .forEach(m => m.classList.remove("show", "active", "open"));
+
+            document.body.classList.remove("modal-open");
             document.body.style.overflow = "";
         }
 
         function nextOrder() {
-            return (Math.max(0, ...state.items.map(x => Number(x.displayOrder || 0))) + 1);
+            return (Math.max(0, ...state.items.filter(x => x.status !== "deleted").map(x => Number(x.order || 0))) + 1);
         }
 
         function getFormData() {
             return {
                 title: $("title").value.trim(),
+                titleEn: $("titleEn").value.trim(),
                 subtitle: $("subtitle").value.trim(),
-                imageUrl: $("imageUrl").value.trim(),
-                posterUrl: $("posterUrl").value.trim(),
-                movieId: $("movieId").value.trim(),
-                active: $("active").value === "true",
-                displayOrder: Number($("displayOrder").value || 0),
-                startDate: $("startDate").value,
-                endDate: $("endDate").value,
+                subtitleEn: $("subtitleEn").value.trim(),
+                desktopImageUrl: $("desktopImageUrl").value.trim(),
+                mobileImageUrl: $("mobileImageUrl").value.trim(),
+                linkUrl: $("linkUrl").value.trim(),
+                buttonText: $("buttonText").value.trim(),
+                buttonTextEn: $("buttonTextEn").value.trim(),
+                type: $("type").value.trim(),
+                position: $("position").value.trim() || "home_hero",
+                order: Number($("order").value || 0),
+                isActive: $("isActive").value === "true",
+                status: $("isActive").value === "true" ? "active" : "inactive",
+                startAt: $("startAt").value,
+                endAt: $("endAt").value,
                 updatedAt: serverTimestamp()
             };
         }
 
-        function validate(v, id) {
-            if (!v.imageUrl) return "Image URL bắt buộc.";
-            if (v.startDate && v.endDate && new Date(v.startDate) > new Date(v.endDate)) return "Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày kết thúc.";
-            if (!v.displayOrder || v.displayOrder < 1) return "Thứ tự phải lớn hơn 0.";
-            if (state.items.some(x => x.id !== id && Number(x.displayOrder) === Number(v.displayOrder))) return "Thứ tự displayOrder không được trùng.";
-            return "";
+        function validate(v) {
+            let hasError = false;
+            
+            // Clear previous errors
+            document.querySelectorAll(".error-message").forEach(el => {
+                el.innerText = "";
+                el.style.display = "none";
+            });
+            document.querySelectorAll(".admin-control").forEach(el => {
+                el.classList.remove("error-input");
+            });
+
+            const showErr = (inputId, message) => {
+                hasError = true;
+                const input = $(inputId);
+                if (input) input.classList.add("error-input");
+                const errSpan = $("error-" + inputId);
+                if (errSpan) {
+                    errSpan.innerText = message;
+                    errSpan.style.display = "block";
+                }
+            };
+
+            if (!v.title) {
+                showErr("title", "Tiêu đề VI là bắt buộc.");
+            }
+            if (!v.desktopImageUrl) {
+                showErr("desktopImageUrl", "Desktop Image URL là bắt buộc.");
+            } else {
+                try {
+                    if (!v.desktopImageUrl.startsWith('/')) {
+                        new URL(v.desktopImageUrl);
+                    }
+                } catch(e) {
+                    showErr("desktopImageUrl", "Desktop Image URL không hợp lệ.");
+                }
+            }
+            if (v.mobileImageUrl) {
+                try {
+                    if (!v.mobileImageUrl.startsWith('/')) {
+                        new URL(v.mobileImageUrl);
+                    }
+                } catch(e) {
+                    showErr("mobileImageUrl", "Mobile Image URL không hợp lệ.");
+                }
+            }
+            if (isNaN(v.order) || v.order < 1) {
+                showErr("order", "Thứ tự phải là số lớn hơn 0.");
+            }
+            if (v.startAt && v.endAt && new Date(v.startAt) > new Date(v.endAt)) {
+                showErr("endAt", "Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu.");
+            }
+
+            return !hasError;
         }
 
-        function preview() {
-            const img = $("imageUrl").value.trim() || $("posterUrl").value.trim();
-            ["desktopPreview", "mobilePreview"].forEach(id => {
-                $(id).querySelector("img").src = img;
-                $(id).querySelector("strong").innerText = $("title").value.trim() || (id === "desktopPreview" ? "Banner Desktop" : "Mobile");
-                $(id).querySelector("span").innerText = $("subtitle").value.trim() || "Preview";
-            });
-        }
+        let isSavingBanner = false;
 
         async function save(e) {
             e.preventDefault();
-            const id = $("docId").value,
-                  v = getFormData(),
-                  err = validate(v, id);
+            if (isSavingBanner) return;
 
-            if (err) {
-                toast("error", "Dữ liệu chưa hợp lệ", err);
+            const id = $("docId").value,
+                  v = getFormData();
+            
+            if (!validate(v)) {
+                toast("error", "Dữ liệu chưa hợp lệ", "Vui lòng kiểm tra các ô báo đỏ.");
                 return;
             }
 
+            // Remove empty properties
+            Object.keys(v).forEach(k => {
+                if (v[k] === "" || v[k] === undefined) {
+                    delete v[k];
+                }
+            });
+
+            isSavingBanner = true;
             showLoading(true);
+            const saveBtn = el.form.querySelector("button[type='submit']");
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            }
+
             try {
                 if (id) {
                     const old = state.items.find(x => x.id === id);
@@ -426,20 +1229,28 @@
                     const ref = await addDoc(collection(db, "banners"), v);
                     await window.AeroAdmin?.logActivity?.("create_banner", "banners", ref.id, null, v);
                 }
-                closeForm();
+                closeBannerModal();
                 toast("success", "Đã lưu banner", "Dữ liệu banner đã được cập nhật.");
             } catch (errSave) {
                 console.error(errSave);
                 toast("error", "Không thể lưu banner", errSave.message);
             } finally {
+                isSavingBanner = false;
                 showLoading(false);
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerText = 'Lưu banner';
+                }
             }
         }
 
-        async function remove(item) {
+        async function softDeleteBanner(id) {
+            const item = state.items.find(x => x.id === id);
+            if (!item) return;
+
             const res = await Swal.fire({
                 title: "Xác nhận xóa?",
-                text: `Bạn có chắc chắn muốn xóa banner "${item.title || item.id}"? Thao tác này không thể phục hồi.`,
+                text: `Bạn có chắc chắn muốn xóa banner "${item.title || item.id}"?`,
                 icon: "warning",
                 showCancelButton: true,
                 confirmButtonColor: "var(--admin-danger)",
@@ -452,9 +1263,9 @@
 
             showLoading(true);
             try {
-                await deleteDoc(doc(db, "banners", item.id));
-                await window.AeroAdmin?.logActivity?.("delete_banner", "banners", item.id, item, null);
-                toast("success", "Đã xóa banner", "Banner đã được xóa khỏi Firestore.");
+                await updateDoc(doc(db, "banners", id), { isActive: false, status: "deleted", updatedAt: serverTimestamp() });
+                await window.AeroAdmin?.logActivity?.("delete_banner", "banners", id, item, null);
+                toast("success", "Đã xóa banner", "Banner đã được xóa mềm.");
             } catch (e) {
                 toast("error", "Không thể xóa banner", e.message);
             } finally {
@@ -462,12 +1273,19 @@
             }
         }
 
-        async function toggle(item) {
+        async function toggleBannerStatus(id) {
+            const item = state.items.find(x => x.id === id);
+            if (!item) return;
             showLoading(true);
             try {
-                await updateDoc(doc(db, "banners", item.id), { active: !item.active, updatedAt: serverTimestamp() });
-                await window.AeroAdmin?.logActivity?.("update_banner", "banners", item.id, item, { active: !item.active });
-                toast("success", "Đã cập nhật trạng thái", "Banner đã đổi active.");
+                const newStatus = !item.isActive;
+                await updateDoc(doc(db, "banners", id), { 
+                    isActive: newStatus, 
+                    status: newStatus ? "active" : "inactive",
+                    updatedAt: serverTimestamp() 
+                });
+                await window.AeroAdmin?.logActivity?.("update_banner", "banners", id, item, { isActive: newStatus });
+                toast("success", "Đã cập nhật trạng thái", "Banner đã đổi trạng thái hoạt động.");
             } catch (e) {
                 toast("error", "Không thể cập nhật", e.message);
             } finally {
@@ -477,7 +1295,7 @@
 
         async function reorder(fromId, toId) {
             if (!fromId || !toId || fromId === toId) return;
-            const ordered = [...state.items].sort((a, b) => Number(a.displayOrder || 9999) - Number(b.displayOrder || 9999));
+            const ordered = [...state.items].filter(x => x.status !== "deleted").sort((a, b) => Number(a.order || 9999) - Number(b.order || 9999));
             const from = ordered.findIndex(x => x.id === fromId),
                   to = ordered.findIndex(x => x.id === toId);
 
@@ -487,7 +1305,7 @@
 
             showLoading(true);
             try {
-                await Promise.all(ordered.map((x, i) => updateDoc(doc(db, "banners", x.id), { displayOrder: i + 1, updatedAt: serverTimestamp() })));
+                await Promise.all(ordered.map((x, i) => updateDoc(doc(db, "banners", x.id), { order: i + 1, updatedAt: serverTimestamp() })));
                 await window.AeroAdmin?.logActivity?.("update_banner", "banners", fromId, null, { reorder: true });
                 toast("success", "Đã sắp xếp banner", "Thứ tự hiển thị đã được cập nhật.");
             } catch (e) {
@@ -497,7 +1315,307 @@
             }
         }
 
-        // Sorting trigger
+        async function bulkSoftDeleteBanners() {
+            const ids = Array.from(state.selectedIds);
+            if (!ids.length) return;
+
+            const confirm = await Swal.fire({
+                icon: "warning",
+                title: "Xóa các banner đã chọn?",
+                text: `Bạn đang chọn ${ids.length} banner. Hệ thống sẽ xóa mềm, không xóa dữ liệu vĩnh viễn.`,
+                showCancelButton: true,
+                confirmButtonText: "Xóa đã chọn",
+                cancelButtonText: "Hủy",
+                confirmButtonColor: "#ef4444"
+            });
+
+            if (!confirm.isConfirmed) return;
+
+            showLoading(true);
+            try {
+                const batch = writeBatch(db);
+                ids.forEach(id => {
+                    const ref = doc(db, "banners", id);
+                    batch.update(ref, {
+                        status: "deleted",
+                        isActive: false,
+                        updatedAt: serverTimestamp()
+                    });
+                });
+                await batch.commit();
+                toast("success", "Đã xóa banner", "Đã xóa các banner đã chọn.");
+                state.selectedIds.clear();
+                updateBulkActionBar();
+            } catch(e) {
+                toast("error", "Lỗi xóa banner", e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function bulkUpdateActive(isActive) {
+            const ids = Array.from(state.selectedIds);
+            if (!ids.length) return;
+            
+            showLoading(true);
+            try {
+                const batch = writeBatch(db);
+                ids.forEach(id => {
+                    const ref = doc(db, "banners", id);
+                    batch.update(ref, {
+                        status: isActive ? "active" : "inactive",
+                        isActive: isActive,
+                        updatedAt: serverTimestamp()
+                    });
+                });
+                await batch.commit();
+                toast("success", "Thành công", `Đã ${isActive ? 'bật' : 'tắt'} hiển thị các banner đã chọn.`);
+                state.selectedIds.clear();
+                updateBulkActionBar();
+            } catch(e) {
+                toast("error", "Lỗi cập nhật", e.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function parseBulkBanners(raw) {
+            const lines = raw.split("\n").map(x => x.trim()).filter(Boolean);
+
+            return lines.map((line, index) => {
+                const parts = line.split("|").map(x => x.trim());
+
+                const row = {
+                    line: index + 1,
+                    title: parts[0] || "",
+                    desktopImageUrl: parts[1] || "",
+                    mobileImageUrl: parts[2] || "",
+                    linkUrl: parts[3] || "",
+                    order: parts[4] || "",
+                    errors: []
+                };
+
+                if (!row.title) row.errors.push("- Thiếu tiêu đề (title)");
+                if (!row.desktopImageUrl) row.errors.push("- Thiếu Desktop Image URL");
+                if (row.desktopImageUrl && !isValidUrl(row.desktopImageUrl)) row.errors.push("- Desktop Image URL không hợp lệ");
+                if (row.mobileImageUrl && !isValidUrl(row.mobileImageUrl)) row.errors.push("- Mobile Image URL không hợp lệ");
+                if (row.order && isNaN(Number(row.order))) row.errors.push("- Thứ tự phải là số");
+
+                return row;
+            });
+        }
+
+        function isValidUrl(value) {
+            try {
+                if (value.startsWith('/')) return true;
+                new URL(value);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        function updateLiveCounter(parsed) {
+            const total = parsed.length;
+            const errors = parsed.filter(x => x.errors.length > 0).length;
+            const valid = total - errors;
+            
+            const counter = $("bulkLiveCounter");
+            if (counter) {
+                counter.innerHTML = `Đã nhập: ${total} dòng &bull; Hợp lệ: ${valid} &bull; Lỗi: <span style="color: ${errors > 0 ? '#ef4444' : 'inherit'}">${errors}</span>`;
+            }
+            // Removed btnBulkSave disable logic so users can always click save and trigger validation
+        }
+
+        function runBulkValidation() {
+            const raw = $("bulkBannerInput").value.trim();
+            const container = $("bulkBannerPreview");
+            
+            if (!raw) {
+                container.innerHTML = '<div style="font-size: 12px; color: #ef4444; text-align: center; padding: 20px 0;">Vui lòng nhập dữ liệu trước khi kiểm tra</div>';
+                updateLiveCounter([]);
+                return;
+            }
+
+            const parsed = parseBulkBanners(raw);
+            container.innerHTML = "";
+            updateLiveCounter(parsed);
+
+            if (!parsed.length) {
+                container.innerHTML = '<div style="font-size: 12px; color: #ef4444; text-align: center; padding: 20px 0;">Không thể phân tích dữ liệu</div>';
+                return;
+            }
+
+            parsed.forEach(row => {
+                const item = document.createElement("div");
+                item.className = "bulk-banner-preview-item" + (row.errors.length ? " error" : "");
+                
+                if (row.errors.length) {
+                    item.innerHTML = `<strong>Dòng ${row.line}: Lỗi</strong><br>${row.errors.join("<br>")}`;
+                } else {
+                    item.innerHTML = `<strong>Dòng ${row.line}: Hợp lệ</strong><br>Tiêu đề: ${safe(row.title)} | Thứ tự: ${row.order || 'Tự động'}`;
+                }
+                container.appendChild(item);
+            });
+        }
+        
+        $("bulkBannerInput").addEventListener("input", () => {
+            const raw = $("bulkBannerInput").value.trim();
+            updateLiveCounter(parseBulkBanners(raw));
+        });
+
+        function collectManualBannerRows() {
+            const rows = [...document.querySelectorAll(".manual-banner-row")];
+            
+            return rows.map((row, index) => {
+                const get = name => row.querySelector(`[name="${name}"]`)?.value?.trim() || "";
+                
+                return {
+                    rowElement: row,
+                    line: index + 1,
+                    title: get("title"),
+                    titleEn: get("titleEn"),
+                    desktopImageUrl: get("desktopImageUrl"),
+                    mobileImageUrl: get("mobileImageUrl"),
+                    linkUrl: get("linkUrl"),
+                    order: get("order"),
+                    errors: []
+                };
+            }).filter(r => r.title || r.titleEn || r.desktopImageUrl || r.mobileImageUrl || r.linkUrl || r.order);
+        }
+
+        function validateManualBanners(rows) {
+            let hasGlobalError = false;
+
+            rows.forEach(row => {
+                const addError = (name, msg) => {
+                    const input = row.rowElement.querySelector(`[name="${name}"]`);
+                    if (input) {
+                        input.classList.add("error-input");
+                        let errSpan = input.parentNode.querySelector(".error-message");
+                        if (!errSpan) {
+                            errSpan = document.createElement("span");
+                            errSpan.className = "error-message";
+                            input.parentNode.appendChild(errSpan);
+                        }
+                        errSpan.innerText = msg;
+                        errSpan.style.display = "block";
+                    }
+                    row.errors.push(msg);
+                    hasGlobalError = true;
+                };
+
+                row.rowElement.querySelectorAll(".error-input").forEach(el => el.classList.remove("error-input"));
+                row.rowElement.querySelectorAll(".error-message").forEach(el => el.style.display = "none");
+
+                if (!row.title) addError("title", "Tiêu đề VI là bắt buộc.");
+                if (!row.desktopImageUrl) {
+                    addError("desktopImageUrl", "Desktop Image URL là bắt buộc.");
+                } else if (!isValidUrl(row.desktopImageUrl)) {
+                    addError("desktopImageUrl", "URL không hợp lệ.");
+                }
+                
+                if (row.mobileImageUrl && !isValidUrl(row.mobileImageUrl)) {
+                    addError("mobileImageUrl", "URL không hợp lệ.");
+                }
+
+                if (row.order && isNaN(Number(row.order))) {
+                    addError("order", "Thứ tự phải là số.");
+                }
+            });
+
+            return !hasGlobalError;
+        }
+
+        async function bulkAddBanners(e) {
+            e.preventDefault();
+            if (isSavingBanner) return;
+
+            const activeTabPane = document.querySelector(".bulk-tab-pane.active");
+            if (!activeTabPane) return;
+            const isManual = activeTabPane.id === "manualBulkBannerTab";
+
+            let parsed = [];
+
+            if (isManual) {
+                const rows = collectManualBannerRows();
+                if (rows.length === 0) {
+                    toast("warning", "Chưa nhập dữ liệu", "Vui lòng nhập ít nhất một banner.");
+                    return;
+                }
+                
+                if (!validateManualBanners(rows)) {
+                    toast("error", "Lỗi dữ liệu", "Vui lòng kiểm tra lại các banner bị lỗi.");
+                    return;
+                }
+                parsed = rows;
+            } else {
+                const text = $("bulkBannerInput").value.trim();
+                if(!text) {
+                    toast("warning", "Chưa nhập dữ liệu", "Vui lòng nhập danh sách banner.");
+                    return;
+                }
+
+                parsed = parseBulkBanners(text);
+                if (!parsed.length) return;
+
+                const hasErrors = parsed.some(r => r.errors.length > 0);
+                if (hasErrors) {
+                    toast("error", "Lỗi dữ liệu", "Vui lòng sửa các dòng bị lỗi trước khi lưu.");
+                    runBulkValidation();
+                    return;
+                }
+            }
+
+            isSavingBanner = true;
+            showLoading(true);
+            const bulkSaveBtn = $("btnBulkSave");
+            if (bulkSaveBtn) {
+                bulkSaveBtn.disabled = true;
+                bulkSaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+            }
+
+            let nextOrd = nextOrder();
+            const batch = writeBatch(db);
+
+            try {
+                parsed.forEach(row => {
+                    const ref = doc(collection(db, "banners"));
+                    batch.set(ref, {
+                        title: row.title,
+                        titleEn: row.titleEn || "",
+                        subtitle: "",
+                        subtitleEn: "",
+                        desktopImageUrl: row.desktopImageUrl,
+                        mobileImageUrl: row.mobileImageUrl || "",
+                        linkUrl: row.linkUrl || "",
+                        buttonText: "Mua vé ngay",
+                        buttonTextEn: "Book now",
+                        type: "hero",
+                        position: "home_hero",
+                        order: Number(row.order || nextOrd++),
+                        isActive: true,
+                        status: "active",
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                });
+
+                await batch.commit();
+                toast("success", "Thành công", `Đã thêm ${parsed.length} banner mới.`);
+                closeBannerModal();
+            } catch(err) {
+                toast("error", "Lỗi thêm hàng loạt", err.message);
+            } finally {
+                isSavingBanner = false;
+                showLoading(false);
+                if (bulkSaveBtn) {
+                    bulkSaveBtn.disabled = false;
+                    bulkSaveBtn.innerText = isManual ? 'Lưu banner thủ công' : 'Lưu hàng loạt';
+                }
+            }
+        }
+
         function handleSorting(event) {
             const header = event.target.closest(".sort-header");
             if (!header) return;
@@ -510,7 +1628,6 @@
                 state.sortDirection = "asc";
             }
 
-            // Update all sorting icons
             document.querySelectorAll(".sort-header i").forEach(icon => {
                 icon.className = "fas fa-sort";
             });
@@ -522,16 +1639,63 @@
             filter();
         }
 
-        function bind() {
-            [$("imageUrl"), $("posterUrl"), $("title"), $("subtitle")].forEach(x => x.addEventListener("input", preview));
-            $("btnAdd").onclick = () => openForm(null);
+        function toggleSelectAllBanners(checked) {
+            if(checked) {
+                state.filtered.forEach(x => state.selectedIds.add(x.id));
+            } else {
+                state.selectedIds.clear();
+            }
+            render();
+        }
 
-            // Table headers sorting
+        function updateSelectedBanners() {
+            state.selectedIds.clear();
+            document.querySelectorAll(".banner-row-check").forEach(chk => {
+                if (chk.checked) {
+                    state.selectedIds.add(chk.value);
+                }
+            });
+            updateBulkActionBar();
+        }
+
+        function bind() {
+            $("desktopImageUrl").addEventListener("input", debounce(() => {
+                updateImagePreview("desktopImageUrl", "desktopPreviewImg", "#desktopPreviewFrame", "btnOpenDesktopImg");
+            }, 300));
+            $("mobileImageUrl").addEventListener("input", debounce(() => {
+                updateImagePreview("mobileImageUrl", "mobilePreviewImg", "#mobilePreviewFrame", "btnOpenMobileImg");
+            }, 300));
+
+            $("title").addEventListener("input", () => {
+                $("desktopPreviewFrame").querySelector("strong").innerText = $("title").value.trim() || "Banner Desktop";
+                $("mobilePreviewFrame").querySelector("strong").innerText = $("title").value.trim() || "Mobile";
+            });
+            $("subtitle").addEventListener("input", () => {
+                $("desktopPreviewFrame").querySelector("span").innerText = $("subtitle").value.trim() || "Preview";
+                $("mobilePreviewFrame").querySelector("span").innerText = $("subtitle").value.trim() || "Preview";
+            });
+
+            $("btnOpenDesktopImg").onclick = () => {
+                const url = $("desktopImageUrl").value.trim();
+                if (url) window.open(url, "_blank");
+            };
+            $("btnOpenMobileImg").onclick = () => {
+                const url = $("mobileImageUrl").value.trim();
+                if (url) window.open(url, "_blank");
+            };
+
+            el.form.onsubmit = save;
+            el.bulkForm.onsubmit = bulkAddBanners;
+
+            $("btnBulkDelete").onclick = bulkSoftDeleteBanners;
+            $("btnBulkActive").onclick = () => bulkUpdateActive(true);
+            $("btnBulkInactive").onclick = () => bulkUpdateActive(false);
+
             document.querySelectorAll(".sort-header").forEach(header => {
                 header.addEventListener("click", handleSorting);
             });
 
-            [el.q, el.active, el.date].forEach(x => {
+            [el.q, el.active, el.date, el.typeFilter].forEach(x => {
                 x.addEventListener("input", () => {
                     state.page = 1;
                     filter();
@@ -556,40 +1720,122 @@
                 }
             };
 
-            document.addEventListener("click", e => {
-                const closeBtn = e.target.closest("[data-close-modal]");
-                if (closeBtn) {
-                    closeForm();
+            // Event Delegation for clicks
+            document.addEventListener("click", async function (e) {
+                const addBtn = e.target.closest("[data-action='add-banner']");
+                if (addBtn) {
+                    e.preventDefault();
+                    openBannerModal("create");
                     return;
                 }
 
-                const b = e.target.closest("[data-a]");
-                if (!b) return;
-                const item = state.items.find(x => x.id === b.dataset.id);
-                if (!item) return;
+                const bulkAddBtn = e.target.closest("[data-action='bulk-add-banner']");
+                if (bulkAddBtn) {
+                    e.preventDefault();
+                    openBulkAddBannerModal();
+                    return;
+                }
 
-                if (b.dataset.a === "edit") openForm(item);
-                if (b.dataset.a === "delete") remove(item);
-                if (b.dataset.a === "toggle") toggle(item);
-            });
+                const editBtn = e.target.closest("[data-action='edit-banner']");
+                if (editBtn) {
+                    e.preventDefault();
+                    const id = editBtn.dataset.id;
+                    openBannerModal("edit", id);
+                    return;
+                }
 
-            // Modal overlay click to close
-            document.querySelectorAll(".admin-modal").forEach(modal => {
-                modal.addEventListener("click", (e) => {
-                    if (e.target === modal) {
-                        closeForm();
-                    }
-                });
-            });
+                const toggleBtn = e.target.closest("[data-action='toggle-banner']");
+                if (toggleBtn) {
+                    e.preventDefault();
+                    const id = toggleBtn.dataset.id;
+                    await toggleBannerStatus(id);
+                    return;
+                }
 
-            // ESC key to close modals
-            window.addEventListener("keydown", (e) => {
-                if (e.key === "Escape") {
-                    closeForm();
+                const deleteBtn = e.target.closest("[data-action='delete-banner']");
+                if (deleteBtn) {
+                    e.preventDefault();
+                    const id = deleteBtn.dataset.id;
+                    await softDeleteBanner(id);
+                    return;
+                }
+
+                const selectAll = e.target.closest("#selectAllBanners");
+                if (selectAll) {
+                    toggleSelectAllBanners(selectAll.checked);
+                    return;
+                }
+
+                const rowCheck = e.target.closest(".banner-row-check");
+                if (rowCheck) {
+                    updateSelectedBanners();
+                    return;
+                }
+
+                const closeBtn = e.target.closest("[data-action='close-banner-modal']");
+                if (closeBtn) {
+                    e.preventDefault();
+                    closeBannerModal();
+                    return;
+                }
+
+                const pasteBtn = e.target.closest("[data-action='paste-bulk-sample']");
+                if (pasteBtn) {
+                    e.preventDefault();
+                    $("bulkBannerInput").value = sampleText;
+                    runBulkValidation();
+                    return;
+                }
+                
+                const clearBtn = e.target.closest("[data-action='clear-bulk-input']");
+                if (clearBtn) {
+                    e.preventDefault();
+                    $("bulkBannerInput").value = "";
+                    $("bulkBannerPreview").innerHTML = '<div style="font-size: 12px; color: #94a3b8; text-align: center; padding: 20px 0;">Nhấp "Kiểm tra dữ liệu" để xem kết quả</div>';
+                    return;
+                }
+
+                const valBtn = e.target.closest("[data-action='validate-bulk-input']");
+                if (valBtn) {
+                    e.preventDefault();
+                    runBulkValidation();
+                    return;
+                }
+
+                const tabBtn = e.target.closest(".bulk-tab-btn");
+                if (tabBtn) {
+                    e.preventDefault();
+                    switchBulkTab(tabBtn.dataset.tab);
+                    return;
+                }
+
+                const addRowBtn = e.target.closest("[data-action='add-manual-banner-row']");
+                if (addRowBtn) {
+                    e.preventDefault();
+                    addManualBannerRow();
+                    return;
+                }
+
+                const removeRowBtn = e.target.closest("[data-action='remove-manual-banner-row']");
+                if (removeRowBtn) {
+                    e.preventDefault();
+                    const row = removeRowBtn.closest(".manual-banner-row");
+                    if (row) row.remove();
+                    return;
                 }
             });
 
-            // Drag and drop reordering handlers
+            const overlay = document.getElementById("bannerModalOverlay");
+            if (overlay) {
+                overlay.addEventListener("click", closeBannerModal);
+            }
+
+            window.addEventListener("keydown", (e) => {
+                if (e.key === "Escape") {
+                    closeBannerModal();
+                }
+            });
+
             el.body.addEventListener("dragstart", e => {
                 const tr = e.target.closest("tr[data-row]");
                 if (tr) {
@@ -606,6 +1852,10 @@
             });
         }
 
+        const norm = v => String(v || "").trim().toLowerCase();
+        
+        const sampleText = "The Punisher: Phát Súng Cuối Cùng | https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=1920&q=80 | https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=750&q=80 | /Movies/Details?id=xxx | 1\nAERO Summer Promotion | https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1920&q=80 | | /Home/Promotions | 2";
+
         function attach() {
             state.unsub?.();
             state.unsub = onSnapshot(collection(db, "banners"), s => {
@@ -613,12 +1863,20 @@
                     id: d.id,
                     ...d.data()
                 }));
+                const currentIds = new Set(state.items.map(x => x.id));
+                const newSelected = new Set();
+                state.selectedIds.forEach(id => {
+                    if (currentIds.has(id)) newSelected.add(id);
+                });
+                state.selectedIds = newSelected;
+                
                 fillStats();
                 filter();
             }, e => toast("error", "Không thể tải banners", e.message));
         }
 
         bind();
+        closeBannerModal(); // Clean overlays on run
         window.addEventListener("aero-admin-ready", attach, { once: true });
         if (window.AeroAdmin?.state?.ready) attach();
         window.addEventListener("beforeunload", () => state.unsub?.());

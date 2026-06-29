@@ -88,6 +88,14 @@
             document.getElementById(id).classList.toggle("show", show);
         }
 
+        function getLang() {
+            return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+        }
+
+        function isEnglish() {
+            return getLang() === "en";
+        }
+
         function showError(title, message) {
             Swal.fire({
                 icon: "error",
@@ -119,10 +127,26 @@
 
             if (!url) return null;
             if (!url.startsWith("/") || url.startsWith("//") || url.includes("://")) return null;
-            if (url.toLowerCase().startsWith("/admin")) return null;
-
+            // NOTE: /Admin URLs are allowed here – admin will be redirect-checked by role anyway
             return url;
         }
+
+        // === Detect admin context ===
+        function isAdminContext() {
+            const params = new URLSearchParams(window.location.search);
+            const returnUrl = params.get("returnUrl") || sessionStorage.getItem("aero_return_url") || "";
+            return returnUrl.toLowerCase().startsWith("/admin") || params.get("area") === "admin";
+        }
+
+        // === Update title/subtitle based on context ===
+        (function updateLoginContext() {
+            if (!isAdminContext()) return;
+            const titleEl = document.querySelector(".auth-title");
+            const subtitleEl = document.querySelector(".auth-subtitle");
+            const lang = window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || "vi");
+            if (titleEl) titleEl.innerText = lang === "en" ? "ADMIN LOGIN" : "ĐĂNG NHẬP QUẢN TRỊ";
+            if (subtitleEl) subtitleEl.innerText = lang === "en" ? "Sign in with your admin account to access the control panel." : "Vui lòng đăng nhập tài khoản quản trị để tiếp tục.";
+        })();
 
         function isSafeLocalUrl(url) {
             return typeof url === "string" && url.startsWith("/") && !url.startsWith("//") && !url.includes("://");
@@ -181,7 +205,7 @@
             if (!result.exists) {
                 console.warn("[Login] profile not found");
                 await signOut(auth);
-                throw new Error("Không tìm thấy hồ sơ người dùng.");
+                throw new Error(isEnglish() ? "User profile was not found." : "Không tìm thấy hồ sơ người dùng.");
             }
 
             console.log("[Login] profile loaded");
@@ -194,9 +218,9 @@
                 console.warn("[Login] user blocked");
                 await signOut(auth);
                 if (status === "blocked") {
-                    throw new Error("Tài khoản đã bị khóa.");
+                    throw new Error(isEnglish() ? "This account has been locked." : "Tài khoản đã bị khóa.");
                 }
-                throw new Error(`Tài khoản đang có status = "${status}". Chỉ tài khoản active mới được đăng nhập.`);
+                throw new Error(isEnglish() ? `Account status is "${status}". Only active accounts can log in.` : `Tài khoản đang có status = "${status}". Chỉ tài khoản active mới được đăng nhập.`);
             }
 
             // Cache auth user
@@ -280,12 +304,12 @@
 
             isLoggingIn = true;
             loginSubmitBtn.disabled = true;
-            loginSubmitText.textContent = "Đang đăng nhập...";
+            loginSubmitText.textContent = isEnglish() ? "Logging in..." : "Đang đăng nhập...";
             console.log("[Login] start");
 
             Swal.fire({
-                title: "Đang đăng nhập...",
-                text: "Vui lòng chờ trong giây lát",
+                title: isEnglish() ? "Logging in..." : "Đang đăng nhập...",
+                text: isEnglish() ? "Please wait a moment" : "Vui lòng chờ trong giây lát",
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading(),
                 background: "#ffffff",
@@ -297,11 +321,11 @@
                 if (!hasRedirected) {
                     isLoggingIn = false;
                     loginSubmitBtn.disabled = false;
-                    loginSubmitText.textContent = "Đăng nhập";
+                    loginSubmitText.textContent = isEnglish() ? "Login" : "Đăng nhập";
                     Swal.fire({
                         icon: "warning",
-                        title: "Đăng nhập chậm",
-                        text: "Kết nối chậm, vui lòng thử lại.",
+                        title: isEnglish() ? "Login is taking longer than usual" : "Đăng nhập chậm",
+                        text: isEnglish() ? "The connection is slow. Please try again." : "Kết nối chậm, vui lòng thử lại.",
                         background: "#ffffff",
                         color: "#333333",
                         confirmButtonColor: "#f58220"
@@ -326,8 +350,8 @@
 
                 Swal.fire({
                     icon: "success",
-                    title: "Đăng nhập thành công",
-                    text: "Đang chuyển hướng...",
+                    title: isEnglish() ? "Login successful" : "Đăng nhập thành công",
+                    text: isEnglish() ? "Redirecting..." : "Đang chuyển hướng...",
                     background: "#ffffff",
                     color: "#333333",
                     confirmButtonColor: "#f58220",
@@ -341,24 +365,24 @@
                 clearTimeout(timeoutId);
                 console.error("Error signing in:", error);
 
-                let message = error.message || "Email hoặc mật khẩu không chính xác.";
+                let message = error.message || (isEnglish() ? "Email or password is incorrect." : "Email hoặc mật khẩu không chính xác.");
                 if (error.code === "auth/invalid-email") {
-                    message = "Email không hợp lệ.";
+                    message = isEnglish() ? "Invalid email." : "Email không hợp lệ.";
                 } else if (error.code === "auth/user-disabled") {
-                    message = "Tài khoản này đã bị khóa.";
+                    message = isEnglish() ? "This account has been locked." : "Tài khoản này đã bị khóa.";
                 } else if (error.code === "auth/user-not-found") {
-                    message = "Tài khoản không tồn tại.";
+                    message = isEnglish() ? "Account does not exist." : "Tài khoản không tồn tại.";
                 } else if (error.code === "auth/wrong-password") {
-                    message = "Mật khẩu không chính xác.";
+                    message = isEnglish() ? "Incorrect password." : "Mật khẩu không chính xác.";
                 } else if (error.code === "auth/invalid-credential") {
-                    message = "Email hoặc mật khẩu không chính xác.";
+                    message = isEnglish() ? "Email or password is incorrect." : "Email hoặc mật khẩu không chính xác.";
                 }
 
-                showError("Đăng nhập thất bại", message);
+                showError(isEnglish() ? "Login failed" : "Đăng nhập thất bại", message);
                 
                 isLoggingIn = false;
                 loginSubmitBtn.disabled = false;
-                loginSubmitText.textContent = "Đăng nhập";
+                loginSubmitText.textContent = isEnglish() ? "Login" : "Đăng nhập";
             }
         });
     </script>

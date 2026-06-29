@@ -389,6 +389,15 @@
             <span>Vé điện tử đã được gửi đến email của bạn.</span>
         </div>
 
+        <!-- POINTS EARNED BANNER -->
+        <div id="pointsEarnedBox" style="display: none; align-items: center; justify-content: center; gap: 10px; margin: 0 auto 25px auto; padding: 12px 24px; border-radius: 30px; background: linear-gradient(135deg, rgba(245,130,32,0.12), rgba(245,130,32,0.06)); border: 1px solid rgba(245,130,32,0.4); max-width: 420px;">
+            <i class="fas fa-star" style="color: #f58220; font-size: 18px;"></i>
+            <div style="text-align: left;">
+                <div style="font-size: 14px; font-weight: 800; color: #f58220;" id="pointsEarnedText">+0 điểm tích lũy</div>
+                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;" id="pointsRankText">Hạng thành viên hiện tại: Standard</div>
+            </div>
+        </div>
+
         <!-- PHYSICAL TICKET VIEW -->
         <div class="ticket-container">
             
@@ -487,6 +496,7 @@
 
         const auth = window.auth;
         const db = window.db;
+        let currentUser = null;
 
         // Parameters
         const urlParams = new URLSearchParams(window.location.search);
@@ -527,6 +537,7 @@
                 window.location.href = `/Account/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
                 return;
             }
+            currentUser = user;
 
             if (!bookingId) {
                 Swal.fire({
@@ -657,6 +668,34 @@
                     if (emailBox) {
                         emailBox.style.display = "flex";
                     }
+                }
+
+                // === Show points earned banner ===
+                try {
+                    const pointsBox = document.getElementById("pointsEarnedBox");
+                    if (pointsBox && bookingData.pointsAdded === true && bookingData.earnedPoints > 0) {
+                        const earned = Number(bookingData.earnedPoints || 0);
+                        const lang = localStorage.getItem("language") || "vi";
+                        
+                        document.getElementById("pointsEarnedText").innerText = lang === "en"
+                            ? `+${earned} reward points earned!`
+                            : `+${earned} điểm tích lũy đã được cộng!`;
+                        
+                        if (currentUser) {
+                            const userSnap = await getDoc(doc(db, "users", currentUser.uid));
+                            if (userSnap.exists()) {
+                                const uData = userSnap.data();
+                                const rank = uData.memberRank || "Standard";
+                                const totalPts = Number(uData.points || 0);
+                                document.getElementById("pointsRankText").innerText = lang === "en"
+                                    ? `Current Rank: ${rank} (${totalPts} pts total)`
+                                    : `Hạng thành viên hiện tại: ${rank} (${totalPts} điểm)`;
+                            }
+                        }
+                        pointsBox.style.display = "flex";
+                    }
+                } catch (pointsErr) {
+                    console.warn("Error displaying points banner:", pointsErr);
                 }
 
             } catch (error) {

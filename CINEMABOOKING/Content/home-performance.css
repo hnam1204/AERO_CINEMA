@@ -1,0 +1,975 @@
+/* ═══════════════════════════════════════════════════════════════════
+       1. HERO SLIDER BANNER ─ AERO Cinema Full-Width Style
+       KEY: .site-wrapper in _Layout has max-width:1200px.
+       We break out of it with width:100vw + margin-left:calc(50% - 50vw).
+       ═══════════════════════════════════════════════════════════════════ */
+
+    .aero-hero-galaxy {
+        position: relative;
+        width: 100%;
+        margin: 0 0 60px;
+        padding: 0;
+        overflow: visible;
+        background: #081120;
+    }
+
+    .aero-hero-stage {
+        position: relative;
+        width: 100vw;
+        height: 620px;
+        margin-left: calc(50% - 50vw);
+        overflow: hidden;
+        background: #081120;
+        perspective: 1400px;
+    }
+
+    .aero-hero-track {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        gap: 44px;
+        transition: transform .58s cubic-bezier(.22,.61,.36,1);
+        will-change: transform;
+        transform-style: preserve-3d;
+    }
+
+    .aero-hero-slide {
+        position: relative;
+        flex: 0 0 78vw;
+        max-width: 1500px;
+        height: 515px;
+        overflow: hidden;
+        background: #111827;
+        border-radius: 2px;
+        opacity: .45;
+        filter: brightness(.72) contrast(1.02);
+        transform: translateY(34px) scale(.86) rotateY(0deg);
+        transition:
+            transform .55s cubic-bezier(.22,.61,.36,1),
+            opacity .45s ease,
+            filter .45s ease;
+        transform-style: preserve-3d;
+    }
+
+    .aero-hero-slide.is-active {
+        opacity: 1;
+        filter: brightness(1.1) contrast(1.05) saturate(1.06);
+        transform: translateY(0) scale(1) rotateY(0deg);
+        z-index: 5;
+        box-shadow: 0 18px 60px rgba(0,0,0,.45);
+    }
+
+    .aero-hero-slide.is-prev {
+        opacity: .85;
+        filter: brightness(.92) contrast(1.03);
+        transform: translateY(16px) scale(.95) rotateY(9deg);
+        z-index: 3;
+    }
+
+    .aero-hero-slide.is-next {
+        opacity: .85;
+        filter: brightness(.92) contrast(1.03);
+        transform: translateY(16px) scale(.95) rotateY(-9deg);
+        z-index: 3;
+    }
+
+    .aero-hero-slide.is-far-left {
+        opacity: .42;
+        filter: brightness(.65);
+        transform: translateY(42px) scale(.82) rotateY(16deg);
+        z-index: 1;
+    }
+
+    .aero-hero-slide.is-far-right {
+        opacity: .42;
+        filter: brightness(.65);
+        transform: translateY(42px) scale(.82) rotateY(-16deg);
+        z-index: 1;
+    }
+
+    .aero-hero-slide img {
+        position: absolute;
+        inset: 0;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        object-fit: cover;
+        object-position: center center;
+        display: block;
+        border-radius: 2px;
+    }
+
+    .aero-hero-slide::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            0deg,
+            rgba(0,0,0,0.85) 0%,
+            rgba(0,0,0,0.4) 50%,
+            rgba(0,0,0,0.1) 100%
+        );
+        pointer-events: none;
+        z-index: 1;
+        border-radius: 2px;
+    }
+
+    .aero-hero-content {
+        position: absolute;
+        bottom: 40px;
+        left: 40px;
+        right: 40px;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        color: #fff;
+        pointer-events: none;
+    }
+
+    .aero-hero-title {
+        font-size: 36px;
+        font-weight: 900;
+        margin: 0 0 10px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+        text-transform: uppercase;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .aero-hero-subtitle {
+        font-size: 16px;
+        font-weight: 500;
+        margin: 0 0 20px;
+        opacity: 0.9;
+        text-shadow: 0 2px 6px rgba(0,0,0,0.5);
+        max-width: 800px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .aero-hero-btn {
+        pointer-events: auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 28px;
+        background: #f58220;
+        color: #fff;
+        font-weight: 800;
+        font-size: 15px;
+        border-radius: 8px;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(245, 130, 32, 0.4);
+        transition: transform 0.2s, background 0.2s;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .aero-hero-btn:hover {
+        background: #e67312;
+        transform: translateY(-2px);
+    }
+
+    .aero-hero-arrow {
+        position: absolute;
+        top: 50%;
+        z-index: 25;
+        width: 54px;
+        height: 54px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(15,23,42,.68);
+        color: #fff;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transform: translateY(-50%);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 12px 28px rgba(0,0,0,.22);
+        transition: .22s ease;
+    }
+
+    .aero-hero-arrow:hover {
+        background: #f58220;
+        transform: translateY(-50%) scale(1.08);
+    }
+
+    .aero-hero-prev {
+        left: 10px;
+    }
+
+    .aero-hero-next {
+        right: 10px;
+    }
+
+    .aero-hero-dots {
+        position: absolute;
+        left: 50%;
+        bottom: 82px;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        z-index: 30;
+    }
+
+    .aero-hero-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(255,255,255,.85);
+        background: rgba(255,255,255,.48);
+        cursor: pointer;
+        transition: .2s ease;
+        padding: 0;
+    }
+
+    .aero-hero-dot.active {
+        width: 30px;
+        background: #f58220;
+        border-color: #f58220;
+    }
+
+    /* RESPONSIVE: Mobile — disable 3D tilt to prevent layout issues */
+    @@media (max-width: 767px) {
+        .aero-hero-stage {
+            height: 320px;
+            perspective: none;
+        }
+
+        .aero-hero-track {
+            gap: 14px;
+        }
+
+        .aero-hero-slide,
+        .aero-hero-slide.is-active,
+        .aero-hero-slide.is-prev,
+        .aero-hero-slide.is-next,
+        .aero-hero-slide.is-far-left,
+        .aero-hero-slide.is-far-right {
+            flex-basis: 100vw;
+            height: 300px;
+            opacity: 1;
+            filter: brightness(1.05);
+            transform: translateY(0) scale(1) rotateY(0deg);
+            border-radius: 8px;
+        }
+    }
+
+    /* 2. QUICK BOOKING BAR */
+    .aero-quick-booking-wrap {
+        position: absolute;
+        left: 50%;
+        bottom: -41px;
+        transform: translateX(-50%);
+        z-index: 40;
+        width: min(1140px, 88vw);
+    }
+
+    .aero-quick-booking {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) 220px;
+        background: #fff;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 26px 70px rgba(15,23,42,.24);
+    }
+
+    .quick-booking-field {
+        display: flex;
+        align-items: center;
+        height: 64px;
+        border-right: 1px solid #e5e7eb;
+        background: #fff;
+        position: relative;
+    }
+
+    .quick-step {
+        width: 24px;
+        height: 24px;
+        margin-left: 16px;
+        margin-right: 10px;
+        border-radius: 50%;
+        background: #f58220;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .quick-booking-field select {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        font-size: 15px;
+        font-weight: 700;
+        color: #334155;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        padding-right: 28px;
+        padding-left: 4px;
+    }
+
+    .quick-booking-field select:disabled {
+        color: #b7c0ce;
+        cursor: not-allowed;
+    }
+
+    .quick-booking-field::after {
+        content: '\f107';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        right: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        pointer-events: none;
+    }
+
+    .hero-booking-btn {
+        border: 0;
+        height: 64px;
+        background: #f5a667;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 900;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: .2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .hero-booking-btn:hover:not(:disabled) {
+        background: #f58220;
+    }
+
+    .hero-booking-btn:disabled {
+        background: #e5e7eb;
+        color: #94a3b8;
+        cursor: not-allowed;
+    }
+
+    /* 3. TABS MOVIE LIST SECTION */
+    .movies-section {
+        max-width: 1200px;
+        margin: 18px auto 60px auto;
+        padding: 0 20px;
+    }
+
+    .movies-tabs-nav {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 40px;
+        border-bottom: 2px solid var(--border-color);
+        padding-bottom: 10px;
+    }
+
+    .movie-tab-btn {
+        background: none;
+        border: none;
+        font-size: 18px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-sub);
+        padding: 8px 15px;
+        cursor: pointer;
+        position: relative;
+        transition: var(--transition);
+    }
+
+    .movie-tab-btn:hover {
+        color: var(--primary-color);
+    }
+
+    .movie-tab-btn::after {
+        content: '';
+        position: absolute;
+        bottom: -12px;
+        left: 0;
+        width: 0;
+        height: 4px;
+        background-color: var(--primary-color);
+        transition: var(--transition);
+    }
+
+    .movie-tab-btn.active {
+        color: var(--primary-color);
+    }
+
+    .movie-tab-btn.active::after {
+        width: 100%;
+    }
+
+    /* 4. GRID MOVIE CARDS DESIGN */
+    .movies-grid-display {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 30px;
+    }
+
+    .movie-display-card {
+        background-color: var(--bg-card);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
+        transition: var(--transition);
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .movie-display-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--primary-color);
+    }
+
+    .card-poster-wrapper {
+        position: relative;
+        padding-top: 145%; /* aspect ratio 2/3 roughly */
+        overflow: hidden;
+    }
+
+    .card-poster-wrapper img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+    }
+
+    .movie-display-card:hover .card-poster-wrapper img {
+        transform: scale(1.04);
+    }
+
+    /* Rating Tag on Poster */
+    .card-rating-tag {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 5;
+        color: #ffffff;
+        font-weight: 800;
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+
+    .card-rating-tag.badge-t18 { background-color: #d60000; }
+    .card-rating-tag.badge-t16 { background-color: #e67e22; }
+    .card-rating-tag.badge-t13 { background-color: #3498db; }
+    .card-rating-tag.badge-p { background-color: #2ecc71; }
+
+    .card-details {
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .card-movie-title {
+        font-size: 15px;
+        font-weight: 800;
+        color: var(--text-main);
+        margin: 0 0 8px 0;
+        text-transform: uppercase;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+    }
+
+    .card-movie-meta {
+        font-size: 12px;
+        color: var(--text-sub);
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .card-actions-row {
+        margin-top: auto;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .btn-card-detail {
+        border: 1px solid var(--primary-color);
+        color: var(--primary-color);
+        font-weight: 700;
+        font-size: 12px;
+        padding: 8px;
+        text-align: center;
+        border-radius: 6px;
+        transition: var(--transition);
+        text-transform: uppercase;
+    }
+
+    .btn-card-detail:hover {
+        background-color: var(--primary-color);
+        color: #ffffff;
+    }
+
+    .btn-card-buy {
+        background-color: var(--accent-color);
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 12px;
+        padding: 8px;
+        text-align: center;
+        border-radius: 6px;
+        transition: var(--transition);
+        text-transform: uppercase;
+    }
+
+    .btn-card-buy:hover {
+        background-color: var(--accent-hover);
+        color: #ffffff;
+    }
+
+    /* 5. OFFERS & PROMOTIONS SECTION */
+    .home-offers-section {
+        background-color: #ffffff;
+        padding: 60px 0;
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .home-offers-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .home-section-header {
+        font-size: 22px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--primary-color);
+        margin-bottom: 30px;
+        border-left: 4px solid var(--accent-color);
+        padding-left: 12px;
+    }
+
+    .offers-layout-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+
+    .offer-card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+        transition: var(--transition);
+    }
+
+    .offer-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--accent-color);
+    }
+
+    .offer-img-box {
+        position: relative;
+        padding-top: 56.25%;
+        overflow: hidden;
+    }
+
+    .offer-img-box img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .offer-text-box {
+        padding: 20px;
+    }
+
+    .offer-title {
+        font-size: 15px;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: var(--text-main);
+        margin-bottom: 8px;
+    }
+
+    .offer-desc {
+        font-size: 13px;
+        color: var(--text-sub);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* 6. AERO CINEMA INTRO SECTION */
+    .aero-home-intro {
+        max-width: 1100px;
+        margin: 56px auto 72px;
+        padding: 0 16px;
+    }
+
+    .aero-home-intro .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+
+    .aero-home-intro .section-title span {
+        width: 3px;
+        height: 26px;
+        background: #f58220;
+        display: inline-block;
+    }
+
+    .aero-home-intro .section-title h2 {
+        margin: 0;
+        color: #005baa;
+        font-size: 24px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .aero-home-intro-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 32px 36px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, .08);
+    }
+
+    .aero-home-intro-card p {
+        margin: 0 0 16px;
+        color: #475569;
+        font-size: 15.5px;
+        line-height: 1.8;
+    }
+
+    .aero-home-intro-card p:last-child {
+        margin-bottom: 0;
+    }
+
+    .aero-home-intro-card strong {
+        color: #005baa;
+        font-weight: 800;
+    }
+
+    @@media (max-width: 768px) {
+        .aero-home-intro {
+            margin: 40px auto 56px;
+        }
+        .aero-home-intro-card {
+            padding: 24px 20px;
+            border-radius: 16px;
+        }
+        .aero-home-intro .section-title h2 {
+            font-size: 21px;
+        }
+    }
+
+    /* Modal Trailer Styling */
+    .trailer-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    .trailer-modal.show {
+        display: flex;
+        opacity: 1;
+    }
+
+    .trailer-modal-content {
+        position: relative;
+        width: 85%;
+        max-width: 800px;
+        aspect-ratio: 16/9;
+        background: #000;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    .trailer-close-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 30px;
+        cursor: pointer;
+        z-index: 10;
+    }
+
+    .loading-spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 250px;
+        font-size: 14px;
+        color: var(--text-sub);
+        width: 100%;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    /* RESPONSIVE LAYOUT */
+    @@media (max-width: 1366px) {
+        .aero-hero-stage {
+            height: 590px;
+        }
+
+        .aero-hero-slide {
+            height: 490px;
+        }
+    }
+
+    @@media (max-width: 1199px) {
+        .aero-hero-stage {
+            height: 540px;
+        }
+        .aero-hero-slide {
+            flex-basis: 84vw;
+            height: 455px;
+        }
+        .aero-hero-track {
+            gap: 28px;
+        }
+    }
+
+    @@media (max-width: 991px) {
+        .aero-hero-galaxy {
+            margin-bottom: 245px;
+        }
+        .aero-hero-stage {
+            height: 430px;
+        }
+        .aero-hero-slide {
+            flex-basis: 88vw;
+            height: 375px;
+        }
+        .aero-quick-booking-wrap {
+            bottom: -205px;
+            width: calc(100% - 40px);
+        }
+        .aero-quick-booking {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            border-radius: 16px;
+        }
+        .hero-booking-btn {
+            grid-column: 1 / -1;
+            height: 60px;
+        }
+        .movies-grid-display  { grid-template-columns: repeat(3, 1fr); }
+        .offers-layout-grid   { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @@media (max-width: 767px) {
+        .aero-hero-galaxy {
+            margin-bottom: 330px;
+        }
+        .aero-hero-stage {
+            height: 320px;
+        }
+        .aero-hero-track {
+            gap: 14px;
+        }
+        .aero-hero-slide {
+            flex-basis: 100vw;
+            height: 300px;
+            opacity: 1;
+            transform: scale(1);
+            filter: brightness(1);
+        }
+        .aero-hero-arrow  { width: 38px; height: 38px; }
+        .aero-hero-prev {
+            left: 10px;
+        }
+        .aero-hero-next {
+            right: 10px;
+        }
+        .aero-hero-dots {
+            bottom: 20px;
+        }
+        .aero-quick-booking-wrap {
+            width: calc(100% - 24px);
+            bottom: -305px;
+        }
+        .aero-quick-booking {
+            grid-template-columns: 1fr;
+            border-radius: 18px;
+        }
+        .quick-booking-field {
+            height: 56px;
+            border-right: 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .hero-booking-btn {
+            height: 58px;
+        }
+        .movies-grid-display  { grid-template-columns: repeat(2, 1fr); }
+
+    }
+
+    @@media (max-width: 480px) {
+        .movies-grid-display  { grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .offers-layout-grid   { grid-template-columns: 1fr; }
+    }
+
+
+    /* Skeleton Shimmer Loading Effect */
+    .skeleton {
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 12px;
+    }
+    @@keyframes shimmer {
+        0% {
+            background-position: 200% 0;
+        }
+        100% {
+            background-position: -200% 0;
+        }
+    }
+    .skeleton-banner {
+        width: 100%;
+        height: 500px;
+        border-radius: 0;
+    }
+    .skeleton-movie-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+    }
+    .skeleton-movie-poster {
+        width: 100%;
+        padding-top: 145%;
+        border-radius: 12px 12px 0 0;
+    }
+    .skeleton-movie-info {
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-grow: 1;
+    }
+    .skeleton-movie-title {
+        height: 18px;
+        width: 80%;
+    }
+    .skeleton-movie-text {
+        height: 12px;
+        width: 50%;
+    }
+    .skeleton-movie-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: auto;
+    }
+    .skeleton-movie-btn {
+        height: 32px;
+        border-radius: 6px;
+    }
+    .skeleton-offer-card {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+    }
+    .skeleton-offer-image {
+        width: 100%;
+        padding-top: 56.25%;
+        border-radius: 12px 12px 0 0;
+    }
+    .skeleton-offer-info {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .skeleton-offer-title {
+        height: 18px;
+        width: 70%;
+    }
+    .skeleton-offer-desc {
+        height: 12px;
+        width: 90%;
+    }
+    .skeleton-cinema-card {
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        padding: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    .skeleton-cinema-title {
+        height: 20px;
+        width: 60%;
+    }
+    .skeleton-cinema-line {
+        height: 12px;
+        width: 80%;
+    }
+    .skeleton-cinema-btn {
+        height: 36px;
+        width: 120px;
+        border-radius: 6px;
+        margin-top: 10px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            animation: none !important;
+            transition: none !important;
+            scroll-behavior: auto !important;
+        }
+    }

@@ -228,11 +228,13 @@
             align-items: center;
         }
 
-        .lang-switch span {
+        .lang-switch [data-lang] {
             cursor: pointer;
+            font-weight: 800;
+            color: #64748b;
         }
 
-        .lang-switch .active {
+        .lang-switch [data-lang].active {
             color: var(--accent-color);
         }
 
@@ -426,9 +428,9 @@
             </div>
 
             <div class="lang-switch d-none d-sm-flex">
-                <span id="lang-toggle-vi" onclick="setLanguage('vi')">VI</span>
+                <span id="lang-toggle-vi" data-lang="vi" role="button" tabindex="0" onclick="setAeroLanguage('vi')">VI</span>
                 <span style="color: #ccc;">|</span>
-                <span id="lang-toggle-en" onclick="setLanguage('en')">EN</span>
+                <span id="lang-toggle-en" data-lang="en" role="button" tabindex="0" onclick="setAeroLanguage('en')">EN</span>
             </div>
 
             <button type="button" class="nav-hamburger" onclick="toggleMobileMenu()" aria-label="Menu Toggle" aria-controls="headerNav" aria-expanded="false">
@@ -490,7 +492,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="~/Scripts/aero-localize.js"></script>
+    <script src="@Url.Content("~/Scripts/aero-i18n.js?v=20260629")"></script>
 
     <script>
         function toggleMobileMenu() {
@@ -636,19 +638,6 @@
                     return false;
                 };
             });
-
-            // Warn banner insertion
-            if (!document.getElementById('admin-warning-banner')) {
-                const banner = document.createElement('div');
-                banner.id = 'admin-warning-banner';
-                banner.style.cssText = 'background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 12px; margin: 15px 40px; border-radius: 8px; font-weight: 700; text-align: center; font-size: 14px;';
-                banner.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Bạn đang đăng nhập bằng tài khoản quản trị. Vui lòng dùng tài khoản người dùng để đặt vé.';
-                
-                const mainWrapper = document.querySelector('.site-wrapper');
-                if (mainWrapper) {
-                    mainWrapper.insertBefore(banner, mainWrapper.firstChild);
-                }
-            }
         }
 
         function startAdminObserver() {
@@ -705,6 +694,7 @@
                             status = cached.status || status;
                             fullName = cached.fullName || fullName;
                             if (cached.language) {
+                                localStorage.setItem("aero_lang", cached.language);
                                 localStorage.setItem("language", cached.language);
                                 if (window.applyLanguage) {
                                     window.applyLanguage(cached.language);
@@ -725,7 +715,8 @@
                             status = String(userData.status || "active").trim().toLowerCase();
                             fullName = userData.fullName || "";
 
-                            const userLang = userData.language || localStorage.getItem("language") || "vi";
+                            const userLang = userData.language || (window.getCurrentLang ? window.getCurrentLang() : localStorage.getItem("aero_lang")) || "vi";
+                            localStorage.setItem("aero_lang", userLang);
                             localStorage.setItem("language", userLang);
                             if (window.applyLanguage) {
                                 window.applyLanguage(userLang);
@@ -797,7 +788,7 @@
                 }
 
                 const displayName = fullName || user.displayName || user.email || "TÀI KHOẢN";
-                const currentLang = localStorage.getItem("language") || "vi";
+                const currentLang = window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || "vi");
                 const roleLabelVal = isAdmin ? "Admin" : (currentLang === "en" ? "Member" : "Thành viên");
                 const logoutText = currentLang === "en" ? "Logout" : "Đăng xuất";
 
@@ -812,7 +803,7 @@
                     if (logoutBtn) {
                         logoutBtn.addEventListener("click", async (e) => {
                             e.preventDefault();
-                            const isEn = localStorage.getItem("language") === "en";
+                            const isEn = (window.getCurrentLang ? window.getCurrentLang() : localStorage.getItem("aero_lang")) === "en";
                             Swal.fire({
                                 title: isEn ? 'Are you sure you want to log out?' : 'Bạn có chắc chắn muốn đăng xuất?',
                                 icon: 'question',
@@ -860,8 +851,9 @@
                 if (adminLink) adminLink.style.display = "none";
 
                 if (authLinks) {
-                    const loginText = (localStorage.getItem("language") || "vi") === "en" ? "Login" : "Đăng nhập";
-                    const regText = (localStorage.getItem("language") || "vi") === "en" ? "Register" : "Đăng ký";
+                    const isEn = (window.getCurrentLang ? window.getCurrentLang() : localStorage.getItem("aero_lang")) === "en";
+                    const loginText = isEn ? "Login" : "Đăng nhập";
+                    const regText = isEn ? "Register" : "Đăng ký";
                     authLinks.innerHTML = `
                         <a href="@Url.Action("Login", "Account")" data-translate="nav_login">${loginText}</a>
                         <span style="color:#ddd">|</span>

@@ -137,6 +137,7 @@
     <Compile Include="Controllers\MoviesController.cs" />
     <Compile Include="Controllers\OtpController.cs" />
     <Compile Include="Controllers\ShowtimesController.cs" />
+    <Compile Include="Controllers\NewsController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
@@ -176,6 +177,7 @@
     <Content Include="Content\bootstrap-utilities.min.css" />
     <Content Include="Content\bootstrap-utilities.rtl.css" />
     <Content Include="Content\bootstrap-utilities.rtl.min.css" />
+    <Content Include="Content\admin-design-system.css" />
     <Content Include="Content\auth.css" />
     <Content Include="Content\chatbot.css" />
     <Content Include="Content\bootstrap.css" />
@@ -185,6 +187,9 @@
     <Content Include="Content\responsive.css" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
+    <Content Include="Content\images\banner-placeholder.jpeg" />
+    <Content Include="Content\images\banner-placeholder.jpg" />
+    <Content Include="Content\images\news-placeholder.jpg" />
     <Content Include="Scripts\bootstrap.bundle.js" />
     <Content Include="Scripts\bootstrap.bundle.min.js" />
     <Content Include="Scripts\bootstrap.esm.js" />
@@ -203,11 +208,16 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="Scripts\aero-business-logic.js" />
+    <Content Include="Scripts\aero-i18n.js" />
     <Content Include="Scripts\aero-localize.js" />
     <Content Include="Scripts\aero-chatbot.js" />
+    <Content Include="Scripts\aero-status-updater.js" />
     <Content Include="Scripts\AIProvider.js" />
     <Content Include="Scripts\chatbot-cache.js" />
     <Content Include="Scripts\chatbot-services.js" />
+    <Content Include="Scripts\firebase-config.js" />
+    <Content Include="Scripts\firebase-init.js" />
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -219,6 +229,7 @@
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Shared\Error.cshtml" />
     <Content Include="Views\Shared\_AdminLayout.cshtml" />
+    <Content Include="Views\Shared\_AdminLayout.original.cshtml" />
     <Content Include="Views\Shared\_Layout.cshtml" />
     <Content Include="Views\Home\About.cshtml" />
     <Content Include="Views\Home\Contact.cshtml" />
@@ -259,9 +270,13 @@
     <Content Include="Views\Home\Membership.cshtml" />
     <Content Include="Views\Home\Support.cshtml" />
     <Content Include="Views\Home\Policy.cshtml" />
+    <Content Include="Views\News\Index.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <None Include="firebase.json" />
+    <None Include="firestore.indexes.json" />
+    <None Include="firestore.rules" />
     <Content Include="Content\bootstrap.rtl.min.css.map" />
     <Content Include="Content\bootstrap.rtl.css.map" />
     <Content Include="Content\bootstrap.min.css.map" />
@@ -287,6 +302,14 @@
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.0.min.map" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
+    <None Include="Properties\PublishProfiles\FolderProfile1.pubxml" />
+    <None Include="Properties\PublishProfiles\FolderProfile2.pubxml" />
+    <None Include="Properties\PublishProfiles\FolderProfile3.pubxml" />
+    <None Include="Properties\PublishProfiles\FolderProfile4.pubxml" />
+    <None Include="Properties\PublishProfiles\FolderProfile5.pubxml" />
+    <None Include="Properties\PublishProfiles\FTPProfile.pubxml" />
+    <None Include="Properties\PublishProfiles\FTPProfile1.pubxml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

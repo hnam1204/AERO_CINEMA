@@ -4,233 +4,894 @@
 
 <style>
     .services-wrapper {
-        margin-bottom: 50px;
+        margin-bottom: 72px;
     }
 
     .services-hero {
         position: relative;
-        padding: 60px 20px;
-        text-align: center;
-        background: linear-gradient(135deg, #1e1b29 0%, #0b0b0d 100%);
-        border-radius: 12px;
-        margin-bottom: 40px;
-        border: 1px solid var(--border-color);
+        max-width: 1120px;
+        margin: 32px auto 42px;
+        padding: 56px 28px;
+        border-radius: 18px;
         overflow: hidden;
+        text-align: center;
+        color: #fff;
+        background:
+            radial-gradient(circle at 18% 20%, rgba(245,130,32,.28), transparent 30%),
+            radial-gradient(circle at 82% 15%, rgba(0,91,170,.35), transparent 34%),
+            linear-gradient(135deg, #0b1020 0%, #111827 55%, #050816 100%);
+        box-shadow: 0 22px 60px rgba(15,23,42,.22);
     }
 
-    .services-hero::before {
-        content: '';
+    .services-hero::after {
+        content: "";
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(41, 188, 234, 0.05) 0%, transparent 60%);
+        inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+        background-size: 22px 22px;
+        opacity: .22;
         pointer-events: none;
     }
 
+    .services-hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .services-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        margin-bottom: 16px;
+        border-radius: 999px;
+        background: rgba(245,130,32,.16);
+        border: 1px solid rgba(245,130,32,.35);
+        color: #ffb36b;
+        font-weight: 900;
+        font-size: 13px;
+        letter-spacing: .6px;
+        text-transform: uppercase;
+    }
+
     .services-hero h1 {
+        margin: 0;
         font-size: 36px;
         font-weight: 900;
+        line-height: 1.25;
         text-transform: uppercase;
-        color: #fff;
-        margin-bottom: 15px;
-        letter-spacing: 1px;
+        text-shadow: 0 3px 0 rgba(0,0,0,.32);
     }
 
     .services-hero h1 span {
-        color: var(--accent-color);
+        color: #f58220;
     }
 
     .services-hero p {
-        font-size: 15px;
-        color: var(--text-sub);
-        max-width: 600px;
-        margin: 0 auto;
+        max-width: 760px;
+        margin: 14px auto 0;
+        color: rgba(255,255,255,.76);
+        font-size: 15.5px;
+        line-height: 1.7;
     }
 
     .services-grid {
+        max-width: 1120px;
+        margin: 0 auto 80px;
+        padding: 0 16px;
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 30px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 28px;
     }
 
     .service-card {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 35px;
-        display: flex;
-        gap: 25px;
-        transition: var(--transition);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        position: relative;
+        display: grid;
+        grid-template-columns: 82px 1fr;
+        gap: 20px;
+        min-height: 260px;
+        padding: 28px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        box-shadow: 0 18px 42px rgba(15,23,42,.10);
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        overflow: hidden;
+    }
+
+    .service-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at top left, rgba(245,130,32,.10), transparent 34%),
+            radial-gradient(circle at bottom right, rgba(0,91,170,.08), transparent 36%);
+        opacity: 0;
+        transition: opacity .25s ease;
+        pointer-events: none;
     }
 
     .service-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--accent-color);
-        box-shadow: 0 15px 35px rgba(41, 188, 234, 0.15);
+        transform: translateY(-6px);
+        border-color: rgba(245,130,32,.36);
+        box-shadow: 0 26px 64px rgba(15,23,42,.16);
+    }
+
+    .service-card:hover::before {
+        opacity: 1;
     }
 
     .service-icon {
-        width: 60px;
-        height: 60px;
-        background-color: rgba(41, 188, 234, 0.1);
-        color: var(--accent-color);
-        border-radius: 12px;
+        position: relative;
+        z-index: 2;
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 24px;
-        flex-shrink: 0;
-        border: 1px solid rgba(41, 188, 234, 0.2);
-        transition: var(--transition);
+        color: #f58220;
+        font-size: 26px;
+        background: linear-gradient(135deg, rgba(245,130,32,.14), rgba(0,91,170,.10));
+        border: 1px solid rgba(245,130,32,.18);
     }
 
-    .service-card:hover .service-icon {
-        background-color: var(--accent-color);
-        color: #000;
-        box-shadow: 0 0 15px var(--accent-color);
+    .service-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
     }
 
     .service-content h3 {
-        font-size: 18px;
-        font-weight: 800;
-        color: #fff;
-        text-transform: uppercase;
-        margin-bottom: 12px;
-        letter-spacing: 0.5px;
+        margin: 0 0 10px;
+        font-size: 21px;
+        line-height: 1.3;
+        font-weight: 900;
+        color: #005baa;
     }
 
     .service-content p {
-        font-size: 13px;
-        color: var(--text-sub);
-        line-height: 1.6;
-        margin-bottom: 15px;
+        margin: 0 0 16px;
+        color: #475569;
+        font-size: 15px;
+        line-height: 1.7;
     }
 
-    .service-features {
-        padding: 0;
-        margin: 0;
-        list-style: none;
+    .service-content ul {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 18px;
+        list-style: none;
+        padding: 0;
+        margin: 0 0 22px;
     }
 
-    .service-features li {
-        font-size: 12px;
-        color: #ccc;
+    .service-content li {
+        position: relative;
+        padding-left: 20px;
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.45;
+        font-weight: 600;
+    }
+
+    .service-content li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #005baa;
+        font-weight: 900;
+    }
+
+    .service-btn {
+        align-self: flex-start;
+        height: 40px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: 0;
+        color: #fff;
+        background: linear-gradient(135deg, #f58220, #ff9f43);
+        font-size: 13px;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 10px 22px rgba(245,130,32,.25);
+        transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+        margin-top: auto;
+    }
+
+    .service-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px rgba(245,130,32,.34);
+        filter: brightness(1.04);
+    }
+
+    .services-why {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 16px;
+    }
+
+    .services-why h2 {
+        margin: 0 0 24px;
+        color: #0f172a;
+        font-size: 26px;
+        font-weight: 900;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    .services-why-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 22px;
+    }
+
+    .services-why-item {
+        padding: 24px;
+        border-radius: 18px;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        box-shadow: 0 14px 34px rgba(15,23,42,.08);
+    }
+
+    .services-why-icon {
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
-        gap: 8px;
+        justify-content: center;
+        color: #005baa;
+        background: rgba(0,91,170,.09);
+        font-size: 20px;
     }
 
-    .service-features li i {
-        color: var(--primary-color);
-        font-size: 10px;
+    .services-why-item h3 {
+        margin: 0 0 8px;
+        color: #0f172a;
+        font-size: 17px;
+        font-weight: 900;
+    }
+
+    .services-why-item p {
+        margin: 0;
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.65;
+    }
+
+    .service-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15,23,42,.68);
+        backdrop-filter: blur(8px);
+    }
+
+    .service-modal.show {
+        display: flex;
+    }
+
+    .service-modal-dialog {
+        width: min(680px, 100%);
+        max-height: 90vh;
+        overflow: hidden;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 28px 80px rgba(15,23,42,.32);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .service-modal-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 22px 24px;
+        border-bottom: 1px solid #e5e7eb;
+        background:
+            radial-gradient(circle at top left, rgba(245,130,32,.12), transparent 34%),
+            #fff;
+    }
+
+    .service-modal-icon {
+        width: 54px;
+        height: 54px;
+        flex: 0 0 auto;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #f58220;
+        background: rgba(245,130,32,.12);
+        border: 1px solid rgba(245,130,32,.18);
+        font-size: 24px;
+    }
+
+    .service-modal-title {
+        margin: 0;
+        color: #005baa;
+        font-size: 23px;
+        font-weight: 900;
+        line-height: 1.25;
+    }
+
+    .service-modal-close {
+        width: 38px;
+        height: 38px;
+        margin-left: auto;
+        border-radius: 50%;
+        border: 0;
+        color: #475569;
+        background: #f1f5f9;
+        cursor: pointer;
+    }
+
+    .service-modal-body {
+        padding: 24px;
+        overflow-y: auto;
+    }
+
+    .service-modal-desc {
+        margin: 0 0 18px;
+        color: #475569;
+        font-size: 15px;
+        line-height: 1.75;
+    }
+
+    .service-modal-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        padding: 0;
+        margin: 0 0 24px;
+        list-style: none;
+    }
+
+    .service-modal-list li {
+        position: relative;
+        padding: 12px 12px 12px 34px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        color: #475569;
+        background: #f8fafc;
+        font-weight: 700;
+        line-height: 1.45;
+    }
+
+    .service-modal-list li::before {
+        content: "✓";
+        position: absolute;
+        left: 14px;
+        color: #005baa;
+        font-weight: 900;
+    }
+
+    .service-modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .service-secondary-btn {
+        height: 40px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        color: #475569;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .service-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 26px;
+        z-index: 10000;
+        transform: translate(-50%, 20px);
+        opacity: 0;
+        pointer-events: none;
+        padding: 12px 16px;
+        border-radius: 999px;
+        color: #fff;
+        background: #0f172a;
+        box-shadow: 0 14px 34px rgba(15,23,42,.24);
+        font-size: 13px;
+        font-weight: 800;
+        transition: .2s ease;
+    }
+
+    .service-toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
     }
 
     @@media (max-width: 992px) {
-        .services-grid {
+        .services-grid,
+        .services-why-grid {
             grid-template-columns: 1fr;
         }
     }
 
-    @@media (max-width: 576px) {
-        .service-card {
-            flex-direction: column;
-            gap: 15px;
-            padding: 25px;
+    @@media (max-width: 768px) {
+        .services-hero {
+            margin: 24px 12px 32px;
+            padding: 42px 18px;
+            border-radius: 16px;
         }
+
         .services-hero h1 {
-            font-size: 28px;
+            font-size: 24px;
         }
-        .service-features {
+
+        .services-grid {
+            grid-template-columns: 1fr;
+            gap: 22px;
+        }
+
+        .service-card {
+            grid-template-columns: 1fr;
+            padding: 24px 20px;
+        }
+
+        .service-content ul,
+        .service-modal-list {
             grid-template-columns: 1fr;
         }
+
+        .service-btn {
+            width: 100%;
+        }
+
+        .service-modal-header {
+            align-items: flex-start;
+        }
+
+        .service-modal-title {
+            font-size: 20px;
+        }
+
+        .service-modal-actions {
+            flex-direction: column;
+        }
+
+        .service-modal-actions .service-btn,
+        .service-modal-actions .service-secondary-btn {
+            width: 100%;
+        }
+    }
+
+    .swal2-container {
+        z-index: 20000 !important;
+    }
+    .aero-consult-swal {
+        border-radius: 18px !important;
+        box-shadow: 0 24px 70px rgba(15, 23, 42, .28) !important;
+    }
+    .service-modal-overlay {
+        z-index: 9000;
+    }
+    .service-detail-modal {
+        z-index: 9010;
     }
 </style>
 
 <div class="services-wrapper">
-    
-    <!-- Hero Header -->
-    <div class="services-hero">
-        <h1>Dịch vụ đẳng cấp tại <span>AERO Cinema</span></h1>
-        <p>AERO Cinema không chỉ mang đến trải nghiệm điện ảnh chân thực mà còn đồng hành cùng bạn qua các dịch vụ đỉnh cao chuẩn quốc tế.</p>
-    </div>
+    <section class="services-hero">
+        <div class="services-hero-content">
+            <div class="services-hero-badge">
+                <i class="fas fa-concierge-bell"></i>
+                AERO PREMIUM SERVICES
+            </div>
+            <h1 data-i18n="services_title">Dịch vụ đẳng cấp tại AERO Cinema</h1>
+            <p data-i18n="services_subtitle">Trải nghiệm điện ảnh trọn vẹn hơn với đặt vé trực tuyến, ẩm thực rạp chiếu, phòng chờ cao cấp và dịch vụ tổ chức sự kiện chuyên nghiệp.</p>
+        </div>
+    </section>
 
-    <!-- Services Grid -->
-    <div class="services-grid">
-        
-        <!-- Service 1: Combo Bắp Nước -->
-        <div class="service-card">
+    <section class="services-grid" aria-label="Dịch vụ AERO Cinema">
+        <article class="service-card" data-service-id="cinemunch">
             <div class="service-icon">
-                <i class="fas fa-cookie-bite"></i>
+                <i class="fas fa-utensils"></i>
             </div>
             <div class="service-content">
-                <h3>Combo Bắp Nước Tiện Lợi</h3>
-                <p>Khám phá menu ẩm thực rạp chiếu đa dạng với bắp rang bơ nóng hổi thơm giòn nhiều vị (phô mai, caramel, truyền thống) kết hợp cùng nước ngọt mát lạnh.</p>
-                <ul class="service-features">
-                    <li><i class="fas fa-check"></i> Combo bắp đơn/đôi</li>
-                    <li><i class="fas fa-check"></i> Bắp vị Phô mai, Caramel</li>
-                    <li><i class="fas fa-check"></i> Menu đồ ăn vặt đa dạng</li>
-                    <li><i class="fas fa-check"></i> Bình giữ nhiệt kỷ niệm</li>
+                <h3>CineMunch Eatery</h3>
+                <p>Thưởng thức combo bắp nước, món ăn nhẹ và đồ uống chuẩn rạp chiếu ngay trong không gian AERO Cinema.</p>
+                <ul>
+                    <li>Combo bắp nước tiện lợi</li>
+                    <li>Menu đa dạng, dễ chọn</li>
+                    <li>Thanh toán nhanh tại quầy</li>
+                    <li>Phù hợp trước và sau suất chiếu</li>
                 </ul>
+                <button class="service-btn" type="button" data-service-open="cinemunch" data-i18n="service_detail">Xem chi tiết</button>
             </div>
-        </div>
+        </article>
 
-        <!-- Service 2: Vé Online -->
-        <div class="service-card">
+        <article class="service-card" data-service-id="online-booking">
             <div class="service-icon">
-                <i class="fas fa-tablet-alt"></i>
+                <i class="fas fa-mobile-alt"></i>
             </div>
             <div class="service-content">
-                <h3>Đặt Vé Online Nhanh Chóng</h3>
-                <p>Hệ thống đặt vé trực tuyến thông minh giúp bạn chọn giữ ghế đẹp chỉ trong 30 giây. Thanh toán linh hoạt qua ví điện tử hoặc cổng QR Banking an toàn.</p>
-                <ul class="service-features">
-                    <li><i class="fas fa-check"></i> Giữ ghế đẹp tức thì</li>
-                    <li><i class="fas fa-check"></i> Nhận vé QR Code quét nhanh</li>
-                    <li><i class="fas fa-check"></i> Không cần xếp hàng chờ đợi</li>
-                    <li><i class="fas fa-check"></i> Tích hợp ví MoMo/VietQR</li>
+                <h3>Đặt vé trực tuyến</h3>
+                <p>Đặt vé nhanh chóng, chọn ghế yêu thích, thanh toán tiện lợi và nhận vé điện tử kèm mã QR chỉ trong vài bước.</p>
+                <ul>
+                    <li>Chọn phim, rạp, ngày và suất chiếu</li>
+                    <li>Giữ ghế trong thời gian đặt vé</li>
+                    <li>Nhận vé QR sau thanh toán</li>
+                    <li>Hạn chế xếp hàng tại quầy</li>
                 </ul>
+                <button class="service-btn" type="button" data-service-open="online-booking" data-i18n="service_detail">Xem chi tiết</button>
             </div>
-        </div>
+        </article>
 
-        <!-- Service 3: Phòng Chiếu Cao Cấp -->
-        <div class="service-card">
+        <article class="service-card" data-service-id="premium-lounge">
             <div class="service-icon">
                 <i class="fas fa-couch"></i>
             </div>
             <div class="service-content">
-                <h3>Phòng Chiếu Thượng Hạng VIP</h3>
-                <p>Trải nghiệm xem phim xa hoa hàng đầu với phòng chiếu Premium Lounge riêng biệt, trang bị ghế da cơ học gập ngả linh hoạt và không gian tối tân.</p>
-                <ul class="service-features">
-                    <li><i class="fas fa-check"></i> Ghế da gập ngả tiện lợi</li>
-                    <li><i class="fas fa-check"></i> Hệ thống âm thanh Dolby Atmos</li>
-                    <li><i class="fas fa-check"></i> Phục vụ nước uống miễn phí</li>
-                    <li><i class="fas fa-check"></i> Nút bấm gọi nhân viên phục vụ</li>
+                <h3>Premium Lounge</h3>
+                <p>Không gian chờ cao cấp dành cho khách hàng muốn tận hưởng sự riêng tư, thoải mái và dịch vụ tốt hơn.</p>
+                <ul>
+                    <li>Ghế ngồi thoải mái</li>
+                    <li>Không gian yên tĩnh</li>
+                    <li>Phục vụ nước uống</li>
+                    <li>Trải nghiệm trước giờ chiếu tốt hơn</li>
                 </ul>
+                <button class="service-btn" type="button" data-service-open="premium-lounge" data-i18n="service_detail">Xem chi tiết</button>
             </div>
-        </div>
+        </article>
 
-        <!-- Service 4: Tổ Chức Sự Kiện -->
-        <div class="service-card">
+        <article class="service-card" data-service-id="events">
             <div class="service-icon">
                 <i class="fas fa-users"></i>
             </div>
             <div class="service-content">
-                <h3>Thuê Phòng Chiếu & Sự Kiện</h3>
-                <p>AERO Cinema cung cấp dịch vụ thuê trọn phòng chiếu chuyên nghiệp đáp ứng các chương trình hội nghị khách hàng, ra mắt sản phẩm hoặc sinh nhật ý nghĩa.</p>
-                <ul class="service-features">
-                    <li><i class="fas fa-check"></i> Hệ thống màn chiếu khổng lồ</li>
-                    <li><i class="fas fa-check"></i> Hỗ trợ kỹ thuật hình ảnh/mic</li>
-                    <li><i class="fas fa-check"></i> Thiết kế tea-break đi kèm</li>
-                    <li><i class="fas fa-check"></i> Đưa clip cá nhân lên rạp</li>
+                <h3>Tổ chức sự kiện</h3>
+                <p>AERO Cinema cung cấp dịch vụ tổ chức sự kiện, họp nhóm, sinh nhật, ra mắt sản phẩm và trình chiếu riêng tư.</p>
+                <ul>
+                    <li>Màn hình chiếu lớn</li>
+                    <li>Âm thanh sống động</li>
+                    <li>Hỗ trợ kỹ thuật</li>
+                    <li>Phù hợp nhóm và doanh nghiệp</li>
                 </ul>
+                <button class="service-btn" type="button" data-service-open="events" data-i18n="service_detail">Xem chi tiết</button>
+            </div>
+        </article>
+    </section>
+
+    <section class="services-why" aria-labelledby="servicesWhyTitle">
+        <h2 id="servicesWhyTitle" data-i18n="service_why_title">Vì sao chọn dịch vụ AERO?</h2>
+        <div class="services-why-grid">
+            <article class="services-why-item">
+                <div class="services-why-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3>Trải nghiệm nhanh chóng</h3>
+                <p>Đặt vé, chọn ghế và nhận vé điện tử chỉ trong vài bước.</p>
+            </article>
+
+            <article class="services-why-item">
+                <div class="services-why-icon">
+                    <i class="fas fa-film"></i>
+                </div>
+                <h3>Không gian hiện đại</h3>
+                <p>Hệ thống rạp được đầu tư về hình ảnh, âm thanh và khu vực chờ.</p>
+            </article>
+
+            <article class="services-why-item">
+                <div class="services-why-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <h3>Dịch vụ linh hoạt</h3>
+                <p>Phù hợp cho khách lẻ, nhóm bạn, gia đình và sự kiện doanh nghiệp.</p>
+            </article>
+        </div>
+    </section>
+</div>
+
+<div id="serviceDetailModal" class="service-modal" aria-hidden="true">
+    <div class="service-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="serviceModalTitle">
+        <div class="service-modal-header">
+            <div id="serviceModalIcon" class="service-modal-icon">
+                <i class="fas fa-concierge-bell"></i>
+            </div>
+            <h2 id="serviceModalTitle" class="service-modal-title">Dịch vụ AERO Cinema</h2>
+            <button type="button" class="service-modal-close" data-service-close aria-label="Đóng">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="service-modal-body">
+            <p id="serviceModalDesc" class="service-modal-desc"></p>
+            <ul id="serviceModalList" class="service-modal-list"></ul>
+            <div class="service-modal-actions">
+                <button type="button" class="service-secondary-btn" data-service-close data-i18n="close">Đóng</button>
+                <button type="button" class="service-btn service-consult-btn" id="serviceConsultBtn" data-service-consult data-i18n="service_consult">Liên hệ tư vấn</button>
             </div>
         </div>
-
     </div>
-
 </div>
+
+<div id="serviceToast" class="service-toast" role="status" aria-live="polite"></div>
+
+@section scripts {
+    <script>
+        (function () {
+            const services = {
+                "cinemunch": {
+                    title: "CineMunch Eatery",
+                    icon: "fas fa-utensils",
+                    description: "Thưởng thức combo bắp nước, món ăn nhẹ và đồ uống chuẩn rạp chiếu ngay trong không gian AERO Cinema.",
+                    bullets: [
+                        "Combo bắp nước tiện lợi",
+                        "Menu đa dạng, dễ chọn",
+                        "Thanh toán nhanh tại quầy",
+                        "Phù hợp trước và sau suất chiếu"
+                    ]
+                },
+                "online-booking": {
+                    title: "Đặt vé trực tuyến",
+                    icon: "fas fa-mobile-alt",
+                    description: "Đặt vé nhanh chóng, chọn ghế yêu thích, thanh toán tiện lợi và nhận vé điện tử kèm mã QR chỉ trong vài bước.",
+                    bullets: [
+                        "Chọn phim, rạp, ngày và suất chiếu",
+                        "Giữ ghế trong thời gian đặt vé",
+                        "Nhận vé QR sau thanh toán",
+                        "Hạn chế xếp hàng tại quầy"
+                    ]
+                },
+                "premium-lounge": {
+                    title: "Premium Lounge",
+                    icon: "fas fa-couch",
+                    description: "Không gian chờ cao cấp dành cho khách hàng muốn tận hưởng sự riêng tư, thoải mái và dịch vụ tốt hơn.",
+                    bullets: [
+                        "Ghế ngồi thoải mái",
+                        "Không gian yên tĩnh",
+                        "Phục vụ nước uống",
+                        "Trải nghiệm trước giờ chiếu tốt hơn"
+                    ]
+                },
+                "events": {
+                    title: "Tổ chức sự kiện",
+                    icon: "fas fa-users",
+                    description: "AERO Cinema cung cấp dịch vụ tổ chức sự kiện, họp nhóm, sinh nhật, ra mắt sản phẩm và trình chiếu riêng tư.",
+                    bullets: [
+                        "Màn hình chiếu lớn",
+                        "Âm thanh sống động",
+                        "Hỗ trợ kỹ thuật",
+                        "Phù hợp nhóm và doanh nghiệp"
+                    ]
+                }
+            };
+
+            const servicesEn = {
+                "cinemunch": {
+                    title: "CineMunch Eatery",
+                    icon: "fas fa-utensils",
+                    description: "Enjoy popcorn combos, snacks, and cinema-style drinks right inside AERO Cinema.",
+                    bullets: [
+                        "Convenient popcorn and drink combos",
+                        "A varied, easy-to-choose menu",
+                        "Fast payment at the counter",
+                        "Perfect before and after showtime"
+                    ]
+                },
+                "online-booking": {
+                    title: "Online Ticket Booking",
+                    icon: "fas fa-mobile-alt",
+                    description: "Book tickets quickly, choose your favorite seats, pay conveniently, and receive QR e-tickets in just a few steps.",
+                    bullets: [
+                        "Choose movie, cinema, date, and showtime",
+                        "Hold seats during the booking flow",
+                        "Receive QR tickets after payment",
+                        "Reduce waiting time at the counter"
+                    ]
+                },
+                "premium-lounge": {
+                    title: "Premium Lounge",
+                    icon: "fas fa-couch",
+                    description: "A premium waiting space for guests who want more privacy, comfort, and elevated service.",
+                    bullets: [
+                        "Comfortable seating",
+                        "Quiet lounge atmosphere",
+                        "Drink service",
+                        "A better pre-show experience"
+                    ]
+                },
+                "events": {
+                    title: "Private Events",
+                    icon: "fas fa-users",
+                    description: "AERO Cinema supports events, group meetings, birthdays, product launches, and private screenings.",
+                    bullets: [
+                        "Large cinema screen",
+                        "Immersive sound",
+                        "Technical support",
+                        "Suitable for groups and businesses"
+                    ]
+                }
+            };
+
+            const whyContent = {
+                vi: [
+                    ["Trải nghiệm nhanh chóng", "Đặt vé, chọn ghế và nhận vé điện tử chỉ trong vài bước."],
+                    ["Không gian hiện đại", "Hệ thống rạp được đầu tư về hình ảnh, âm thanh và khu vực chờ."],
+                    ["Dịch vụ linh hoạt", "Phù hợp cho khách lẻ, nhóm bạn, gia đình và sự kiện doanh nghiệp."]
+                ],
+                en: [
+                    ["Fast experience", "Book tickets, choose seats, and receive e-tickets in just a few steps."],
+                    ["Modern spaces", "Cinema locations are invested in visuals, sound, and waiting areas."],
+                    ["Flexible services", "Suitable for individual guests, groups, families, and business events."]
+                ]
+            };
+
+            const modal = document.getElementById("serviceDetailModal");
+            const modalIcon = document.getElementById("serviceModalIcon");
+            const modalTitle = document.getElementById("serviceModalTitle");
+            const modalDesc = document.getElementById("serviceModalDesc");
+            const modalList = document.getElementById("serviceModalList");
+            const consultBtn = document.getElementById("serviceConsultBtn");
+            const toast = document.getElementById("serviceToast");
+
+            function currentLang() {
+                return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+            }
+
+            function tr(key, fallback = "") {
+                return window.t ? window.t(key, fallback) : (fallback || key);
+            }
+
+            function getServices() {
+                return currentLang() === "en" ? servicesEn : services;
+            }
+
+            function safeText(value, fallback = "") {
+                if (value === undefined || value === null) return fallback;
+                const text = String(value).trim();
+                if (!text || text.toLowerCase() === "undefined" || text.toLowerCase() === "null" || text === "NaN") {
+                    return fallback;
+                }
+                return text;
+            }
+
+            function openModal(serviceId) {
+                const service = getServices()[serviceId];
+                if (!service) return;
+
+                modalIcon.innerHTML = `<i class="${safeText(service.icon, "fas fa-concierge-bell")}"></i>`;
+                modalTitle.textContent = safeText(service.title, tr("services_title"));
+                modalDesc.textContent = safeText(service.description, tr("updated"));
+                modalList.innerHTML = service.bullets
+                    .filter(item => safeText(item))
+                    .map(item => `<li>${safeText(item)}</li>`)
+                    .join("");
+
+                consultBtn.setAttribute("data-service-name", safeText(service.title, tr("services_title")));
+
+                modal.classList.add("show");
+                modal.setAttribute("aria-hidden", "false");
+                document.body.style.overflow = "hidden";
+            }
+
+            function closeModal() {
+                modal.classList.remove("show", "active", "open");
+                modal.setAttribute("aria-hidden", "true");
+                document.body.classList.remove("modal-open", "service-modal-open");
+                document.body.style.overflow = "";
+            }
+
+            function showToast(message) {
+                toast.textContent = message;
+                toast.classList.add("show");
+                clearTimeout(showToast.timer);
+                showToast.timer = setTimeout(() => toast.classList.remove("show"), 2400);
+            }
+
+            function renderLocalizedServices() {
+                const source = getServices();
+                Object.keys(source).forEach(id => {
+                    const card = document.querySelector(`[data-service-id="${id}"]`);
+                    const item = source[id];
+                    if (!card || !item) return;
+                    card.querySelector("h3").textContent = item.title;
+                    card.querySelector("p").textContent = item.description;
+                    const list = card.querySelector("ul");
+                    list.innerHTML = item.bullets.map(text => `<li>${safeText(text)}</li>`).join("");
+                });
+
+                const whyItems = document.querySelectorAll(".services-why-item");
+                whyContent[currentLang()].forEach((item, index) => {
+                    const el = whyItems[index];
+                    if (!el) return;
+                    el.querySelector("h3").textContent = item[0];
+                    el.querySelector("p").textContent = item[1];
+                });
+
+                if (modal.classList.contains("show")) {
+                    const activeId = modal.dataset.serviceId;
+                    if (activeId) openModal(activeId);
+                }
+            }
+
+            document.addEventListener("click", function (event) {
+                const openButton = event.target.closest("[data-service-open]");
+                if (openButton) {
+                    modal.dataset.serviceId = openButton.dataset.serviceOpen;
+                    openModal(openButton.dataset.serviceOpen);
+                }
+
+                if (event.target.closest("[data-service-close]") || event.target === modal) {
+                    closeModal();
+                }
+            });
+
+            let isConsultOpening = false;
+            
+            function escapeHtml(value) {
+                return String(value || "")
+                    .replaceAll("&", "&amp;")
+                    .replaceAll("<", "&lt;")
+                    .replaceAll(">", "&gt;")
+                    .replaceAll('"', "&quot;")
+                    .replaceAll("'", "&#039;");
+            }
+
+            consultBtn.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (isConsultOpening) return;
+                isConsultOpening = true;
+
+                const serviceName = this.getAttribute("data-service-name") || (currentLang() === "en" ? "AERO Cinema service" : "dịch vụ AERO Cinema");
+
+                closeModal();
+
+                setTimeout(() => {
+                    if (window.Swal) {
+                        window.Swal.fire({
+                            icon: "success",
+                            title: currentLang() === "en" ? "Request received" : "Đã ghi nhận yêu cầu tư vấn",
+                            html: `
+                                <div style="text-align:center">
+                                    <p>${currentLang() === "en" ? "AERO Cinema has received your request for:" : "AERO Cinema đã ghi nhận yêu cầu tư vấn cho:"}</p>
+                                    <strong style="color:#005baa">${escapeHtml(serviceName)}</strong>
+                                    <p style="margin-top:10px;color:#64748b">
+                                        ${currentLang() === "en" ? "Our support team will contact you shortly." : "Bộ phận hỗ trợ sẽ liên hệ với bạn trong thời gian sớm nhất."}
+                                    </p>
+                                </div>
+                            `,
+                            confirmButtonText: currentLang() === "en" ? "Got it" : "Đã hiểu",
+                            confirmButtonColor: "#f58220",
+                            customClass: {
+                                popup: "aero-consult-swal"
+                            },
+                            backdrop: true,
+                            allowOutsideClick: true
+                        });
+                    } else {
+                        showToast((currentLang() === "en" ? "Request received for " : "Đã ghi nhận yêu cầu tư vấn cho ") + serviceName);
+                    }
+                    isConsultOpening = false;
+                }, 180);
+            });
+
+            window.addEventListener("keydown", function (event) {
+                if (event.key === "Escape" && modal.classList.contains("show")) {
+                    closeModal();
+                }
+            });
+
+            renderLocalizedServices();
+            window.addEventListener("aero:languageChanged", function () {
+                if (window.applyLanguage) window.applyLanguage();
+                renderLocalizedServices();
+            });
+        })();
+    </script>
+}

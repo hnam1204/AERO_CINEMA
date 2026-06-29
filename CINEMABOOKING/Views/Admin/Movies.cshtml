@@ -40,7 +40,7 @@
             <span class="stat-icon"><i class="fas fa-eye-slash"></i></span>
             <span class="stat-label">Đang ẩn</span>
             <strong class="stat-value skeleton" id="statInactive">0</strong>
-            <span class="stat-note">Trạng thái inactive</span>
+            <span class="stat-note">Trạng thái hidden</span>
         </div>
     </section>
 
@@ -129,7 +129,7 @@
             <button type="button" class="admin-btn admin-btn-secondary p-1" style="min-height: auto; border: 0; background: transparent;" data-close-modal="movieFormModal" aria-label="Đóng"><i class="fas fa-times" style="font-size: 18px;"></i></button>
         </div>
         <form id="movieForm">
-            <div class="admin-modal-body">
+            <div class="admin-modal-body movie-modal-body" id="movieFormBody">
                 <input type="hidden" id="movieId" />
                 <div class="admin-form-grid">
                     <section class="movie-fieldset" aria-label="Thông tin chính">
@@ -151,12 +151,12 @@
                             <input class="admin-control" id="movieRunDays" type="number" min="1" required value="30" />
                         </div>
                         <div class="admin-field">
-                            <label for="status">Trạng thái *</label>
-                            <select class="admin-control" id="status" required>
+                            <label for="movieStatus">Trạng thái *</label>
+                            <select class="admin-control" id="movieStatus" name="status" required>
                                 <option value="now_showing">Đang chiếu</option>
                                 <option value="coming_soon">Sắp chiếu</option>
                                 <option value="ended">Đã kết thúc</option>
-                                <option value="inactive">Đang ẩn</option>
+                                <option value="hidden">Đang ẩn</option>
                             </select>
                         </div>
                         <div class="admin-field full">
@@ -310,8 +310,15 @@
 
         const fields = [
             "title", "posterUrl", "bannerUrl", "duration", "rating", "genre", "description",
-            "releaseDate", "status", "format", "director", "actors", "country", "language",
+            "releaseDate", "format", "director", "actors", "country", "language",
             "trailerUrl", "voteAverage", "voteCount", "movieRunDays"
+        ];
+
+        const MOVIE_STATUS_OPTIONS = [
+            "now_showing",
+            "coming_soon",
+            "ended",
+            "hidden"
         ];
 
         function showLoading(show) {
@@ -371,16 +378,48 @@
             return dateToInputValue(date);
         }
 
-        function statusText(status) {
-            const map = {
-                now_showing: "Đang chiếu",
-                coming_soon: "Sắp chiếu",
-                ended: "Đã kết thúc",
-                inactive: "Đang ẩn",
-                active: "Hoạt động",
-                hidden: "Đang ẩn"
-            };
-            return map[status] || safe(status);
+        function normalizeMovieStatus(status) {
+            const s = String(status || "").trim().toLowerCase();
+            const ascii = s.normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/\u0111/g, "d");
+
+            if (["now_showing", "showing", "active", "released", "dang_chieu"].includes(s) || ascii === "dang chieu") {
+                return "now_showing";
+            }
+
+            if (["coming_soon", "upcoming", "sap_chieu"].includes(s) || ascii === "sap chieu") {
+                return "coming_soon";
+            }
+
+            if (["ended", "end", "finished", "da_ket_thuc"].includes(s) || ascii === "da ket thuc") {
+                return "ended";
+            }
+
+            if (["hidden", "hide", "inactive", "an"].includes(s) || ascii === "an" || ascii === "dang an") {
+                return "hidden";
+            }
+
+            return "now_showing";
+        }
+
+        function displayMovieStatus(status) {
+            const s = normalizeMovieStatus(status);
+
+            if (s === "now_showing") return "Đang chiếu";
+            if (s === "coming_soon") return "Sắp chiếu";
+            if (s === "ended") return "Đã kết thúc";
+            if (s === "hidden") return "Đang ẩn";
+
+            return "Đang chiếu";
+        }
+
+        function movieStatusBadgeClass(status) {
+            const s = normalizeMovieStatus(status);
+            if (s === "now_showing") return "success";
+            if (s === "coming_soon") return "warning";
+            if (s === "ended") return "secondary";
+            return "danger";
         }
 
         function getFormData() {
@@ -394,6 +433,8 @@
             data.voteAverage = toNumber(data.voteAverage);
             data.voteCount = toNumber(data.voteCount);
             data.movieRunDays = toNumber(data.movieRunDays, 30);
+            const status = document.getElementById("movieStatus").value;
+            data.status = normalizeMovieStatus(status);
             return data;
         }
 
@@ -409,26 +450,26 @@
             return "";
         }
 
-        function setSelectOptions(select, values, defaultText) {
+        function setSelectOptions(select, values, defaultText, labelFormatter = value => value) {
             const current = select.value;
             select.innerHTML = `<option value="">${defaultText}</option>`;
             values.forEach(value => {
                 if (!value) return;
                 const option = document.createElement("option");
                 option.value = value;
-                option.textContent = value;
+                option.textContent = labelFormatter(value);
                 select.appendChild(option);
             });
             select.value = current;
         }
 
         function updateFilters() {
-            const statuses = [...new Set(pageState.movies.map(movie => movie.status).filter(Boolean))].sort();
+            const statuses = MOVIE_STATUS_OPTIONS;
             const genres = [...new Set(pageState.movies.map(movie => movie.genre).filter(Boolean))].sort();
             const formats = [...new Set(pageState.movies.map(movie => movie.format).filter(Boolean))].sort();
             const languages = [...new Set(pageState.movies.map(movie => movie.language).filter(Boolean))].sort();
 
-            setSelectOptions(els.statusFilter, statuses, "Tất cả trạng thái");
+            setSelectOptions(els.statusFilter, statuses, "Tất cả trạng thái", displayMovieStatus);
             setSelectOptions(els.genreFilter, genres, "Tất cả thể loại");
             setSelectOptions(els.formatFilter, formats, "Tất cả định dạng");
             setSelectOptions(els.languageFilter, languages, "Tất cả ngôn ngữ");
@@ -436,9 +477,9 @@
 
         function updateStats() {
             setTextElement("statTotalMovies", pageState.movies.length);
-            setTextElement("statNowShowing", pageState.movies.filter(m => normalize(m.status) === "now_showing" || normalize(m.status) === "active").length);
-            setTextElement("statComingSoon", pageState.movies.filter(m => normalize(m.status) === "coming_soon").length);
-            setTextElement("statInactive", pageState.movies.filter(m => ["inactive", "hidden"].includes(normalize(m.status))).length);
+            setTextElement("statNowShowing", pageState.movies.filter(m => normalizeMovieStatus(m.status) === "now_showing").length);
+            setTextElement("statComingSoon", pageState.movies.filter(m => normalizeMovieStatus(m.status) === "coming_soon").length);
+            setTextElement("statInactive", pageState.movies.filter(m => normalizeMovieStatus(m.status) === "hidden").length);
         }
 
         function setTextElement(id, value) {
@@ -491,7 +532,7 @@
                 ].join(" "));
 
                 return (!keyword || searchText.includes(keyword)) &&
-                    (!status || movie.status === status) &&
+                    (!status || normalizeMovieStatus(movie.status) === status) &&
                     (!genre || movie.genre === genre) &&
                     (!format || movie.format === format) &&
                     (!language || movie.language === language);
@@ -534,7 +575,7 @@
                     <td data-label="Ngôn ngữ">${safe(movie.language, "-")}</td>
                     <td data-label="Khởi chiếu">${formatDate(movie.releaseDate)}</td>
                     <td data-label="Số ngày chiếu">${toNumber(movie.movieRunDays, 30)} ngày</td>
-                    <td data-label="Trạng thái"><span class="admin-badge ${movie.status === 'now_showing' || movie.status === 'active' ? 'success' : movie.status === 'coming_soon' ? 'warning' : 'secondary'}">${statusText(movie.status)}</span></td>
+                    <td data-label="Trạng thái"><span class="admin-badge ${movieStatusBadgeClass(movie.status)}">${displayMovieStatus(movie.status)}</span></td>
                     <td data-label="Đánh giá"><span class="rating-chip"><i class="fas fa-star"></i>${toNumber(movie.voteAverage).toFixed(1)}</span></td>
                     <td data-label="Lượt đánh giá">${toNumber(movie.voteCount).toLocaleString("vi-VN")}</td>
                     <td data-label="Ngày tạo">${formatDate(movie.createdAt)}</td>
@@ -579,7 +620,7 @@
             document.getElementById("voteAverage").value = "0";
             document.getElementById("voteCount").value = "0";
             document.getElementById("movieRunDays").value = "30";
-            document.getElementById("status").value = "now_showing";
+            document.getElementById("movieStatus").value = "now_showing";
             document.getElementById("posterPreview").removeAttribute("src");
             document.getElementById("bannerPreview").removeAttribute("src");
         }
@@ -598,6 +639,7 @@
                 const el = document.getElementById(field);
                 if (el) el.value = field === "releaseDate" ? formatDateInput(movie[field]) : (movie[field] ?? (field === "movieRunDays" ? 30 : ""));
             });
+            document.getElementById("movieStatus").value = normalizeMovieStatus(movie.status);
             updatePreview();
             openModal("movieFormModal");
         }
@@ -649,12 +691,26 @@
             try {
                 if (id) {
                     const oldMovie = pageState.movies.find(movie => movie.id === id);
+                    console.log("Saving movie status:", {
+                        movieId: id,
+                        selectedStatus: data.status
+                    });
                     await updateDoc(doc(db, "movies", id), {
                         ...data,
+                        status: data.status,
+                        statusManual: true,
+                        statusUpdatedAt: serverTimestamp(),
                         updatedAt: serverTimestamp()
                     });
+                    pageState.movies = pageState.movies.map(movie => movie.id === id
+                        ? { ...movie, ...data, statusManual: true, statusUpdatedAt: new Date(), updatedAt: new Date() }
+                        : movie);
+                    updateFilters();
+                    updateStats();
+                    filterMovies();
+                    console.log("Movie updated successfully:", id);
                     await window.AeroAdmin?.logActivity?.("update", "movies", id, oldMovie || null, data);
-                    toast("success", "Đã cập nhật", "Thông tin phim đã được lưu.");
+                    toast("success", "Đã cập nhật", "Cập nhật trạng thái phim thành công.");
                 } else {
                     const docRef = await addDoc(collection(db, "movies"), {
                         ...data,
@@ -667,7 +723,7 @@
 
                 closeModal("movieFormModal");
             } catch (errorSave) {
-                console.error("Save movie error:", errorSave);
+                console.error(id ? "Update movie failed:" : "Save movie error:", errorSave);
                 toast("error", "Không thể lưu phim", errorSave.message || "Vui lòng thử lại.");
             } finally {
                 showLoading(false);

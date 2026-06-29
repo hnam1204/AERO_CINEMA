@@ -771,7 +771,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module">
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { doc, getDoc, collection, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { doc, getDoc, collection, runTransaction, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { addPointsAfterBooking } from "/Scripts/aero-business-logic.js";
 
         const auth = window.auth;
         const db = window.db;
@@ -1223,6 +1224,14 @@
                 sessionStorage.removeItem("grandTotal");
                 sessionStorage.removeItem("seats");
                 sessionStorage.removeItem("total");
+
+                // ===== CỘNG ĐIỂM CHO USER (AWAITED - NO FIRE-AND-FORGET) =====
+                try {
+                    await addPointsAfterBooking(db, bookingId, currentUser.uid, totalAmount);
+                } catch (pointsErr) {
+                    console.warn("[Points] Sequential points addition error:", pointsErr);
+                }
+
 
                 // Get Auth ID token for AJAX request
                 let idToken = "";

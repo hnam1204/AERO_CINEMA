@@ -4,231 +4,828 @@
 
 <style>
     .promo-wrapper {
-        margin-bottom: 50px;
+        margin-bottom: 70px;
     }
 
     .promo-hero {
         position: relative;
-        padding: 60px 20px;
-        text-align: center;
-        background: linear-gradient(135deg, #1e1b29 0%, #0b0b0d 100%);
-        border-radius: 12px;
-        margin-bottom: 40px;
-        border: 1px solid var(--border-color);
+        max-width: 1120px;
+        margin: 32px auto 42px;
+        padding: 54px 28px;
+        border-radius: 18px;
         overflow: hidden;
+        text-align: center;
+        color: #fff;
+        background:
+            radial-gradient(circle at 18% 20%, rgba(245,130,32,.28), transparent 30%),
+            radial-gradient(circle at 82% 15%, rgba(0,91,170,.35), transparent 34%),
+            linear-gradient(135deg, #0b1020 0%, #121826 55%, #050816 100%);
+        box-shadow: 0 22px 60px rgba(15,23,42,.22);
     }
 
-    .promo-hero::before {
-        content: '';
+    .promo-hero::after {
+        content: "";
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(214, 0, 0, 0.05) 0%, transparent 60%);
+        inset: 0;
+        background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
+        background-size: 22px 22px;
+        opacity: .22;
         pointer-events: none;
     }
 
-    .promo-hero h1 {
-        font-size: 36px;
-        font-weight: 900;
+    .promo-hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .promo-hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        margin-bottom: 16px;
+        border-radius: 999px;
+        background: rgba(245,130,32,.16);
+        border: 1px solid rgba(245,130,32,.35);
+        color: #ffb36b;
+        font-weight: 800;
+        font-size: 13px;
+        letter-spacing: .5px;
         text-transform: uppercase;
-        color: #fff;
-        margin-bottom: 15px;
-        letter-spacing: 1px;
+    }
+
+    .promo-hero h1 {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1.25;
+        text-transform: uppercase;
+        text-shadow: 0 3px 0 rgba(0,0,0,.32);
     }
 
     .promo-hero h1 span {
-        color: var(--primary-color);
+        color: #f58220;
     }
 
     .promo-hero p {
-        font-size: 15px;
-        color: var(--text-sub);
-        max-width: 600px;
-        margin: 0 auto;
+        max-width: 680px;
+        margin: 14px auto 0;
+        color: rgba(255,255,255,.72);
+        font-size: 15.5px;
+        line-height: 1.7;
     }
 
-    /* GRID FOR PROMOTIONS */
     .promo-grid {
+        max-width: 1120px;
+        margin: 0 auto 80px;
+        padding: 0 16px;
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 25px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 28px;
     }
 
     .promo-card {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
+        background: #fff;
+        border-radius: 18px;
         overflow: hidden;
-        transition: var(--transition);
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 18px 42px rgba(15,23,42,.10);
+        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
         display: flex;
         flex-direction: column;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        min-height: 100%;
     }
 
     .promo-card:hover {
-        transform: translateY(-5px);
-        border-color: var(--accent-color);
-        box-shadow: 0 15px 35px rgba(41, 188, 234, 0.15);
+        transform: translateY(-6px);
+        border-color: rgba(245,130,32,.35);
+        box-shadow: 0 24px 60px rgba(15,23,42,.16);
     }
 
-    .promo-img-box {
-        width: 100%;
-        aspect-ratio: 16/10;
+    .promo-card-media {
         position: relative;
         overflow: hidden;
-        background-color: #111;
+        background:
+            radial-gradient(circle at 20% 20%, rgba(245,130,32,.24), transparent 34%),
+            linear-gradient(135deg, #0f172a, #1e293b);
     }
 
-    .promo-img-box img {
+    .promo-card-image {
         width: 100%;
-        height: 100%;
+        height: 210px;
         object-fit: cover;
-        transition: var(--transition);
+        object-position: center;
+        display: block;
+        transition: transform .35s ease, filter .35s ease;
     }
 
-    .promo-card:hover .promo-img-box img {
-        transform: scale(1.05);
+    .promo-card:hover .promo-card-image {
+        transform: scale(1.045);
+        filter: brightness(1.04) contrast(1.04);
     }
 
-    .promo-tag {
-        position: absolute;
-        top: 15px;
-        left: 15px;
-        background-color: var(--primary-color);
-        color: #fff;
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        padding: 5px 12px;
-        border-radius: 4px;
-        letter-spacing: 0.5px;
-    }
-
-    .promo-details {
-        padding: 25px;
+    .promo-image-fallback {
+        height: 210px;
         display: flex;
-        flex-direction: column;
-        flex: 1;
-        justify-content: space-between;
-    }
-
-    .promo-details h3 {
-        font-size: 16px;
-        font-weight: 800;
-        color: #fff;
-        text-transform: uppercase;
-        margin-bottom: 12px;
-        line-height: 1.4;
-    }
-
-    .promo-details p {
-        font-size: 13px;
-        color: var(--text-sub);
-        line-height: 1.6;
-        margin-bottom: 20px;
-        flex: 1;
-    }
-
-    .promo-footer {
-        display: flex;
-        justify-content: space-between;
         align-items: center;
-        border-top: 1px solid var(--border-color);
-        padding-top: 15px;
-        font-size: 11px;
-        color: #888;
+        justify-content: center;
+        color: rgba(255,255,255,.85);
+        font-size: 46px;
     }
 
-    .promo-footer i {
-        color: var(--accent-color);
+    .promo-card-tag {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        z-index: 2;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: #005baa;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+        box-shadow: 0 8px 18px rgba(0,91,170,.25);
     }
 
-    .promo-code-badge {
-        background-color: rgba(41, 188, 234, 0.1);
-        color: var(--accent-color);
-        border: 1px dashed var(--accent-color);
-        padding: 3px 8px;
-        border-radius: 4px;
+    .promo-card-body {
+        padding: 22px 22px 20px;
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+    }
+
+    .promo-card-title {
+        margin: 0 0 10px;
+        font-size: 18px;
+        line-height: 1.35;
+        font-weight: 900;
+        color: #0f172a;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        transition: color .2s ease;
+    }
+
+    .promo-card:hover .promo-card-title {
+        color: #005baa;
+    }
+
+    .promo-card-desc {
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.65;
+        min-height: 68px;
+        margin: 0;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .promo-card-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid #eef2f7;
+    }
+
+    .promo-expire {
+        color: #64748b;
+        font-size: 13px;
         font-weight: 700;
     }
 
-    @@media (max-width: 992px) {
+    .promo-code {
+        padding: 7px 10px;
+        border: 1px dashed #f58220;
+        border-radius: 10px;
+        color: #f58220;
+        font-size: 12px;
+        font-weight: 900;
+        background: rgba(245,130,32,.07);
+        white-space: nowrap;
+    }
+
+    .promo-card-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 18px;
+    }
+
+    .promo-btn {
+        height: 40px;
+        border-radius: 12px;
+        padding: 0 16px;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+    .promo-btn-primary {
+        flex: 1;
+        border: 0;
+        color: #fff;
+        background: linear-gradient(135deg, #f58220, #ff9f43);
+        box-shadow: 0 10px 22px rgba(245,130,32,.28);
+    }
+
+    .promo-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px rgba(245,130,32,.34);
+    }
+
+    .promo-btn-copy {
+        border: 1px dashed #f58220;
+        color: #f58220;
+        background: rgba(245,130,32,.08);
+    }
+
+    .promo-btn-copy:hover:not(:disabled) {
+        background: rgba(245,130,32,.14);
+        transform: translateY(-2px);
+    }
+
+    .promo-btn-copy:disabled {
+        color: #94a3b8;
+        border-color: #cbd5e1;
+        background: #f8fafc;
+        cursor: not-allowed;
+    }
+
+    .promo-state {
+        max-width: 1120px;
+        margin: 0 auto 80px;
+        padding: 42px 20px;
+        border-radius: 18px;
+        border: 1px dashed #cbd5e1;
+        background: #fff;
+        color: #64748b;
+        text-align: center;
+        font-weight: 800;
+    }
+
+    .promo-skeleton-card .promo-card-image,
+    .promo-skeleton-line {
+        background: linear-gradient(90deg, #eef2f7 25%, #f8fafc 50%, #eef2f7 75%);
+        background-size: 200% 100%;
+        animation: promoShimmer 1.2s infinite;
+    }
+
+    .promo-skeleton-line {
+        height: 14px;
+        border-radius: 999px;
+        margin-bottom: 12px;
+    }
+
+    @@keyframes promoShimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    .promo-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15, 23, 42, .68);
+        backdrop-filter: blur(8px);
+    }
+
+    .promo-modal.show {
+        display: flex;
+    }
+
+    .promo-modal-dialog {
+        width: min(760px, 100%);
+        max-height: 90vh;
+        overflow: hidden;
+        border-radius: 20px;
+        background: #fff;
+        box-shadow: 0 28px 80px rgba(15,23,42,.32);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .promo-modal-media {
+        position: relative;
+        min-height: 240px;
+        background:
+            radial-gradient(circle at 18% 22%, rgba(245,130,32,.25), transparent 30%),
+            linear-gradient(135deg, #0f172a, #1e293b);
+    }
+
+    .promo-modal-media img {
+        width: 100%;
+        height: 280px;
+        object-fit: cover;
+        display: block;
+    }
+
+    .promo-modal-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 0;
+        color: #fff;
+        background: rgba(15,23,42,.72);
+        cursor: pointer;
+    }
+
+    .promo-modal-body {
+        padding: 24px;
+        overflow-y: auto;
+    }
+
+    .promo-modal-body h2 {
+        margin: 0 0 12px;
+        color: #0f172a;
+        font-size: 24px;
+        font-weight: 900;
+        line-height: 1.25;
+        text-transform: uppercase;
+    }
+
+    .promo-modal-desc {
+        color: #475569;
+        font-size: 15px;
+        line-height: 1.75;
+        margin: 0 0 18px;
+        white-space: pre-line;
+    }
+
+    .promo-modal-info {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .promo-modal-info-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 12px;
+        background: #f8fafc;
+    }
+
+    .promo-modal-info-item span {
+        display: block;
+        color: #64748b;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .promo-modal-info-item strong {
+        color: #0f172a;
+        font-size: 14px;
+    }
+
+    .promo-modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+
+    .promo-toast {
+        position: fixed;
+        left: 50%;
+        bottom: 26px;
+        z-index: 10000;
+        transform: translate(-50%, 20px);
+        opacity: 0;
+        pointer-events: none;
+        padding: 12px 16px;
+        border-radius: 999px;
+        color: #fff;
+        background: #0f172a;
+        box-shadow: 0 14px 34px rgba(15,23,42,.24);
+        font-size: 13px;
+        font-weight: 800;
+        transition: .2s ease;
+    }
+
+    .promo-toast.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    @@media (max-width: 991px) {
         .promo-grid {
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
     @@media (max-width: 576px) {
+        .promo-hero {
+            margin: 24px 12px 32px;
+            padding: 42px 18px;
+            border-radius: 16px;
+        }
+
+        .promo-hero h1 {
+            font-size: 24px;
+        }
+
         .promo-grid {
             grid-template-columns: 1fr;
+            gap: 22px;
         }
-        .promo-hero h1 {
-            font-size: 28px;
+
+        .promo-card-image,
+        .promo-image-fallback {
+            height: 190px;
+        }
+
+        .promo-card-actions,
+        .promo-modal-actions {
+            flex-direction: column;
+        }
+
+        .promo-modal-info {
+            grid-template-columns: 1fr;
+        }
+
+        .promo-modal-media img {
+            height: 210px;
         }
     }
 </style>
 
 <div class="promo-wrapper">
-    
-    <!-- Hero Header -->
-    <div class="promo-hero">
-        <h1>Khuyến mãi & Ưu đãi hấp dẫn tại <span>AERO Cinema</span></h1>
-        <p>Tận hưởng niềm vui điện ảnh nhân đôi cùng các đặc quyền thành viên và voucher ưu đãi bắp nước độc quyền.</p>
-    </div>
-
-    <!-- Promotions Grid -->
-    <div class="promo-grid">
-        
-        <!-- Promo 1: Welcome members -->
-        <div class="promo-card">
-            <div class="promo-img-box">
-                <span class="promo-tag">Thành viên</span>
-                <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80" alt="Welcome Member" />
+    <section class="promo-hero">
+        <div class="promo-hero-content">
+            <div class="promo-hero-badge">
+                <i class="fas fa-ticket-alt"></i>
+                AERO Rewards
             </div>
-            <div class="promo-details">
-                <h3>Đăng Ký Thành Viên - Nhận Combo Miễn Phí</h3>
-                <p>Khách hàng đăng ký tài khoản thành viên mới trên AERO Cinema được tặng ngay 01 mã Voucher giảm giá 50k bắp nước. Đăng ký nhanh tay nhận quà liền tay!</p>
-                <div class="promo-footer">
-                    <span><i class="far fa-calendar-alt"></i> Hạn dùng: 31/12/2026</span>
-                    <span class="promo-code-badge">AERONEW</span>
-                </div>
-            </div>
+            <h1 data-i18n="promotions_title">Khuyến mãi & ưu đãi hấp dẫn tại AERO Cinema</h1>
+            <p data-i18n="promotions_subtitle">Săn voucher xem phim, combo bắp nước và đặc quyền thành viên mới nhất từ AERO Cinema.</p>
         </div>
+    </section>
 
-        <!-- Promo 2: DGCINE50 Discount Voucher -->
-        <div class="promo-card">
-            <div class="promo-img-box">
-                <span class="promo-tag">Voucher</span>
-                <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=600&q=80" alt="Discount Voucher" />
-            </div>
-            <div class="promo-details">
-                <h3>Voucher Ưu Đãi 50K - Áp Dụng Khi Đặt Vé</h3>
-                <p>Nhập mã giảm giá khi thanh toán vé xem phim trực tuyến để được giảm ngay 50.000đ trực tiếp vào tổng hóa đơn. Áp dụng cho mọi suất chiếu trong ngày.</p>
-                <div class="promo-footer">
-                    <span><i class="far fa-calendar-alt"></i> Hạn dùng: 31/07/2026</span>
-                    <span class="promo-code-badge">DGCINE50</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Promo 3: CINEMA10 Promo -->
-        <div class="promo-card">
-            <div class="promo-img-box">
-                <span class="promo-tag">Mã Giảm Giá</span>
-                <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=600&q=80" alt="10% discount" />
-            </div>
-            <div class="promo-details">
-                <h3>Giảm Ngay 10% Hóa Đơn Đặt Vé Trực Tuyến</h3>
-                <p>Ưu đãi dành riêng cho đặt vé online qua QR Banking và MoMo, nhập mã để hưởng chiết khấu 10% trên tổng giá vé. Đặt vé ngay trải nghiệm cực đã!</p>
-                <div class="promo-footer">
-                    <span><i class="far fa-calendar-alt"></i> Hạn dùng: 31/10/2026</span>
-                    <span class="promo-code-badge">CINEMA10</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
+    <div id="promoGrid" class="promo-grid" aria-live="polite"></div>
+    <div id="promoState" class="promo-state" style="display:none;"></div>
 </div>
+
+<div id="promoDetailModal" class="promo-modal" aria-hidden="true">
+    <div class="promo-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="promoModalTitle">
+        <div class="promo-modal-media" id="promoModalMedia">
+            <button type="button" class="promo-modal-close" data-promo-close aria-label="Đóng">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="promo-modal-body">
+            <h2 id="promoModalTitle" data-i18n="promo_default_title">Ưu đãi AERO Cinema</h2>
+            <p id="promoModalDesc" class="promo-modal-desc"></p>
+            <div class="promo-modal-info">
+                <div class="promo-modal-info-item">
+                    <span data-i18n="offer_type">Loại ưu đãi</span>
+                    <strong id="promoModalType">Ưu đãi</strong>
+                </div>
+                <div class="promo-modal-info-item">
+                    <span data-i18n="valid_period">Thời gian áp dụng</span>
+                    <strong id="promoModalTime">Đang cập nhật</strong>
+                </div>
+                <div class="promo-modal-info-item">
+                    <span data-i18n="valid_until">Hạn dùng</span>
+                    <strong id="promoModalExpire">Đang cập nhật</strong>
+                </div>
+                <div class="promo-modal-info-item">
+                    <span data-i18n="copy_code">Mã ưu đãi</span>
+                    <strong id="promoModalCode">Không có mã</strong>
+                </div>
+            </div>
+            <p id="promoModalTerms" class="promo-modal-desc"></p>
+            <div class="promo-modal-actions">
+                <button type="button" class="promo-btn promo-btn-copy" id="promoModalCopyBtn" data-i18n="copy_code">Sao chép mã</button>
+                <button type="button" class="promo-btn promo-btn-primary" data-promo-close data-i18n="close">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="promoToast" class="promo-toast"></div>
+
+@section scripts {
+    <script type="module">
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const db = window.db;
+        const promoGrid = document.getElementById("promoGrid");
+        const promoState = document.getElementById("promoState");
+        const promoModal = document.getElementById("promoDetailModal");
+        const promoToast = document.getElementById("promoToast");
+        let rawPromotions = [];
+        let promotions = [];
+        let selectedPromotion = null;
+
+        function tr(key, fallback = "") {
+            return window.t ? window.t(key, fallback) : (fallback || key);
+        }
+
+        function currentLang() {
+            return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+        }
+
+        function safeText(value, fallback = "-") {
+            if (value === undefined || value === null) return fallback;
+            const text = String(value).trim();
+            if (!text || text.toLowerCase() === "undefined" || text.toLowerCase() === "null" || text === "NaN" || text === "Invalid Date") {
+                return fallback;
+            }
+            return text;
+        }
+
+        function stripHtml(value, fallback = "") {
+            const text = safeText(value, fallback);
+            const doc = new DOMParser().parseFromString(text, "text/html");
+            return safeText(doc.body.textContent || doc.body.innerText, fallback);
+        }
+
+        function escapeHtml(value) {
+            return safeText(value, "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function toDate(value) {
+            if (!value) return null;
+            if (value.toDate) return value.toDate();
+            if (typeof value === "object" && Number.isFinite(value.seconds)) return new Date(value.seconds * 1000);
+            const date = new Date(value);
+            return Number.isNaN(date.getTime()) ? null : date;
+        }
+
+        function formatDate(value, fallback = "Đang cập nhật") {
+            const date = toDate(value);
+            return date ? date.toLocaleDateString(currentLang() === "en" ? "en-US" : "vi-VN") : fallback;
+        }
+
+        function dateValue(value) {
+            const date = toDate(value);
+            return date ? date.getTime() : 0;
+        }
+
+        function getPromoTitle(item) {
+            if (window.getLocalizedField) return window.getLocalizedField(item, "title", tr("promo_default_title"));
+            return safeText(item.title || item.name || item.promotionTitle || item.voucherName, tr("promo_default_title"));
+        }
+
+        function getPromoDesc(item) {
+            const value = window.getLocalizedField ? window.getLocalizedField(item, "description", "") : "";
+            return stripHtml(value || item.description || item.summary || item.content, tr("promo_default_desc"));
+        }
+
+        function getPromoType(item) {
+            return safeText(item.type || item.category || item.promotionType || tr("offer_type"), tr("offer_type"));
+        }
+
+        function getPromoCode(item) {
+            return safeText(item.code || item.couponCode || item.voucherCode || item.promoCode, tr("no_code"));
+        }
+
+        function getPromoImage(item) {
+            return safeText(item.desktopImageUrl || item.bannerUrl || item.imageUrl || item.thumbnailUrl, "");
+        }
+
+        function isExpired(item) {
+            const expiry = toDate(item.expiredAt || item.endDate || item.validTo);
+            if (!expiry) return false;
+            expiry.setHours(23, 59, 59, 999);
+            return expiry.getTime() < Date.now();
+        }
+
+        function normalizePromo(item) {
+            const code = getPromoCode(item);
+            return {
+                ...item,
+                title: getPromoTitle(item),
+                descriptionText: getPromoDesc(item),
+                typeText: getPromoType(item),
+                codeText: code,
+                image: getPromoImage(item),
+                expireText: formatDate(item.expiredAt || item.endDate || item.validTo, tr("updated")),
+                startText: formatDate(item.startDate || item.startAt || item.createdAt, tr("updated")),
+                termsText: stripHtml((window.getLocalizedField ? window.getLocalizedField(item, "terms", "") : "") || item.terms || item.condition || item.conditions || item.applyCondition, tr("promo_default_terms")),
+                hasCode: code !== tr("no_code"),
+                expired: isExpired(item)
+            };
+        }
+
+        function isPromoVisible(item) {
+            if (item.isActive === false) return false;
+            const status = safeText(item.status, "").toLowerCase();
+            return !["inactive", "disabled", "deleted", "expired"].includes(status);
+        }
+
+        function sortPromos(a, b) {
+            const aOrder = Number(a.order);
+            const bOrder = Number(b.order);
+            const aHasOrder = Number.isFinite(aOrder);
+            const bHasOrder = Number.isFinite(bOrder);
+            if (aHasOrder && bHasOrder) return aOrder - bOrder;
+            if (aHasOrder) return -1;
+            if (bHasOrder) return 1;
+            return dateValue(b.createdAt || b.updatedAt) - dateValue(a.createdAt || a.updatedAt);
+        }
+
+        function showState(message) {
+            promoGrid.innerHTML = "";
+            promoState.textContent = message;
+            promoState.style.display = "block";
+        }
+
+        function showLoading() {
+            promoState.style.display = "none";
+            promoGrid.innerHTML = Array.from({ length: 3 }, () => `
+                <article class="promo-card promo-skeleton-card">
+                    <div class="promo-card-media"><div class="promo-card-image"></div></div>
+                    <div class="promo-card-body">
+                        <div class="promo-skeleton-line" style="width: 82%; height: 20px;"></div>
+                        <div class="promo-skeleton-line" style="width: 96%;"></div>
+                        <div class="promo-skeleton-line" style="width: 74%;"></div>
+                        <div class="promo-skeleton-line" style="width: 58%; margin-top: 18px;"></div>
+                    </div>
+                </article>
+            `).join("");
+        }
+
+        function renderImage(item) {
+            const image = item.image;
+            if (!image) {
+                return `<div class="promo-image-fallback"><i class="fas fa-ticket-alt"></i></div>`;
+            }
+            return `<img class="promo-card-image" src="${escapeHtml(image)}" alt="${escapeHtml(item.title)}" loading="lazy" onerror="this.outerHTML='<div class=&quot;promo-image-fallback&quot;><i class=&quot;fas fa-ticket-alt&quot;></i></div>'" />`;
+        }
+
+        function renderPromotions(items) {
+            promoState.style.display = "none";
+            promoGrid.innerHTML = items.map(item => `
+                <article class="promo-card" data-id="${escapeHtml(item.id)}">
+                    <div class="promo-card-media">
+                        <span class="promo-card-tag">${escapeHtml(item.expired ? tr("sold_out") : item.typeText)}</span>
+                        ${renderImage(item)}
+                    </div>
+                    <div class="promo-card-body">
+                        <h3 class="promo-card-title">${escapeHtml(item.title)}</h3>
+                        <p class="promo-card-desc">${escapeHtml(item.descriptionText)}</p>
+                        <div class="promo-card-meta">
+                            <span class="promo-expire"><i class="far fa-calendar-alt"></i> ${escapeHtml(item.expireText)}</span>
+                            <span class="promo-code">${escapeHtml(item.codeText)}</span>
+                        </div>
+                        <div class="promo-card-actions">
+                            <button type="button" class="promo-btn promo-btn-primary" data-action="detail" data-id="${escapeHtml(item.id)}">${tr("service_detail")}</button>
+                            <button type="button" class="promo-btn promo-btn-copy" data-action="copy" data-code="${escapeHtml(item.codeText)}" ${item.hasCode ? "" : "disabled"}>${item.hasCode ? tr("copy_code") : tr("no_code")}</button>
+                        </div>
+                    </div>
+                </article>
+            `).join("");
+        }
+
+        async function loadCollection(name) {
+            const snap = await getDocs(collection(db, name));
+            return snap.docs.map(doc => ({ id: doc.id, sourceCollection: name, ...doc.data() }));
+        }
+
+        async function loadPromotions() {
+            showLoading();
+            try {
+                let data = await loadCollection("promotions");
+                if (!data.length) {
+                    data = await loadCollection("vouchers");
+                }
+
+                rawPromotions = data;
+                promotions = rawPromotions
+                    .filter(isPromoVisible)
+                    .sort(sortPromos)
+                    .map(normalizePromo);
+
+                if (!promotions.length) {
+                    showState(tr("promo_empty"));
+                    return;
+                }
+
+                renderPromotions(promotions);
+            } catch (error) {
+                console.error("Load promotions failed:", error);
+                showState(tr("promo_error"));
+            }
+        }
+
+        async function copyCode(code) {
+            const cleanCode = safeText(code, "");
+            if (!cleanCode || cleanCode === tr("no_code")) return;
+            try {
+                await navigator.clipboard.writeText(cleanCode);
+            } catch {
+                const temp = document.createElement("textarea");
+                temp.value = cleanCode;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand("copy");
+                temp.remove();
+            }
+            showToast(`${tr("copied")}: ${cleanCode}`);
+        }
+
+        function showToast(message) {
+            promoToast.textContent = message;
+            promoToast.classList.add("show");
+            clearTimeout(showToast.timer);
+            showToast.timer = setTimeout(() => promoToast.classList.remove("show"), 2200);
+        }
+
+        function openModal(item) {
+            selectedPromotion = item;
+            document.getElementById("promoModalTitle").textContent = item.title;
+            document.getElementById("promoModalDesc").textContent = item.descriptionText;
+            document.getElementById("promoModalType").textContent = item.typeText;
+            document.getElementById("promoModalTime").textContent = item.startText;
+            document.getElementById("promoModalExpire").textContent = item.expireText;
+            document.getElementById("promoModalCode").textContent = item.codeText;
+            document.getElementById("promoModalTerms").textContent = item.termsText;
+
+            const media = document.getElementById("promoModalMedia");
+            const closeButton = media.querySelector(".promo-modal-close");
+            media.innerHTML = item.image
+                ? `<img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.title)}" onerror="this.outerHTML='<div class=&quot;promo-image-fallback&quot;><i class=&quot;fas fa-ticket-alt&quot;></i></div>'" />`
+                : `<div class="promo-image-fallback"><i class="fas fa-ticket-alt"></i></div>`;
+            media.appendChild(closeButton);
+
+            const copyBtn = document.getElementById("promoModalCopyBtn");
+            copyBtn.disabled = !item.hasCode;
+            copyBtn.textContent = item.hasCode ? tr("copy_code") : tr("no_code");
+
+            promoModal.classList.add("show");
+            promoModal.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+            promoModal.classList.remove("show");
+            promoModal.setAttribute("aria-hidden", "true");
+            document.body.style.overflow = "";
+        }
+
+        document.addEventListener("click", (event) => {
+            const actionButton = event.target.closest("[data-action]");
+            if (actionButton?.dataset.action === "detail") {
+                const item = promotions.find(p => p.id === actionButton.dataset.id);
+                if (item) openModal(item);
+            }
+
+            if (actionButton?.dataset.action === "copy") {
+                copyCode(actionButton.dataset.code);
+            }
+
+            if (event.target.closest("[data-promo-close]") || event.target === promoModal) {
+                closeModal();
+            }
+        });
+
+        document.getElementById("promoModalCopyBtn").addEventListener("click", () => {
+            if (selectedPromotion) copyCode(selectedPromotion.codeText);
+        });
+
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && promoModal.classList.contains("show")) {
+                closeModal();
+            }
+        });
+
+        if (document.readyState === "loading") {
+            window.addEventListener("DOMContentLoaded", loadPromotions);
+        } else {
+            loadPromotions();
+        }
+
+        window.addEventListener("aero:languageChanged", () => {
+            if (window.applyLanguage) window.applyLanguage();
+            if (rawPromotions.length) {
+                promotions = rawPromotions.filter(isPromoVisible).sort(sortPromos).map(normalizePromo);
+                renderPromotions(promotions);
+                if (promoModal.classList.contains("show") && selectedPromotion) {
+                    const refreshed = promotions.find(item => item.id === selectedPromotion.id);
+                    if (refreshed) openModal(refreshed);
+                }
+            }
+        });
+    </script>
+}

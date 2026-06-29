@@ -1,0 +1,830 @@
+@{
+    ViewBag.Title = "Tin Điện Ảnh - AERO Cinema";
+}
+
+<style>
+    body {
+        background-color: #f8fafc !important;
+    }
+
+    .news-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 36px 24px 72px;
+    }
+
+    .news-page-hero {
+        margin-bottom: 30px;
+        padding: 58px 32px;
+        border-radius: 24px;
+        text-align: center;
+        color: #fff;
+        background:
+            radial-gradient(circle at top left, rgba(245,130,32,.26), transparent 34%),
+            radial-gradient(circle at bottom right, rgba(0,91,170,.28), transparent 34%),
+            linear-gradient(135deg, #0f172a, #111827 55%, #020617);
+        box-shadow: 0 28px 80px rgba(15,23,42,.22);
+    }
+
+    .news-page-hero span {
+        display: inline-flex;
+        margin-bottom: 12px;
+        color: #f58220;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 2px;
+    }
+
+    .news-page-hero h1 {
+        margin: 0;
+        font-size: 38px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .news-page-hero p {
+        max-width: 720px;
+        margin: 14px auto 0;
+        color: rgba(255,255,255,.76);
+        line-height: 1.7;
+    }
+
+    /* Filter panel */
+    .news-filter-panel {
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        box-shadow: 0 18px 48px rgba(15,23,42,.08);
+    }
+
+    .news-search-box {
+        height: 50px;
+        border: 1px solid #dbe3ef;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 0 16px;
+        margin-bottom: 16px;
+    }
+
+    .news-search-box i {
+        color: #94a3b8;
+    }
+
+    .news-search-box input {
+        width: 100%;
+        border: 0;
+        outline: 0;
+        font-size: 14px;
+        color: #0f172a;
+        background: transparent;
+    }
+
+    .news-category-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .news-category-btn {
+        height: 36px;
+        padding: 0 16px;
+        border-radius: 999px;
+        border: 1px solid #dbe3ef;
+        background: #fff;
+        color: #475569;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .news-category-btn.active,
+    .news-category-btn:hover {
+        background: #f58220;
+        border-color: #f58220;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(245,130,32,.22);
+    }
+
+    /* Grid */
+    .news-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 28px;
+    }
+
+    .news-page-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 16px 42px rgba(15,23,42,.10);
+        transition: transform .25s ease, box-shadow .25s ease;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .news-page-card:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 30px 76px rgba(15,23,42,.16);
+    }
+
+    .news-page-card-image {
+        position: relative;
+        aspect-ratio: 16 / 9;
+        background: #0f172a;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+    .news-page-card-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .45s ease;
+    }
+
+    .news-page-card:hover img {
+        transform: scale(1.06);
+    }
+
+    .news-page-card-image span {
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        height: 28px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: #f58220;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        text-transform: uppercase;
+        box-shadow: 0 4px 10px rgba(245, 130, 32, 0.35);
+    }
+
+    .news-page-card-body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .news-page-card-date {
+        margin-bottom: 10px;
+        color: #64748b;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .news-page-card-date i {
+        color: #f58220;
+        margin-right: 6px;
+    }
+
+    .news-page-card h3 {
+        margin: 0 0 10px;
+        color: #005baa;
+        font-size: 17px;
+        line-height: 1.35;
+        font-weight: 900;
+        text-transform: uppercase;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .news-page-card p {
+        margin: 0 0 16px;
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.6;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .news-detail-btn {
+        border: 0;
+        background: transparent;
+        color: #f58220;
+        font-weight: 900;
+        cursor: pointer;
+        padding: 0;
+        text-align: left;
+        margin-top: auto;
+        font-size: 13px;
+    }
+
+    /* Modal dialog */
+    .news-detail-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9998;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15, 23, 42, 0.72);
+        backdrop-filter: blur(6px);
+    }
+
+    .news-detail-modal.show {
+        display: flex;
+    }
+
+    .news-detail-dialog {
+        position: relative;
+        width: min(760px, 100%);
+        max-height: 88vh;
+        overflow: hidden;
+        background: #ffffff;
+        border-radius: 18px;
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.3);
+        display: flex;
+        flex-direction: column;
+        animation: modalScaleIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @@keyframes modalScaleIn {
+        from {
+            opacity: 0;
+            transform: scale(0.92) translateY(12px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+
+    .news-detail-image {
+        width: 100%;
+        aspect-ratio: 16 / 8;
+        object-fit: cover;
+        background: #e5e7eb;
+        flex-shrink: 0;
+    }
+
+    .news-detail-body {
+        padding: 24px;
+        overflow-y: auto;
+    }
+
+    .news-detail-body h3 {
+        margin: 0 0 14px;
+        color: #005baa;
+        font-size: 22px;
+        font-weight: 900;
+        text-transform: uppercase;
+        line-height: 1.35;
+    }
+
+    .news-detail-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(15, 23, 42, 0.78);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 15px;
+        z-index: 10;
+        transition: all 0.2s ease;
+    }
+
+    .news-detail-close:hover {
+        background: #f58220;
+        transform: rotate(90deg);
+    }
+
+    body.modal-open {
+        overflow: hidden;
+    }
+
+    .aero-news-detail-content {
+        color: #475569;
+        font-size: 15px;
+        line-height: 1.8;
+    }
+
+    .aero-news-detail-content p {
+        margin: 0 0 14px;
+    }
+
+    .aero-news-detail-content span {
+        color: inherit !important;
+        font-size: inherit !important;
+        line-height: inherit !important;
+    }
+
+    .aero-news-detail-content strong,
+    .aero-news-detail-content b {
+        color: #0f172a;
+        font-weight: 800;
+    }
+
+    .aero-news-detail-content ul,
+    .aero-news-detail-content ol {
+        margin: 12px 0 16px 22px;
+        padding: 0;
+    }
+
+    .aero-news-detail-content li {
+        margin-bottom: 8px;
+    }
+
+    .aero-news-detail-content img {
+        max-width: 100%;
+        border-radius: 14px;
+        margin: 16px 0;
+    }
+
+    .aero-news-detail-content a {
+        color: #005baa;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .aero-news-detail-content a:hover {
+        color: #f58220;
+    }
+
+    /* Shimmer loading */
+    .news-shimmer-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 28px;
+    }
+
+    .news-shimmer-card {
+        background: #fff;
+        height: 380px;
+        border-radius: 22px;
+        border: 1px solid #e5e7eb;
+        animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    @@keyframes pulse {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 0.3; }
+    }
+
+    /* Empty state */
+    .news-empty-state {
+        text-align: center;
+        padding: 64px 20px;
+        background: #fff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 22px;
+        color: #64748b;
+        margin-top: 24px;
+    }
+
+    .news-empty-state i {
+        font-size: 42px;
+        color: #f58220;
+        margin-bottom: 14px;
+    }
+
+    .news-empty-state h3 {
+        color: #0f172a;
+        margin: 0 0 8px;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    /* Responsive media queries */
+    @@media (max-width: 1199px) {
+        .news-grid, .news-shimmer-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 767px) {
+        .news-page {
+            padding: 24px 16px 56px;
+        }
+
+        .news-page-hero {
+            padding: 42px 20px;
+            border-radius: 20px;
+        }
+
+        .news-page-hero h1 {
+            font-size: 28px;
+        }
+
+        .news-grid, .news-shimmer-grid {
+            grid-template-columns: 1fr;
+            gap: 22px;
+        }
+    }
+</style>
+
+<section class="news-page">
+    <!-- Hero Header -->
+    <div class="news-page-hero">
+        <span>AERO CINEMA NEWS</span>
+        <h1>TIN ĐIỆN ẢNH</h1>
+        <p>Cập nhật tin tức phim mới, sự kiện điện ảnh, ưu đãi và hoạt động mới nhất từ AERO Cinema.</p>
+    </div>
+
+    <!-- Filter and Search Panel -->
+    <div class="news-filter-panel">
+        <div class="news-search-box">
+            <i class="fas fa-search"></i>
+            <input id="newsSearchInput" type="text" placeholder="Tìm tin theo tiêu đề, nội dung...">
+        </div>
+
+        <div id="newsCategoryFilters" class="news-category-filters">
+            <!-- render dynamic categories -->
+            <button type="button" class="news-category-btn active">Đang tải...</button>
+        </div>
+    </div>
+
+    <!-- Shimmer skeleton loading container -->
+    <div id="newsShimmerGrid" class="news-shimmer-grid">
+        <div class="news-shimmer-card"></div>
+        <div class="news-shimmer-card"></div>
+        <div class="news-shimmer-card"></div>
+    </div>
+
+    <!-- Results Grid -->
+    <div id="newsGrid" class="news-grid" style="display: none;">
+        <!-- render news cards -->
+    </div>
+
+    <!-- Fallback Empty State -->
+    <div id="newsEmptyState" class="news-empty-state" style="display:none;">
+        <i class="fas fa-newspaper"></i>
+        <h3>Không tìm thấy tin phù hợp</h3>
+        <p>Vui lòng thử lại với từ khóa hoặc danh mục khác.</p>
+    </div>
+</section>
+
+<!-- Detailed modal dialog popup -->
+<div id="newsDetailModal" class="news-detail-modal">
+    <div class="news-detail-dialog" onclick="event.stopPropagation()">
+        <button type="button" class="news-detail-close" onclick="closeNewsDetail()" aria-label="Đóng">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="modalNewsImage" class="news-detail-image" src="/Content/images/news-placeholder.jpg" alt="" />
+        <div class="news-detail-body">
+            <div class="news-detail-meta" style="margin-bottom: 12px; display: flex; gap: 14px; font-size: 13px; color: #64748b; font-weight: 700;">
+                <span id="modalNewsCategory" style="color: #f58220; text-transform: uppercase;"></span>
+                <span>•</span>
+                <span id="modalNewsDate"></span>
+                <span id="modalNewsAuthorWrapper" style="display: none;">
+                    <span>•</span>
+                    Tác giả: <span id="modalNewsAuthor"></span>
+                </span>
+            </div>
+            <h3 id="modalNewsTitle"></h3>
+            <p id="modalNewsSummary" style="font-weight: 700; color: #334155; margin-bottom: 16px; font-size: 15px; border-left: 3px solid #f58220; padding-left: 12px;"></p>
+            <div id="modalNewsContent" class="aero-news-detail-content"></div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script type="module">
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        let allNews = [];
+        let currentCategory = "all";
+        let currentKeyword = "";
+
+        const defaultPlaceholder = "/Content/images/news-placeholder.jpg";
+
+        function safeText(value, fallback = "") {
+            if (value === undefined || value === null) return fallback;
+            const text = String(value).trim();
+            if (!text || text.toLowerCase() === "undefined" || text.toLowerCase() === "null") return fallback;
+            return text;
+        }
+
+        function isHtmlString(value) {
+            const text = safeText(value, "");
+            return /<\/?[a-z][\s\S]*>/i.test(text);
+        }
+
+        function plainTextToParagraphs(text) {
+            const safe = safeText(text, "Nội dung đang được cập nhật.");
+            return safe
+                .split(/\n+/)
+                .map(p => p.trim())
+                .filter(Boolean)
+                .map(p => `<p>${escapeHtml(p)}</p>`)
+                .join("");
+        }
+
+        function sanitizeNewsHtml(html) {
+            const template = document.createElement("template");
+            template.innerHTML = html;
+
+            const blockedTags = ["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED", "FORM", "INPUT", "BUTTON"];
+
+            template.content.querySelectorAll("*").forEach(el => {
+                if (blockedTags.includes(el.tagName)) {
+                    el.remove();
+                    return;
+                }
+
+                [...el.attributes].forEach(attr => {
+                    const name = attr.name.toLowerCase();
+                    const value = attr.value || "";
+
+                    if (name.startsWith("on")) {
+                        el.removeAttribute(attr.name);
+                    }
+
+                    if ((name === "href" || name === "src") && value.trim().toLowerCase().startsWith("javascript:")) {
+                        el.removeAttribute(attr.name);
+                    }
+                });
+            });
+
+            return template.innerHTML;
+        }
+
+        function renderNewsRichContent(value) {
+            const raw = safeText(value, "Nội dung đang được cập nhật.");
+
+            if (isHtmlString(raw)) {
+                return sanitizeNewsHtml(raw);
+            }
+
+            return plainTextToParagraphs(raw);
+        }
+
+        function formatNewsDate(value) {
+            try {
+                if (!value) return "";
+                const date = value.toDate ? value.toDate() : new Date(value);
+                return date.toLocaleDateString("vi-VN");
+            } catch {
+                return "";
+            }
+        }
+
+        function getNewsImage(n) {
+            return safeText(n.imageUrl || n.bannerUrl || n.thumbnailUrl, defaultPlaceholder);
+        }
+
+        function removeAccents(str) {
+            return str
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/đ/g, 'd')
+                .replace(/Đ/g, 'd');
+        }
+
+        async function fetchNews() {
+            try {
+                const db = window.db;
+                if (!db) {
+                    setTimeout(fetchNews, 200);
+                    return;
+                }
+
+                const newsRef = collection(db, "news");
+                const snapshot = await getDocs(newsRef);
+
+                allNews = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .filter(n => n.isActive !== false && String(n.status || "active").toLowerCase() !== "inactive");
+
+                // Sort by date descending
+                allNews.sort((a, b) => {
+                    const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
+                    const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                    return dateB - dateA;
+                });
+
+                // Hide skeleton loaders
+                document.getElementById("newsShimmerGrid").style.display = "none";
+                document.getElementById("newsGrid").style.display = "grid";
+
+                renderCategoryFilters();
+                renderNews();
+            } catch (error) {
+                console.error("Error loading news from Firestore:", error);
+                document.getElementById("newsShimmerGrid").style.display = "none";
+                document.getElementById("newsGrid").innerHTML = "";
+                document.getElementById("newsEmptyState").innerHTML = `
+                    <i class="fas fa-exclamation-triangle fa-3x" style="font-size: 42px; color: #f58220; margin-bottom: 14px;"></i>
+                    <h3>Đã xảy ra lỗi</h3>
+                    <p>Không thể tải tin tức điện ảnh lúc này. Vui lòng thử lại sau.</p>
+                `;
+                document.getElementById("newsEmptyState").style.display = "block";
+            }
+        }
+
+        function renderCategoryFilters() {
+            const container = document.getElementById("newsCategoryFilters");
+            if (!container) return;
+
+            const categories = [...new Set(allNews.map(n => safeText(n.category, "Tin Tức")))]
+                .filter(Boolean)
+                .sort();
+
+            let filterHtml = `
+                <button type="button" 
+                        class="news-category-btn ${currentCategory === "all" ? "active" : ""}" 
+                        data-category="all">
+                    Tất cả
+                </button>
+            `;
+
+            filterHtml += categories.map(cat => {
+                const isActive = cat === currentCategory;
+                return `
+                    <button type="button" 
+                            class="news-category-btn ${isActive ? "active" : ""}" 
+                            data-category="${escapeAttribute(cat)}">
+                        ${escapeHtml(cat)}
+                    </button>
+                `;
+            }).join("");
+
+            container.innerHTML = filterHtml;
+
+            // Bind click handlers
+            container.querySelectorAll(".news-category-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    currentCategory = btn.dataset.category;
+                    container.querySelectorAll(".news-category-btn").forEach(b => b.classList.toggle("active", b === btn));
+                    renderNews();
+                });
+            });
+        }
+
+        function filterNewsList() {
+            return allNews.filter(n => {
+                const category = safeText(n.category, "Tin Tức");
+                const searchText = [
+                    safeText(n.title),
+                    safeText(n.summary),
+                    safeText(n.description),
+                    safeText(n.content),
+                    category
+                ].join(" ").toLowerCase();
+
+                const matchCategory = currentCategory === "all" || category === currentCategory;
+                const matchKeyword = !currentKeyword || removeAccents(searchText).includes(removeAccents(currentKeyword.toLowerCase()));
+
+                return matchCategory && matchKeyword;
+            });
+        }
+
+        function escapeHtml(value) {
+            return safeText(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function escapeAttribute(value) {
+            return escapeHtml(value).replace(/`/g, "&#96;");
+        }
+
+        function renderNews() {
+            const grid = document.getElementById("newsGrid");
+            const empty = document.getElementById("newsEmptyState");
+            if (!grid || !empty) return;
+
+            const data = filterNewsList();
+
+            if (data.length === 0) {
+                grid.innerHTML = "";
+                empty.style.display = "block";
+                return;
+            }
+
+            empty.style.display = "none";
+            grid.innerHTML = data.map(n => {
+                const id = escapeAttribute(n.id);
+                const title = escapeHtml(safeText(n.title, "Tin Điện Ảnh"));
+                const summary = escapeHtml(safeText(n.summary || n.description, ""));
+                const category = escapeHtml(safeText(n.category, "Tin Tức"));
+                const date = escapeHtml(formatNewsDate(n.createdAt));
+                const image = escapeAttribute(getNewsImage(n));
+
+                return `
+                    <article class="news-page-card" data-news-id="${id}">
+                        <div class="news-page-card-image">
+                            <img src="${image}" alt="${title}" loading="lazy" onerror="this.src='${defaultPlaceholder}'" />
+                            <span>${category}</span>
+                        </div>
+                        <div class="news-page-card-body">
+                            <div class="news-page-card-date">
+                                <i class="fas fa-calendar-alt"></i> ${date}
+                            </div>
+                            <h3>${title}</h3>
+                            ${summary ? `<p>${summary}</p>` : ""}
+                            <button type="button" class="news-detail-btn">
+                                Xem chi tiết →
+                            </button>
+                        </div>
+                    </article>
+                `;
+            }).join("");
+        }
+
+        window.openNewsDetail = function(newsId) {
+            const item = allNews.find(n => n.id === newsId);
+            if (!item) return;
+
+            const modal = document.getElementById("newsDetailModal");
+            if (!modal) return;
+
+            document.getElementById("modalNewsImage").src = getNewsImage(item);
+            document.getElementById("modalNewsCategory").textContent = safeText(item.category, "Tin Tức");
+            document.getElementById("modalNewsDate").textContent = formatNewsDate(item.createdAt);
+            
+            const author = safeText(item.author || item.createdBy, "");
+            const authorWrapper = document.getElementById("modalNewsAuthorWrapper");
+            if (author) {
+                document.getElementById("modalNewsAuthor").textContent = author;
+                authorWrapper.style.display = "inline";
+            } else {
+                authorWrapper.style.display = "none";
+            }
+
+            document.getElementById("modalNewsTitle").textContent = safeText(item.title, "Tin Điện Ảnh");
+            document.getElementById("modalNewsSummary").textContent = safeText(item.summary || item.description, "");
+            
+            const contentVal = safeText(item.content || item.description || item.summary, "Nội dung đang được cập nhật.");
+            document.getElementById("modalNewsContent").innerHTML = renderNewsRichContent(contentVal);
+
+            modal.style.display = "flex";
+            setTimeout(() => {
+                modal.classList.add("show");
+                document.body.classList.add("modal-open");
+            }, 50);
+        };
+
+        window.closeNewsDetail = function() {
+            const modal = document.getElementById("newsDetailModal");
+            if (!modal) return;
+
+            modal.classList.remove("show");
+            document.body.classList.remove("modal-open");
+            setTimeout(() => {
+                modal.style.display = "none";
+            }, 300);
+        };
+
+        // Event delegation click handler for cards
+        document.getElementById("newsGrid")?.addEventListener("click", (e) => {
+            const card = e.target.closest(".news-page-card");
+            if (card) {
+                openNewsDetail(card.dataset.newsId);
+            }
+        });
+
+        // Close modal on backdrop click
+        document.getElementById("newsDetailModal")?.addEventListener("click", () => {
+            closeNewsDetail();
+        });
+
+        // Close modal on escape key
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                closeNewsDetail();
+            }
+        });
+
+        // Search Input event with 300ms debounce
+        const searchInput = document.getElementById("newsSearchInput");
+        let searchTimeout = null;
+        searchInput?.addEventListener("input", (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentKeyword = e.target.value.trim();
+                renderNews();
+            }, 300);
+        });
+
+        // Initialize loading
+        window.addEventListener("DOMContentLoaded", () => {
+            fetchNews();
+        });
+    </script>
+}

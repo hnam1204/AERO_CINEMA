@@ -524,7 +524,7 @@
                         <i class="fas fa-user-circle"></i> Thông tin cá nhân
                     </a>
                     <a href="@Url.Action("TicketHistory", "Account")" class="profile-nav-btn active">
-                        <i class="fas fa-ticket-alt"></i> Lịch sử vé đã đặt
+                        <i class="fas fa-ticket-alt"></i> <span data-i18n="history_title">Lịch sử vé đã đặt</span>
                     </a>
                 </div>
             </div>
@@ -534,7 +534,7 @@
         <main class="profile-main-panel">
             <h1 class="panel-title">
                 <i class="fas fa-history"></i>
-                <span>Lịch sử giao dịch đặt vé</span>
+                <span data-i18n="history_title">Lịch sử giao dịch đặt vé</span>
             </h1>
 
             <div class="ticket-list" id="ticketListContainer">
@@ -607,27 +607,35 @@
 
         let currentUser = null;
 
+        function getLang() {
+            return window.getCurrentLang ? window.getCurrentLang() : (localStorage.getItem("aero_lang") || localStorage.getItem("language") || "vi");
+        }
+
+        function tr(key) {
+            return window.t ? window.t(key) : key;
+        }
+
         function formatDateSafe(dateValue) {
-            if (!dateValue) return "Đang cập nhật";
+            if (!dateValue) return tr("updating");
             try {
                 if (typeof dateValue === "string") {
                     const parts = dateValue.split("-");
                     if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
                     return dateValue;
                 }
-                if (dateValue.toDate) return dateValue.toDate().toLocaleDateString("vi-VN");
-                return new Date(dateValue).toLocaleDateString("vi-VN");
+                if (dateValue.toDate) return dateValue.toDate().toLocaleDateString(getLang() === "en" ? "en-US" : "vi-VN");
+                return new Date(dateValue).toLocaleDateString(getLang() === "en" ? "en-US" : "vi-VN");
             } catch {
-                return "Đang cập nhật";
+                return tr("updating");
             }
         }
 
         function formatCurrency(amount) {
             const value = Number(amount || 0);
-            return value.toLocaleString("vi-VN") + "đ";
+            return window.formatLocalizedCurrency ? window.formatLocalizedCurrency(value) : value.toLocaleString("vi-VN") + "đ";
         }
 
-        function safeText(value, fallback = "Đang cập nhật") {
+        function safeText(value, fallback = tr("updating")) {
             return value === undefined || value === null || value === "" ? fallback : value;
         }
 
@@ -693,10 +701,10 @@
                 const userDocSnap = await getDoc(doc(db, "users", currentUser.uid));
                 if (userDocSnap.exists()) {
                     const userData = userDocSnap.data();
-                    document.getElementById("cardMemberName").innerText = (userData.fullName || currentUser.displayName || "Thành viên").toUpperCase();
+                    document.getElementById("cardMemberName").innerText = (userData.fullName || currentUser.displayName || (getLang() === "en" ? "Member" : "Thành viên")).toUpperCase();
                     document.getElementById("cardMemberPoints").innerText = userData.points || 0;
                     
-                    document.getElementById("profileDisplayName").innerText = userData.fullName || currentUser.displayName || "Thành viên";
+                    document.getElementById("profileDisplayName").innerText = userData.fullName || currentUser.displayName || (getLang() === "en" ? "Member" : "Thành viên");
                     document.getElementById("profileDisplayEmail").innerText = userData.email || currentUser.email || "";
 
                     const rank = userData.rank || userData.memberRank || "Standard";
@@ -760,9 +768,9 @@
                     container.innerHTML = `
                         <div class="empty-state">
                             <i class="fas fa-ticket-alt"></i>
-                            <h3>Bạn chưa có giao dịch đặt vé nào.</h3>
-                            <p>Hãy chọn những bộ phim bom tấn và đặt vé ngay hôm nay!</p>
-                            <a href="/Showtimes" class="btn-cinema">Đặt Vé Ngay</a>
+                            <h3>${tr("history_no_tickets")}</h3>
+                            <p>${getLang() === "en" ? "Choose a movie and book your tickets today!" : "Hãy chọn những bộ phim bom tấn và đặt vé ngay hôm nay!"}</p>
+                            <a href="/Showtimes" class="btn-cinema">${tr("movie_book_now")}</a>
                         </div>
                     `;
                     return;
@@ -814,22 +822,22 @@
                     const comboHtml = comboItems.length ? `
                         <div class="ticket-meta-item" style="grid-column: 1 / -1;">
                             <i class="fas fa-cookie-bite"></i>
-                            <span>Bắp nước: ${comboItems.map(item => `${escapeHtml(item.name || "Combo")} x${Number(item.quantity || 0)}`).join(", ")}</span>
+                            <span>Combo: ${comboItems.map(item => `${escapeHtml(item.name || "Combo")} x${Number(item.quantity || 0)}`).join(", ")}</span>
                         </div>
                         <div class="ticket-meta-item">
                             <i class="fas fa-ticket-alt"></i>
-                            <span>Tiền vé: ${ticketTotalFormatted}</span>
+                            <span>${tr("checkout_price")}: ${ticketTotalFormatted}</span>
                         </div>
                         <div class="ticket-meta-item">
                             <i class="fas fa-ice-cream"></i>
-                            <span>Tiền combo: ${comboTotalFormatted}</span>
+                            <span>${tr("checkout_combo_total")}: ${comboTotalFormatted}</span>
                         </div>
                     ` : "";
 
                     // Determine payment method label
-                    let payMethod = "Tiền mặt tại quầy";
-                    if (booking.paymentMethod === "qr") payMethod = "QR Banking";
-                    if (booking.paymentMethod === "momo") payMethod = "Ví MoMo";
+                    let payMethod = tr("checkout_cash_counter");
+                    if (booking.paymentMethod === "qr") payMethod = tr("checkout_qr_banking");
+                    if (booking.paymentMethod === "momo") payMethod = tr("checkout_momo");
 
                     html += `
                         <div class="ticket-item">
@@ -841,27 +849,27 @@
                                 <div class="ticket-meta-grid">
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-video"></i>
-                                        <span>Rạp: ${escapeHtml(safeText(booking.cinemaName))} (${escapeHtml(safeText(booking.roomName))})</span>
+                                        <span>${tr("seats_cinema")}: ${escapeHtml(safeText(booking.cinemaName))} (${escapeHtml(safeText(booking.roomName))})</span>
                                     </div>
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-calendar-alt"></i>
-                                        <span>Suất chiếu: ${timeString}</span>
+                                        <span>${tr("seats_showtime")}: ${timeString}</span>
                                     </div>
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-couch"></i>
-                                        <span>Ghế: <span style="font-weight: 700; color: var(--primary-color);">${escapeHtml(seatsString)}</span></span>
+                                        <span>${tr("history_seats")}: <span style="font-weight: 700; color: var(--primary-color);">${escapeHtml(seatsString)}</span></span>
                                     </div>
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-tag"></i>
-                                        <span>Mã vé: <span style="font-weight: 700; color: var(--primary-color);">${escapeHtml(ticketCode)}</span></span>
+                                        <span>${tr("history_booking_code")}: <span style="font-weight: 700; color: var(--primary-color);">${escapeHtml(ticketCode)}</span></span>
                                     </div>
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-wallet"></i>
-                                        <span>Thanh toán: ${escapeHtml(payMethod)}</span>
+                                        <span>${tr("checkout_payment_method")}: ${escapeHtml(payMethod)}</span>
                                     </div>
                                     <div class="ticket-meta-item">
                                         <i class="fas fa-info-circle"></i>
-                                        <span>Trạng thái: <span class="badge bg-success" style="font-size: 10px; padding: 4px 8px; border-radius: 12px; text-transform: uppercase;">Thành công</span></span>
+                                        <span>${tr("history_status")}: <span class="badge bg-success" style="font-size: 10px; padding: 4px 8px; border-radius: 12px; text-transform: uppercase;">${tr("alert_success")}</span></span>
                                     </div>
                                     ${comboHtml}
                                 </div>
@@ -869,7 +877,7 @@
                             <div class="ticket-action-box">
                                 <span class="ticket-price-display">${priceFormatted}</span>
                                 <button class="btn-view-qr" onclick="showTicketQrModal('${escapeHtml(ticketCode)}', '${escapeHtml(qrText)}', '${escapeHtml(booking.movieTitle || '').replace(/'/g, "\\'")}', '${escapeHtml(safeText(booking.cinemaName))}', '${escapeHtml(safeText(booking.roomName))}', '${escapeHtml(safeText(booking.time))}', '${escapeHtml(safeText(booking.date, ''))}', '${escapeHtml(seatsString)}')">
-                                    <i class="fas fa-qrcode"></i> Vé QR Code
+                                    <i class="fas fa-qrcode"></i> QR Code
                                 </button>
                             </div>
                         </div>
@@ -883,15 +891,21 @@
                 container.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-exclamation-triangle" style="color: var(--accent-color);"></i>
-                        <h3>Lỗi tải dữ liệu</h3>
-                        <p>Không thể kết nối đến hệ thống. Vui lòng thử lại sau.</p>
-                        <button onclick="loadTicketHistory()" class="btn-cinema mt-2">Tải Lại</button>
+                        <h3>${getLang() === "en" ? "Data loading error" : "Lỗi tải dữ liệu"}</h3>
+                        <p>${getLang() === "en" ? "Cannot connect to the system. Please try again later." : "Không thể kết nối đến hệ thống. Vui lòng thử lại sau."}</p>
+                        <button onclick="loadTicketHistory()" class="btn-cinema mt-2">${getLang() === "en" ? "Reload" : "Tải Lại"}</button>
                     </div>
                 `;
             }
         }
 
         window.loadTicketHistory = loadTicketHistory;
+        document.addEventListener("aero:languageChanged", () => {
+            if (currentUser) {
+                loadLoyaltyCard();
+                loadTicketHistory();
+            }
+        });
 
         // View ticket modal handler
         window.showTicketQrModal = function(ticketCode, qrText, movieTitle, cinemaName, roomName, time, date, seats) {

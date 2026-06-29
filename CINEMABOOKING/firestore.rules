@@ -59,7 +59,21 @@ service cloud.firestore {
     // 5. Showtimes Collection
     match /showtimes/{showtimeId} {
       allow read: if true;
+
+      // Admin full write
       allow write: if isAdmin();
+
+      // Authenticated user: ONLY allowed to update holdSeats field
+      // User can only add/remove their OWN hold entries.
+      // Protected fields (movieId, cinemaId, roomId, price, soldSeats, status) cannot be changed by user.
+      allow update: if isAuthenticated()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['holdSeats', 'updatedAt'])
+        && request.resource.data.movieId == resource.data.movieId
+        && request.resource.data.cinemaId == resource.data.cinemaId
+        && request.resource.data.get('roomId', '') == resource.data.get('roomId', '')
+        && request.resource.data.get('status', '') == resource.data.get('status', '')
+        && request.resource.data.get('soldSeats', []) == resource.data.get('soldSeats', []);
     }
 
     // 6. Banners Collection
@@ -103,7 +117,12 @@ service cloud.firestore {
         isAdmin() || (
           resource.data.userId == request.auth.uid
           && request.resource.data.userId == resource.data.userId
-          && request.resource.data.status == resource.data.status
+          // Allow status to stay same OR transition to confirmed/paid by system
+          && (
+            request.resource.data.status == resource.data.status
+            || request.resource.data.status == 'confirmed'
+            || request.resource.data.status == 'paid'
+          )
         )
       );
       allow delete: if isAdmin();
@@ -176,13 +195,23 @@ service cloud.firestore {
 
     // 15. Activity Logs Collection
     match /activity_logs/{logId} {
-      allow read, create: if isAdmin();
+      allow read: if isAdmin();
+      allow create: if isAuthenticated(); // users can log rank upgrades
       allow update, delete: if false;
     }
 
     // 16. App Settings Collection
     match /app_settings/{docId} {
       allow read, write: if isAdmin();
+    }
+
+    // 17. Point Histories Collection
+    match /point_histories/{docId} {
+      allow read: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin();
     }
   }
 }

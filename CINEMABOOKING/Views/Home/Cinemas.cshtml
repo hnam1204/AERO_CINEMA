@@ -3,249 +3,336 @@
 }
 
 <style>
-    .cinemas-wrapper {
-        margin-bottom: 50px;
+    body {
+        background-color: #f8fafc !important;
     }
 
-    .cinemas-hero {
+    .aero-cinema-board-section {
+        max-width: 1180px;
+        margin: 56px auto 80px;
+        padding: 0 16px;
+    }
+
+    .aero-cinema-board {
+        background:
+            radial-gradient(circle at top left, rgba(245,130,32,.12), transparent 34%),
+            linear-gradient(135deg, #2d2d2f 0%, #1e1f24 45%, #15171c 100%);
+        padding: 34px;
+        box-shadow: 0 24px 70px rgba(15,23,42,.25);
+    }
+
+    .aero-cinema-board-inner {
         position: relative;
-        padding: 60px 20px;
-        text-align: center;
-        background: linear-gradient(135deg, #1e1b29 0%, #0b0b0d 100%);
-        border-radius: 12px;
-        margin-bottom: 40px;
-        border: 1px solid var(--border-color);
-        overflow: hidden;
+        border: 2px solid rgba(255,255,255,.18);
+        padding: 46px 48px 44px;
     }
 
-    .cinemas-hero::before {
-        content: '';
+    .aero-cinema-board-inner::before,
+    .aero-cinema-board-inner::after {
+        content: "";
         position: absolute;
-        top: -50%;
-        left: -50%;
-        width: 200%;
-        height: 200%;
-        background: radial-gradient(circle, rgba(41, 188, 234, 0.05) 0%, transparent 60%);
-        pointer-events: none;
+        width: 26px;
+        height: 26px;
+        border-color: rgba(255,255,255,.28);
+        border-style: solid;
     }
 
-    .cinemas-hero h1 {
-        font-size: 36px;
-        font-weight: 900;
-        text-transform: uppercase;
-        color: #fff;
-        margin-bottom: 15px;
-        letter-spacing: 1px;
+    .aero-cinema-board-inner::before {
+        left: -2px;
+        top: -2px;
+        border-width: 2px 0 0 2px;
     }
 
-    .cinemas-hero h1 span {
-        color: var(--accent-color);
+    .aero-cinema-board-inner::after {
+        right: -2px;
+        bottom: -2px;
+        border-width: 0 2px 2px 0;
     }
 
-    .cinemas-hero p {
-        font-size: 15px;
-        color: var(--text-sub);
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    /* CINEMAS SECTION */
-    .cinemas-list {
-        display: flex;
-        flex-direction: column;
-        gap: 25px;
-    }
-
-    .cinema-branch-card {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 30px;
-        display: grid;
-        grid-template-columns: 280px 1fr;
-        gap: 30px;
-        align-items: center;
-        transition: var(--transition);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
-
-    .cinema-branch-card:hover {
-        transform: translateY(-3px);
-        border-color: var(--accent-color);
-        box-shadow: 0 15px 35px rgba(41, 188, 234, 0.12);
-    }
-
-    .cinema-img-box {
-        width: 100%;
-        aspect-ratio: 16/10;
-        border-radius: 8px;
-        overflow: hidden;
-        background-color: #111;
-        border: 1px solid rgba(255,255,255,0.03);
-    }
-
-    .cinema-img-box img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .cinema-branch-info h3 {
-        font-size: 18px;
-        font-weight: 800;
-        color: #fff;
-        text-transform: uppercase;
-        margin-bottom: 15px;
-        letter-spacing: 0.5px;
-    }
-
-    .cinema-branch-meta {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 15px 25px;
-    }
-
-    .cinema-meta-item {
-        display: flex;
-        gap: 12px;
-        font-size: 13px;
-        color: var(--text-sub);
-        line-height: 1.5;
-    }
-
-    .cinema-meta-item i {
-        color: var(--accent-color);
-        font-size: 14px;
-        width: 16px;
+    .aero-cinema-board h1 {
+        margin: 0 0 36px;
         text-align: center;
-        margin-top: 2px;
+        font-size: 48px;
+        line-height: 1;
+        letter-spacing: 2px;
+        font-weight: 900;
+        color: #d1d5db;
+        text-shadow: 0 3px 0 rgba(0,0,0,.45);
     }
 
-    .cinema-meta-item strong {
-        color: #fff;
-        display: block;
-        margin-bottom: 4px;
+    .cinema-city-grid {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 18px 42px;
     }
 
-    @@media (max-width: 992px) {
-        .cinema-branch-card {
-            grid-template-columns: 1fr;
-            gap: 20px;
+    .cinema-city-item {
+        border: 0;
+        background: transparent;
+        color: #f8fafc;
+        text-align: left;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 0;
+        transition: .2s ease;
+    }
+
+    .cinema-city-item:hover,
+    .cinema-city-item.active {
+        color: #f58220;
+    }
+
+    .cinema-divider {
+        height: 1px;
+        background: rgba(255,255,255,.2);
+        margin: 34px 0 28px;
+    }
+
+    .cinema-branch-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px 36px;
+    }
+
+    .cinema-branch-link {
+        color: #f8fafc;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.5;
+        transition: .2s ease;
+    }
+
+    .cinema-branch-link:hover {
+        color: #f58220;
+        text-decoration: none;
+    }
+
+    .cinema-empty-state {
+        grid-column: 1 / -1;
+        color: #cbd5e1;
+        font-size: 14px;
+        text-align: center;
+        padding: 16px;
+    }
+
+    @@media (max-width: 991px) {
+        .aero-cinema-board {
+            padding: 22px;
         }
-        .cinema-img-box {
-            max-width: 400px;
-            margin: 0 auto;
+
+        .aero-cinema-board-inner {
+            padding: 34px 28px;
+        }
+
+        .aero-cinema-board h1 {
+            font-size: 38px;
+        }
+
+        .cinema-city-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px 28px;
+        }
+
+        .cinema-branch-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
     @@media (max-width: 576px) {
-        .cinema-branch-meta {
-            grid-template-columns: 1fr;
-            gap: 15px;
+        .aero-cinema-board-section {
+            margin: 32px auto 56px;
+            padding: 0 12px;
         }
-        .cinemas-hero h1 {
-            font-size: 28px;
+
+        .aero-cinema-board {
+            padding: 14px;
+        }
+
+        .aero-cinema-board-inner {
+            padding: 28px 20px;
+        }
+
+        .aero-cinema-board h1 {
+            font-size: 30px;
+            letter-spacing: 1px;
+        }
+
+        .cinema-city-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px 20px;
+        }
+
+        .cinema-branch-grid {
+            grid-template-columns: 1fr;
         }
     }
 </style>
 
-<div class="cinemas-wrapper">
-    
-    <!-- Hero Header -->
-    <div class="cinemas-hero">
-        <h1>Hệ thống cụm rạp <span>AERO Cinema</span></h1>
-        <p>Không gian chiếu phim sang trọng, trang thiết bị tối tân, mang đến những giờ phút giải trí thăng hoa nhất.</p>
-    </div>
+<section class="aero-cinema-board-section">
+    <div class="aero-cinema-board">
+        <div class="aero-cinema-board-inner">
+            <h1 data-i18n="cinemas_title">AERO CINEMAS</h1>
 
-    <!-- Cinemas List -->
-    <div class="cinemas-list">
-        
-        <!-- Branch 1: Ninh Kieu -->
-        <div class="cinema-branch-card">
-            <div class="cinema-img-box">
-                <img src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80" alt="AERO Cinema Ninh Kieu" />
+            <div id="cinemaCityGrid" class="cinema-city-grid">
+                <div class="cinema-empty-state" data-i18n="cinema_loading">Đang tải hệ thống rạp...</div>
             </div>
-            <div class="cinema-branch-info">
-                <h3>AERO Cinema Ninh Kiều</h3>
-                <div class="cinema-branch-meta">
-                    <div class="cinema-meta-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <div>
-                            <strong>Địa chỉ</strong>
-                            <span>Tầng 5, TTTM Sense City, Số 1 Đại lộ Hòa Bình, Ninh Kiều, Cần Thơ</span>
-                        </div>
-                    </div>
-                    
-                    <div class="cinema-meta-item">
-                        <i class="fas fa-phone-alt"></i>
-                        <div>
-                            <strong>Hotline</strong>
-                            <span>1900 1234 (Nhánh 1)</span>
-                        </div>
-                    </div>
 
-                    <div class="cinema-meta-item">
-                        <i class="fas fa-clock"></i>
-                        <div>
-                            <strong>Giờ mở cửa</strong>
-                            <span>08:30 - 23:30 (Mở cửa tất cả các ngày trong tuần)</span>
-                        </div>
-                    </div>
+            <div class="cinema-divider"></div>
 
-                    <div class="cinema-meta-item">
-                        <i class="fas fa-film"></i>
-                        <div>
-                            <strong>Thông tin phòng chiếu</strong>
-                            <span>06 phòng chiếu hiện đại (bao gồm 01 phòng Premium VIP Lounge)</span>
-                        </div>
-                    </div>
-                </div>
+            <div id="cinemaBranchGrid" class="cinema-branch-grid">
+                <!-- render danh sách rạp thuộc tỉnh đang chọn -->
             </div>
         </div>
-
-        <!-- Branch 2: Aero Cinema Landmark -->
-        <div class="cinema-branch-card">
-            <div class="cinema-img-box">
-                <img src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=600&q=80" alt="AERO Cinema Landmark" />
-            </div>
-            <div class="cinema-branch-info">
-                <h3>AERO Cinema Landmark</h3>
-                <div class="cinema-branch-meta">
-                    <div class="cinema-meta-item">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <div>
-                            <strong>Địa chỉ</strong>
-                            <span>Tầng B1, Tòa nhà Landmark 81, Vinhomes Central Park, Bình Thạnh, TP. Hồ Chí Minh</span>
-                        </div>
-                    </div>
-                    
-                    <div class="cinema-meta-item">
-                        <i class="fas fa-phone-alt"></i>
-                        <div>
-                            <strong>Hotline</strong>
-                            <span>1900 1234 (Nhánh 2)</span>
-                        </div>
-                    </div>
-
-                    <div class="cinema-meta-item">
-                        <i class="fas fa-clock"></i>
-                        <div>
-                            <strong>Giờ mở cửa</strong>
-                            <span>08:00 - 00:30 (Mở cửa suốt dịp Lễ/Tết)</span>
-                        </div>
-                    </div>
-
-                    <div class="cinema-meta-item">
-                        <i class="fas fa-film"></i>
-                        <div>
-                            <strong>Thông tin phòng chiếu</strong>
-                            <span>08 phòng chiếu 4K Laser (bao gồm 01 phòng IMAX đẳng cấp)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
+</section>
 
-</div>
+@section scripts {
+    <script type="module">
+        import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        let allCinemas = [];
+        let selectedCity = "";
+
+        function safeText(value, fallback = "") {
+            if (value === undefined || value === null) return fallback;
+            const text = String(value).trim();
+            if (!text || text.toLowerCase() === "undefined" || text.toLowerCase() === "null") return fallback;
+            return text;
+        }
+
+        function tr(key, fallback = "") {
+            return window.t ? window.t(key, fallback) : (fallback || key);
+        }
+
+        function getLocalized(item, field, fallback = "") {
+            if (window.getLocalizedField) return window.getLocalizedField(item, field, fallback);
+            return safeText(item?.[field], fallback);
+        }
+
+        function getCinemaName(c) {
+            return getLocalized(c, "name", safeText(c.cinemaName, "AERO Cinema"));
+        }
+
+        function getCinemaCity(c) {
+            return getLocalized(c, "city", safeText(c.province || c.locationCity, window.getCurrentLang && window.getCurrentLang() === "en" ? "Other" : "Khác"));
+        }
+
+        function escapeHtml(value) {
+            return safeText(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;");
+        }
+
+        function escapeAttribute(value) {
+            return escapeHtml(value).replace(/`/g, "&#96;");
+        }
+
+        async function fetchCinemas() {
+            try {
+                const db = window.db;
+                if (!db) {
+                    setTimeout(fetchCinemas, 200);
+                    return;
+                }
+
+                const cinemasRef = collection(db, "cinemas");
+                const snapshot = await getDocs(cinemasRef);
+                
+                allCinemas = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .filter(c => c.isActive !== false && String(c.status || "active").toLowerCase() !== "inactive" && String(c.status || "active").toLowerCase() !== "disabled" && String(c.status || "active").toLowerCase() !== "deleted");
+
+                if (allCinemas.length === 0) {
+                    document.getElementById("cinemaCityGrid").innerHTML = `<div class="cinema-empty-state">${tr("cinema_empty")}</div>`;
+                    return;
+                }
+
+                // Sort overall by name
+                allCinemas.sort((a, b) => getCinemaName(a).localeCompare(getCinemaName(b), "vi"));
+
+                renderCityGrid();
+            } catch (error) {
+                console.error("Error loading cinemas:", error);
+                document.getElementById("cinemaCityGrid").innerHTML = `<div class="cinema-empty-state">${tr("cinema_error")}</div>`;
+            }
+        }
+
+        function renderCityGrid() {
+            const container = document.getElementById("cinemaCityGrid");
+            
+            const cities = [...new Set(allCinemas.map(getCinemaCity))].sort((a, b) => a.localeCompare(b, "vi"));
+            
+            if (cities.length === 0) return;
+
+            if (!selectedCity || !cities.includes(selectedCity)) {
+                selectedCity = cities[0];
+            }
+
+            container.innerHTML = cities.map(city => {
+                const isActive = city === selectedCity;
+                return `
+                    <button type="button" 
+                            class="cinema-city-item ${isActive ? "active" : ""}" 
+                            data-city="${escapeAttribute(city)}">
+                        ${escapeHtml(city)}
+                    </button>
+                `;
+            }).join("");
+
+            container.querySelectorAll(".cinema-city-item").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    selectedCity = btn.dataset.city;
+                    container.querySelectorAll(".cinema-city-item").forEach(b => b.classList.toggle("active", b === btn));
+                    renderBranches();
+                });
+            });
+
+            renderBranches();
+        }
+
+        function renderBranches() {
+            const grid = document.getElementById("cinemaBranchGrid");
+            if (!grid) return;
+
+            const cityCinemas = allCinemas.filter(c => getCinemaCity(c) === selectedCity);
+
+            if (cityCinemas.length === 0) {
+                grid.innerHTML = `<div class="cinema-empty-state">${tr("cinema_no_branch")}</div>`;
+                return;
+            }
+
+            grid.innerHTML = cityCinemas.map(c => {
+                const id = escapeAttribute(c.id);
+                const name = escapeHtml(getCinemaName(c));
+                const address = escapeHtml(getLocalized(c, "address", tr("cinema_address_updating")));
+                const hotline = escapeHtml(safeText(c.hotline || c.phone, "1900 1234"));
+
+                return `
+                    <a class="cinema-branch-link" href="/Showtimes?cinemaId=${id}" title="${tr("cinema_address")}: ${address}\nHotline: ${hotline}">
+                        ${name}
+                    </a>
+                `;
+            }).join("");
+        }
+
+        // Initialize loading
+        window.addEventListener("DOMContentLoaded", () => {
+            fetchCinemas();
+        });
+
+        window.addEventListener("aero:languageChanged", () => {
+            if (window.applyLanguage) window.applyLanguage();
+            if (allCinemas.length) {
+                renderCityGrid();
+            } else {
+                const cityGrid = document.getElementById("cinemaCityGrid");
+                if (cityGrid) cityGrid.innerHTML = `<div class="cinema-empty-state">${tr("cinema_loading")}</div>`;
+            }
+        });
+    </script>
+}
