@@ -78,7 +78,7 @@
             home_promotions_title: "Tin Khuyến Mãi",
             home_news_title: "Tin Điện Ảnh",
             home_cinemas_title: "Cụm Rạp Hệ Thống",
-            promotions_title: "KHUYẾN MÃI & ƯU ĐÃI HẤP DẪN TẠI AERO CINEMA",
+            promotions_title: "KHUYẾN MÃI & ƯU ĐÃI TẠI AERO CINEMA",
             promotions_subtitle: "Săn voucher xem phim, combo bắp nước và đặc quyền thành viên mới nhất từ AERO Cinema.",
             services_title: "DỊCH VỤ ĐẲNG CẤP TẠI AERO CINEMA",
             services_subtitle: "Trải nghiệm điện ảnh trọn vẹn hơn với đặt vé trực tuyến, ẩm thực rạp chiếu, phòng chờ cao cấp và dịch vụ tổ chức sự kiện chuyên nghiệp.",

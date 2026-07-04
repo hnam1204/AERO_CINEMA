@@ -180,6 +180,7 @@
     <Content Include="Content\admin-design-system.css" />
     <Content Include="Content\auth.css" />
     <Content Include="Content\chatbot.css" />
+    <Content Include="Content\promotions.css" />
     <Content Include="Content\bootstrap.css" />
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />

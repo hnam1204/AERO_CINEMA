@@ -1,502 +1,67 @@
-@{
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@{
     ViewBag.Title = "Dịch Vụ - AERO Cinema";
 }
 
-<style>
-    .services-wrapper {
-        margin-bottom: 72px;
-    }
-
-    .services-hero {
-        position: relative;
-        max-width: 1120px;
-        margin: 32px auto 42px;
-        padding: 56px 28px;
-        border-radius: 18px;
-        overflow: hidden;
-        text-align: center;
-        color: #fff;
-        background:
-            radial-gradient(circle at 18% 20%, rgba(245,130,32,.28), transparent 30%),
-            radial-gradient(circle at 82% 15%, rgba(0,91,170,.35), transparent 34%),
-            linear-gradient(135deg, #0b1020 0%, #111827 55%, #050816 100%);
-        box-shadow: 0 22px 60px rgba(15,23,42,.22);
-    }
-
-    .services-hero::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
-        background-size: 22px 22px;
-        opacity: .22;
-        pointer-events: none;
-    }
-
-    .services-hero-content {
-        position: relative;
-        z-index: 2;
-    }
-
-    .services-hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 14px;
-        margin-bottom: 16px;
-        border-radius: 999px;
-        background: rgba(245,130,32,.16);
-        border: 1px solid rgba(245,130,32,.35);
-        color: #ffb36b;
-        font-weight: 900;
-        font-size: 13px;
-        letter-spacing: .6px;
-        text-transform: uppercase;
-    }
-
-    .services-hero h1 {
-        margin: 0;
-        font-size: 36px;
-        font-weight: 900;
-        line-height: 1.25;
-        text-transform: uppercase;
-        text-shadow: 0 3px 0 rgba(0,0,0,.32);
-    }
-
-    .services-hero h1 span {
-        color: #f58220;
-    }
-
-    .services-hero p {
-        max-width: 760px;
-        margin: 14px auto 0;
-        color: rgba(255,255,255,.76);
-        font-size: 15.5px;
-        line-height: 1.7;
-    }
-
-    .services-grid {
-        max-width: 1120px;
-        margin: 0 auto 80px;
-        padding: 0 16px;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 28px;
-    }
-
-    .service-card {
-        position: relative;
-        display: grid;
-        grid-template-columns: 82px 1fr;
-        gap: 20px;
-        min-height: 260px;
-        padding: 28px;
-        background: #fff;
-        border: 1px solid #e5e7eb;
-        border-radius: 20px;
-        box-shadow: 0 18px 42px rgba(15,23,42,.10);
-        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-        overflow: hidden;
-    }
-
-    .service-card::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background:
-            radial-gradient(circle at top left, rgba(245,130,32,.10), transparent 34%),
-            radial-gradient(circle at bottom right, rgba(0,91,170,.08), transparent 36%);
-        opacity: 0;
-        transition: opacity .25s ease;
-        pointer-events: none;
-    }
-
-    .service-card:hover {
-        transform: translateY(-6px);
-        border-color: rgba(245,130,32,.36);
-        box-shadow: 0 26px 64px rgba(15,23,42,.16);
-    }
-
-    .service-card:hover::before {
-        opacity: 1;
-    }
-
-    .service-icon {
-        position: relative;
-        z-index: 2;
-        width: 64px;
-        height: 64px;
-        border-radius: 18px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #f58220;
-        font-size: 26px;
-        background: linear-gradient(135deg, rgba(245,130,32,.14), rgba(0,91,170,.10));
-        border: 1px solid rgba(245,130,32,.18);
-    }
-
-    .service-content {
-        position: relative;
-        z-index: 2;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .service-content h3 {
-        margin: 0 0 10px;
-        font-size: 21px;
-        line-height: 1.3;
-        font-weight: 900;
-        color: #005baa;
-    }
-
-    .service-content p {
-        margin: 0 0 16px;
-        color: #475569;
-        font-size: 15px;
-        line-height: 1.7;
-    }
-
-    .service-content ul {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px 18px;
-        list-style: none;
-        padding: 0;
-        margin: 0 0 22px;
-    }
-
-    .service-content li {
-        position: relative;
-        padding-left: 20px;
-        color: #475569;
-        font-size: 14px;
-        line-height: 1.45;
-        font-weight: 600;
-    }
-
-    .service-content li::before {
-        content: "✓";
-        position: absolute;
-        left: 0;
-        top: 0;
-        color: #005baa;
-        font-weight: 900;
-    }
-
-    .service-btn {
-        align-self: flex-start;
-        height: 40px;
-        padding: 0 18px;
-        border-radius: 12px;
-        border: 0;
-        color: #fff;
-        background: linear-gradient(135deg, #f58220, #ff9f43);
-        font-size: 13px;
-        font-weight: 900;
-        cursor: pointer;
-        box-shadow: 0 10px 22px rgba(245,130,32,.25);
-        transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
-        margin-top: auto;
-    }
-
-    .service-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 28px rgba(245,130,32,.34);
-        filter: brightness(1.04);
-    }
-
-    .services-why {
-        max-width: 1120px;
-        margin: 0 auto;
-        padding: 0 16px;
-    }
-
-    .services-why h2 {
-        margin: 0 0 24px;
-        color: #0f172a;
-        font-size: 26px;
-        font-weight: 900;
-        text-align: center;
-        text-transform: uppercase;
-    }
-
-    .services-why-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 22px;
-    }
-
-    .services-why-item {
-        padding: 24px;
-        border-radius: 18px;
-        border: 1px solid #e5e7eb;
-        background: #fff;
-        box-shadow: 0 14px 34px rgba(15,23,42,.08);
-    }
-
-    .services-why-icon {
-        width: 48px;
-        height: 48px;
-        margin-bottom: 16px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #005baa;
-        background: rgba(0,91,170,.09);
-        font-size: 20px;
-    }
-
-    .services-why-item h3 {
-        margin: 0 0 8px;
-        color: #0f172a;
-        font-size: 17px;
-        font-weight: 900;
-    }
-
-    .services-why-item p {
-        margin: 0;
-        color: #64748b;
-        font-size: 14px;
-        line-height: 1.65;
-    }
-
-    .service-modal {
-        position: fixed;
-        inset: 0;
-        z-index: 9998;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        background: rgba(15,23,42,.68);
-        backdrop-filter: blur(8px);
-    }
-
-    .service-modal.show {
-        display: flex;
-    }
-
-    .service-modal-dialog {
-        width: min(680px, 100%);
-        max-height: 90vh;
-        overflow: hidden;
-        border-radius: 20px;
-        background: #fff;
-        box-shadow: 0 28px 80px rgba(15,23,42,.32);
-        display: flex;
-        flex-direction: column;
-    }
-
-    .service-modal-header {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 22px 24px;
-        border-bottom: 1px solid #e5e7eb;
-        background:
-            radial-gradient(circle at top left, rgba(245,130,32,.12), transparent 34%),
-            #fff;
-    }
-
-    .service-modal-icon {
-        width: 54px;
-        height: 54px;
-        flex: 0 0 auto;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #f58220;
-        background: rgba(245,130,32,.12);
-        border: 1px solid rgba(245,130,32,.18);
-        font-size: 24px;
-    }
-
-    .service-modal-title {
-        margin: 0;
-        color: #005baa;
-        font-size: 23px;
-        font-weight: 900;
-        line-height: 1.25;
-    }
-
-    .service-modal-close {
-        width: 38px;
-        height: 38px;
-        margin-left: auto;
-        border-radius: 50%;
-        border: 0;
-        color: #475569;
-        background: #f1f5f9;
-        cursor: pointer;
-    }
-
-    .service-modal-body {
-        padding: 24px;
-        overflow-y: auto;
-    }
-
-    .service-modal-desc {
-        margin: 0 0 18px;
-        color: #475569;
-        font-size: 15px;
-        line-height: 1.75;
-    }
-
-    .service-modal-list {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-        padding: 0;
-        margin: 0 0 24px;
-        list-style: none;
-    }
-
-    .service-modal-list li {
-        position: relative;
-        padding: 12px 12px 12px 34px;
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        color: #475569;
-        background: #f8fafc;
-        font-weight: 700;
-        line-height: 1.45;
-    }
-
-    .service-modal-list li::before {
-        content: "✓";
-        position: absolute;
-        left: 14px;
-        color: #005baa;
-        font-weight: 900;
-    }
-
-    .service-modal-actions {
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-    }
-
-    .service-secondary-btn {
-        height: 40px;
-        padding: 0 18px;
-        border-radius: 12px;
-        border: 1px solid #cbd5e1;
-        background: #fff;
-        color: #475569;
-        font-weight: 900;
-        cursor: pointer;
-    }
-
-    .service-toast {
-        position: fixed;
-        left: 50%;
-        bottom: 26px;
-        z-index: 10000;
-        transform: translate(-50%, 20px);
-        opacity: 0;
-        pointer-events: none;
-        padding: 12px 16px;
-        border-radius: 999px;
-        color: #fff;
-        background: #0f172a;
-        box-shadow: 0 14px 34px rgba(15,23,42,.24);
-        font-size: 13px;
-        font-weight: 800;
-        transition: .2s ease;
-    }
-
-    .service-toast.show {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-
-    @@media (max-width: 992px) {
-        .services-grid,
-        .services-why-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @@media (max-width: 768px) {
-        .services-hero {
-            margin: 24px 12px 32px;
-            padding: 42px 18px;
-            border-radius: 16px;
-        }
-
-        .services-hero h1 {
-            font-size: 24px;
-        }
-
-        .services-grid {
-            grid-template-columns: 1fr;
-            gap: 22px;
-        }
-
-        .service-card {
-            grid-template-columns: 1fr;
-            padding: 24px 20px;
-        }
-
-        .service-content ul,
-        .service-modal-list {
-            grid-template-columns: 1fr;
-        }
-
-        .service-btn {
-            width: 100%;
-        }
-
-        .service-modal-header {
-            align-items: flex-start;
-        }
-
-        .service-modal-title {
-            font-size: 20px;
-        }
-
-        .service-modal-actions {
-            flex-direction: column;
-        }
-
-        .service-modal-actions .service-btn,
-        .service-modal-actions .service-secondary-btn {
-            width: 100%;
-        }
-    }
-
-    .swal2-container {
-        z-index: 20000 !important;
-    }
-    .aero-consult-swal {
-        border-radius: 18px !important;
-        box-shadow: 0 24px 70px rgba(15, 23, 42, .28) !important;
-    }
-    .service-modal-overlay {
-        z-index: 9000;
-    }
-    .service-detail-modal {
-        z-index: 9010;
-    }
-</style>
+<link href="@Url.Content("~/Content/services.css?v=18")" rel="stylesheet" />
 
 <div class="services-wrapper">
-    <section class="services-hero">
-        <div class="services-hero-content">
-            <div class="services-hero-badge">
-                <i class="fas fa-concierge-bell"></i>
-                AERO PREMIUM SERVICES
+    <section class="services-hero-full">
+    <div class="services-hero">
+        <div class="services-hero__content">
+            <div class="services-hero__badge">
+                <span>✦</span>
+                <strong>AERO PREMIUM SERVICES</strong>
             </div>
-            <h1 data-i18n="services_title">Dịch vụ đẳng cấp tại AERO Cinema</h1>
-            <p data-i18n="services_subtitle">Trải nghiệm điện ảnh trọn vẹn hơn với đặt vé trực tuyến, ẩm thực rạp chiếu, phòng chờ cao cấp và dịch vụ tổ chức sự kiện chuyên nghiệp.</p>
-        </div>
-    </section>
 
-    <section class="services-grid" aria-label="Dịch vụ AERO Cinema">
+            <h1 class="services-hero__title">
+                <span>DỊCH VỤ</span>
+                <span><em>ĐẲNG CẤP</em></span>
+                <span>TẠI AERO CINEMA</span>
+            </h1>
+
+            <div class="services-hero__underline"></div>
+
+            <p class="services-hero__desc">
+                Trải nghiệm điện ảnh trọn vẹn hơn với đặt vé trực tuyến, ẩm thực rạp chiếu, phòng chờ cao cấp và dịch vụ tổ chức sự kiện chuyên nghiệp.
+            </p>
+        </div>
+
+        <div class="services-hero__visual" aria-hidden="true">
+            <div class="visual-orbit"></div>
+
+            <div class="visual-chair">
+                <div class="chair-seat"></div>
+            </div>
+
+            <div class="visual-ticket">
+                <div class="ticket-logo">
+                    <span>A</span>ERO
+                    <small>CINEMA</small>
+                </div>
+                <div class="ticket-label">VÉ ĐIỆN TỬ</div>
+                <div class="ticket-qr"></div>
+            </div>
+
+            <div class="visual-popcorn">
+                <div class="popcorn-kernels"></div>
+                <span>AERO</span>
+            </div>
+
+            <div class="visual-drink">
+                <span>AERO</span>
+            </div>
+
+            <div class="visual-glass-card"></div>
+            <div class="visual-platform platform-1"></div>
+            <div class="visual-platform platform-2"></div>
+            <div class="visual-platform platform-3"></div>
+            <div class="visual-light-line"></div>
+        </div>
+    </div>
+</section>
+
+    <section class="services-list-section">
+    <div class="services-grid" aria-label="Dịch vụ AERO Cinema">
         <article class="service-card" data-service-id="cinemunch">
             <div class="service-icon">
                 <i class="fas fa-utensils"></i>
@@ -564,6 +129,7 @@
                 <button class="service-btn" type="button" data-service-open="events" data-i18n="service_detail">Xem chi tiết</button>
             </div>
         </article>
+    </div>
     </section>
 
     <section class="services-why" aria-labelledby="servicesWhyTitle">
@@ -895,3 +461,5 @@
         })();
     </script>
 }
+
+

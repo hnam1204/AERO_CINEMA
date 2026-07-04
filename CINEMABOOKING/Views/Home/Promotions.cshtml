@@ -1,517 +1,95 @@
-@{
+﻿﻿@{
     ViewBag.Title = "Khuyến Mãi & Ưu Đãi - AERO Cinema";
 }
 
-<style>
-    .promo-wrapper {
-        margin-bottom: 70px;
-    }
+<link href="@Url.Content("~/Content/promotions.css?v=20260704-final")" rel="stylesheet" />
 
-    .promo-hero {
-        position: relative;
-        max-width: 1120px;
-        margin: 32px auto 42px;
-        padding: 54px 28px;
-        border-radius: 18px;
-        overflow: hidden;
-        text-align: center;
-        color: #fff;
-        background:
-            radial-gradient(circle at 18% 20%, rgba(245,130,32,.28), transparent 30%),
-            radial-gradient(circle at 82% 15%, rgba(0,91,170,.35), transparent 34%),
-            linear-gradient(135deg, #0b1020 0%, #121826 55%, #050816 100%);
-        box-shadow: 0 22px 60px rgba(15,23,42,.22);
-    }
 
-    .promo-hero::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px);
-        background-size: 22px 22px;
-        opacity: .22;
-        pointer-events: none;
-    }
-
-    .promo-hero-content {
-        position: relative;
-        z-index: 2;
-    }
-
-    .promo-hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 14px;
-        margin-bottom: 16px;
-        border-radius: 999px;
-        background: rgba(245,130,32,.16);
-        border: 1px solid rgba(245,130,32,.35);
-        color: #ffb36b;
-        font-weight: 800;
-        font-size: 13px;
-        letter-spacing: .5px;
-        text-transform: uppercase;
-    }
-
-    .promo-hero h1 {
-        margin: 0;
-        font-size: 34px;
-        font-weight: 900;
-        line-height: 1.25;
-        text-transform: uppercase;
-        text-shadow: 0 3px 0 rgba(0,0,0,.32);
-    }
-
-    .promo-hero h1 span {
-        color: #f58220;
-    }
-
-    .promo-hero p {
-        max-width: 680px;
-        margin: 14px auto 0;
-        color: rgba(255,255,255,.72);
-        font-size: 15.5px;
-        line-height: 1.7;
-    }
-
-    .promo-grid {
-        max-width: 1120px;
-        margin: 0 auto 80px;
-        padding: 0 16px;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 28px;
-    }
-
-    .promo-card {
-        background: #fff;
-        border-radius: 18px;
-        overflow: hidden;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 18px 42px rgba(15,23,42,.10);
-        transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
-        display: flex;
-        flex-direction: column;
-        min-height: 100%;
-    }
-
-    .promo-card:hover {
-        transform: translateY(-6px);
-        border-color: rgba(245,130,32,.35);
-        box-shadow: 0 24px 60px rgba(15,23,42,.16);
-    }
-
-    .promo-card-media {
-        position: relative;
-        overflow: hidden;
-        background:
-            radial-gradient(circle at 20% 20%, rgba(245,130,32,.24), transparent 34%),
-            linear-gradient(135deg, #0f172a, #1e293b);
-    }
-
-    .promo-card-image {
-        width: 100%;
-        height: 210px;
-        object-fit: cover;
-        object-position: center;
-        display: block;
-        transition: transform .35s ease, filter .35s ease;
-    }
-
-    .promo-card:hover .promo-card-image {
-        transform: scale(1.045);
-        filter: brightness(1.04) contrast(1.04);
-    }
-
-    .promo-image-fallback {
-        height: 210px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgba(255,255,255,.85);
-        font-size: 46px;
-    }
-
-    .promo-card-tag {
-        position: absolute;
-        top: 14px;
-        left: 14px;
-        z-index: 2;
-        padding: 7px 12px;
-        border-radius: 999px;
-        background: #005baa;
-        color: #fff;
-        font-size: 12px;
-        font-weight: 900;
-        text-transform: uppercase;
-        box-shadow: 0 8px 18px rgba(0,91,170,.25);
-    }
-
-    .promo-card-body {
-        padding: 22px 22px 20px;
-        display: flex;
-        flex: 1;
-        flex-direction: column;
-    }
-
-    .promo-card-title {
-        margin: 0 0 10px;
-        font-size: 18px;
-        line-height: 1.35;
-        font-weight: 900;
-        color: #0f172a;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        transition: color .2s ease;
-    }
-
-    .promo-card:hover .promo-card-title {
-        color: #005baa;
-    }
-
-    .promo-card-desc {
-        color: #64748b;
-        font-size: 14px;
-        line-height: 1.65;
-        min-height: 68px;
-        margin: 0;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .promo-card-meta {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-top: 18px;
-        padding-top: 16px;
-        border-top: 1px solid #eef2f7;
-    }
-
-    .promo-expire {
-        color: #64748b;
-        font-size: 13px;
-        font-weight: 700;
-    }
-
-    .promo-code {
-        padding: 7px 10px;
-        border: 1px dashed #f58220;
-        border-radius: 10px;
-        color: #f58220;
-        font-size: 12px;
-        font-weight: 900;
-        background: rgba(245,130,32,.07);
-        white-space: nowrap;
-    }
-
-    .promo-card-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 18px;
-    }
-
-    .promo-btn {
-        height: 40px;
-        border-radius: 12px;
-        padding: 0 16px;
-        font-size: 13px;
-        font-weight: 800;
-        cursor: pointer;
-        transition: .2s ease;
-    }
-
-    .promo-btn-primary {
-        flex: 1;
-        border: 0;
-        color: #fff;
-        background: linear-gradient(135deg, #f58220, #ff9f43);
-        box-shadow: 0 10px 22px rgba(245,130,32,.28);
-    }
-
-    .promo-btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 28px rgba(245,130,32,.34);
-    }
-
-    .promo-btn-copy {
-        border: 1px dashed #f58220;
-        color: #f58220;
-        background: rgba(245,130,32,.08);
-    }
-
-    .promo-btn-copy:hover:not(:disabled) {
-        background: rgba(245,130,32,.14);
-        transform: translateY(-2px);
-    }
-
-    .promo-btn-copy:disabled {
-        color: #94a3b8;
-        border-color: #cbd5e1;
-        background: #f8fafc;
-        cursor: not-allowed;
-    }
-
-    .promo-state {
-        max-width: 1120px;
-        margin: 0 auto 80px;
-        padding: 42px 20px;
-        border-radius: 18px;
-        border: 1px dashed #cbd5e1;
-        background: #fff;
-        color: #64748b;
-        text-align: center;
-        font-weight: 800;
-    }
-
-    .promo-skeleton-card .promo-card-image,
-    .promo-skeleton-line {
-        background: linear-gradient(90deg, #eef2f7 25%, #f8fafc 50%, #eef2f7 75%);
-        background-size: 200% 100%;
-        animation: promoShimmer 1.2s infinite;
-    }
-
-    .promo-skeleton-line {
-        height: 14px;
-        border-radius: 999px;
-        margin-bottom: 12px;
-    }
-
-    @@keyframes promoShimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
-
-    .promo-modal {
-        position: fixed;
-        inset: 0;
-        z-index: 9998;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        background: rgba(15, 23, 42, .68);
-        backdrop-filter: blur(8px);
-    }
-
-    .promo-modal.show {
-        display: flex;
-    }
-
-    .promo-modal-dialog {
-        width: min(760px, 100%);
-        max-height: 90vh;
-        overflow: hidden;
-        border-radius: 20px;
-        background: #fff;
-        box-shadow: 0 28px 80px rgba(15,23,42,.32);
-        display: flex;
-        flex-direction: column;
-    }
-
-    .promo-modal-media {
-        position: relative;
-        min-height: 240px;
-        background:
-            radial-gradient(circle at 18% 22%, rgba(245,130,32,.25), transparent 30%),
-            linear-gradient(135deg, #0f172a, #1e293b);
-    }
-
-    .promo-modal-media img {
-        width: 100%;
-        height: 280px;
-        object-fit: cover;
-        display: block;
-    }
-
-    .promo-modal-close {
-        position: absolute;
-        top: 16px;
-        right: 16px;
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        border: 0;
-        color: #fff;
-        background: rgba(15,23,42,.72);
-        cursor: pointer;
-    }
-
-    .promo-modal-body {
-        padding: 24px;
-        overflow-y: auto;
-    }
-
-    .promo-modal-body h2 {
-        margin: 0 0 12px;
-        color: #0f172a;
-        font-size: 24px;
-        font-weight: 900;
-        line-height: 1.25;
-        text-transform: uppercase;
-    }
-
-    .promo-modal-desc {
-        color: #475569;
-        font-size: 15px;
-        line-height: 1.75;
-        margin: 0 0 18px;
-        white-space: pre-line;
-    }
-
-    .promo-modal-info {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-
-    .promo-modal-info-item {
-        border: 1px solid #e5e7eb;
-        border-radius: 14px;
-        padding: 12px;
-        background: #f8fafc;
-    }
-
-    .promo-modal-info-item span {
-        display: block;
-        color: #64748b;
-        font-size: 11px;
-        font-weight: 900;
-        text-transform: uppercase;
-        margin-bottom: 5px;
-    }
-
-    .promo-modal-info-item strong {
-        color: #0f172a;
-        font-size: 14px;
-    }
-
-    .promo-modal-actions {
-        display: flex;
-        gap: 12px;
-        justify-content: flex-end;
-    }
-
-    .promo-toast {
-        position: fixed;
-        left: 50%;
-        bottom: 26px;
-        z-index: 10000;
-        transform: translate(-50%, 20px);
-        opacity: 0;
-        pointer-events: none;
-        padding: 12px 16px;
-        border-radius: 999px;
-        color: #fff;
-        background: #0f172a;
-        box-shadow: 0 14px 34px rgba(15,23,42,.24);
-        font-size: 13px;
-        font-weight: 800;
-        transition: .2s ease;
-    }
-
-    .promo-toast.show {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-
-    @@media (max-width: 991px) {
-        .promo-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-    }
-
-    @@media (max-width: 576px) {
-        .promo-hero {
-            margin: 24px 12px 32px;
-            padding: 42px 18px;
-            border-radius: 16px;
-        }
-
-        .promo-hero h1 {
-            font-size: 24px;
-        }
-
-        .promo-grid {
-            grid-template-columns: 1fr;
-            gap: 22px;
-        }
-
-        .promo-card-image,
-        .promo-image-fallback {
-            height: 190px;
-        }
-
-        .promo-card-actions,
-        .promo-modal-actions {
-            flex-direction: column;
-        }
-
-        .promo-modal-info {
-            grid-template-columns: 1fr;
-        }
-
-        .promo-modal-media img {
-            height: 210px;
-        }
-    }
-</style>
-
-<div class="promo-wrapper">
-    <section class="promo-hero">
-        <div class="promo-hero-content">
-            <div class="promo-hero-badge">
-                <i class="fas fa-ticket-alt"></i>
-                AERO Rewards
+<div class="promotions-page promo-wrapper">
+    <section class="promotions-hero-full promotions-hero-section promotion-hero-section">
+        <div class="promotions-hero aero-promotion-hero">
+        <div class="promotions-hero__content aero-promotion-hero__content">
+            <div class="promotions-hero__badge aero-promotion-hero__badge">
+                <span class="badge-icon"><i class="fas fa-ticket-alt"></i></span>
+                <span><strong>AERO</strong> REWARDS</span>
             </div>
-            <h1 data-i18n="promotions_title">Khuyến mãi & ưu đãi hấp dẫn tại AERO Cinema</h1>
-            <p data-i18n="promotions_subtitle">Săn voucher xem phim, combo bắp nước và đặc quyền thành viên mới nhất từ AERO Cinema.</p>
+            <h1 class="promotions-hero__title aero-promotion-hero__title">
+                <span>KHUY&#7870;N M&#195;I &amp;</span>
+                <span>&#431;U &#272;&#195;I <em>H&#7844;P D&#7850;N</em></span>
+                <span>T&#7840;I <em>AERO CINEMA</em></span>
+            </h1>
+
+            <p class="promotions-hero__desc aero-promotion-hero__desc">
+                S&#259;n voucher xem phim, combo b&#7855;p n&#432;&#7899;c v&#224; &#273;&#7863;c quy&#7873;n th&#224;nh vi&#234;n m&#7899;i nh&#7845;t t&#7841;i
+                <strong>AERO Cinema.</strong>
+            </p>
+        </div>
+
+        <div class="promotions-hero__visual aero-promotion-hero__visual" aria-hidden="true">
+            <div class="hero-glow hero-glow--orange"></div>
+            <div class="hero-glow hero-glow--blue"></div>
+
+            <div class="hero-film-reel film-reel"></div>
+
+            <div class="hero-rewards-card rewards-card">
+                <span>AERO</span> REWARDS
+            </div>
+
+            <div class="hero-popcorn-bucket popcorn-bucket">
+                <div class="hero-popcorn-top popcorn-top"></div>
+                <div class="hero-bucket-body bucket-body">
+                    <span>AERO</span>
+                    <small>CINEMA</small>
+                </div>
+            </div>
+
+            <div class="hero-drink-cup drink-cup">
+                <span>AERO</span>
+                <small>CINEMA</small>
+            </div>
+            <div class="hero-light-line"></div>
+        </div>
         </div>
     </section>
 
-    <div id="promoGrid" class="promo-grid" aria-live="polite"></div>
-    <div id="promoState" class="promo-state" style="display:none;"></div>
+    <section class="promotions-list-section">
+        <div id="promoGrid" class="promotions-grid promo-grid" aria-live="polite"></div>
+        <div id="promoState" class="promo-state" style="display:none;"></div>
+    </section>
 </div>
 
 <div id="promoDetailModal" class="promo-modal" aria-hidden="true">
     <div class="promo-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="promoModalTitle">
         <div class="promo-modal-media" id="promoModalMedia">
-            <button type="button" class="promo-modal-close" data-promo-close aria-label="Đóng">
+            <button type="button" class="promo-modal-close" data-promo-close aria-label="ÄÃ³ng">
                 <i class="fas fa-times"></i>
             </button>
         </div>
         <div class="promo-modal-body">
-            <h2 id="promoModalTitle" data-i18n="promo_default_title">Ưu đãi AERO Cinema</h2>
+            <h2 id="promoModalTitle" data-i18n="promo_default_title">Æ¯u Ä‘Ã£i AERO Cinema</h2>
             <p id="promoModalDesc" class="promo-modal-desc"></p>
             <div class="promo-modal-info">
                 <div class="promo-modal-info-item">
-                    <span data-i18n="offer_type">Loại ưu đãi</span>
-                    <strong id="promoModalType">Ưu đãi</strong>
+                    <span data-i18n="offer_type">Loáº¡i Æ°u Ä‘Ã£i</span>
+                    <strong id="promoModalType">Æ¯u Ä‘Ã£i</strong>
                 </div>
                 <div class="promo-modal-info-item">
-                    <span data-i18n="valid_period">Thời gian áp dụng</span>
-                    <strong id="promoModalTime">Đang cập nhật</strong>
+                    <span data-i18n="valid_period">Thá»i gian Ã¡p dá»¥ng</span>
+                    <strong id="promoModalTime">Äang cáº­p nháº­t</strong>
                 </div>
                 <div class="promo-modal-info-item">
-                    <span data-i18n="valid_until">Hạn dùng</span>
-                    <strong id="promoModalExpire">Đang cập nhật</strong>
+                    <span data-i18n="valid_until">Háº¡n dÃ¹ng</span>
+                    <strong id="promoModalExpire">Äang cáº­p nháº­t</strong>
                 </div>
                 <div class="promo-modal-info-item">
-                    <span data-i18n="copy_code">Mã ưu đãi</span>
-                    <strong id="promoModalCode">Không có mã</strong>
+                    <span data-i18n="copy_code">MÃ£ Æ°u Ä‘Ã£i</span>
+                    <strong id="promoModalCode">KhÃ´ng cÃ³ mÃ£</strong>
                 </div>
             </div>
             <p id="promoModalTerms" class="promo-modal-desc"></p>
             <div class="promo-modal-actions">
-                <button type="button" class="promo-btn promo-btn-copy" id="promoModalCopyBtn" data-i18n="copy_code">Sao chép mã</button>
-                <button type="button" class="promo-btn promo-btn-primary" data-promo-close data-i18n="close">Đóng</button>
+                <button type="button" class="promo-btn promo-btn-copy" id="promoModalCopyBtn" data-i18n="copy_code">Sao chÃ©p mÃ£</button>
+                <button type="button" class="promo-btn promo-btn-primary" data-promo-close data-i18n="close">ÄÃ³ng</button>
             </div>
         </div>
     </div>
@@ -572,7 +150,7 @@
             return Number.isNaN(date.getTime()) ? null : date;
         }
 
-        function formatDate(value, fallback = "Đang cập nhật") {
+        function formatDate(value, fallback = "Äang cáº­p nháº­t") {
             const date = toDate(value);
             return date ? date.toLocaleDateString(currentLang() === "en" ? "en-US" : "vi-VN") : fallback;
         }
@@ -654,9 +232,9 @@
         function showLoading() {
             promoState.style.display = "none";
             promoGrid.innerHTML = Array.from({ length: 3 }, () => `
-                <article class="promo-card promo-skeleton-card">
-                    <div class="promo-card-media"><div class="promo-card-image"></div></div>
-                    <div class="promo-card-body">
+                <article class="promotion-card promo-card promo-skeleton-card">
+                    <div class="promotion-card__image-wrap promo-card-media"><div class="promo-card-image"></div></div>
+                    <div class="promotion-card__body promo-card-body">
                         <div class="promo-skeleton-line" style="width: 82%; height: 20px;"></div>
                         <div class="promo-skeleton-line" style="width: 96%;"></div>
                         <div class="promo-skeleton-line" style="width: 74%;"></div>
@@ -677,21 +255,21 @@
         function renderPromotions(items) {
             promoState.style.display = "none";
             promoGrid.innerHTML = items.map(item => `
-                <article class="promo-card" data-id="${escapeHtml(item.id)}">
-                    <div class="promo-card-media">
-                        <span class="promo-card-tag">${escapeHtml(item.expired ? tr("sold_out") : item.typeText)}</span>
+                <article class="promotion-card promo-card" data-id="${escapeHtml(item.id)}">
+                    <div class="promotion-card__image-wrap promo-card-media">
+                        <span class="promotion-card__badge promo-card-tag">${escapeHtml(item.expired ? tr("sold_out") : item.typeText)}</span>
                         ${renderImage(item)}
                     </div>
-                    <div class="promo-card-body">
-                        <h3 class="promo-card-title">${escapeHtml(item.title)}</h3>
-                        <p class="promo-card-desc">${escapeHtml(item.descriptionText)}</p>
+                    <div class="promotion-card__body promo-card-body">
+                        <h3 class="promotion-card__title promo-card-title">${escapeHtml(item.title)}</h3>
+                        <p class="promotion-card__desc promo-card-desc">${escapeHtml(item.descriptionText)}</p>
                         <div class="promo-card-meta">
                             <span class="promo-expire"><i class="far fa-calendar-alt"></i> ${escapeHtml(item.expireText)}</span>
                             <span class="promo-code">${escapeHtml(item.codeText)}</span>
                         </div>
                         <div class="promo-card-actions">
                             <button type="button" class="promo-btn promo-btn-primary" data-action="detail" data-id="${escapeHtml(item.id)}">${tr("service_detail")}</button>
-                            <button type="button" class="promo-btn promo-btn-copy" data-action="copy" data-code="${escapeHtml(item.codeText)}" ${item.hasCode ? "" : "disabled"}>${item.hasCode ? tr("copy_code") : tr("no_code")}</button>
+                            ${item.hasCode ? `<button type="button" class="promo-btn promo-btn-copy" data-action="copy" data-code="${escapeHtml(item.codeText)}">${tr("copy_code")}</button>` : ""}
                         </div>
                     </div>
                 </article>
@@ -771,6 +349,7 @@
 
             const copyBtn = document.getElementById("promoModalCopyBtn");
             copyBtn.disabled = !item.hasCode;
+            copyBtn.style.display = item.hasCode ? "" : "none";
             copyBtn.textContent = item.hasCode ? tr("copy_code") : tr("no_code");
 
             promoModal.classList.add("show");
@@ -829,3 +408,4 @@
         });
     </script>
 }
+
