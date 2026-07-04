@@ -2,7 +2,7 @@
     ViewBag.Title = "Dịch Vụ - AERO Cinema";
 }
 
-<link href="@Url.Content("~/Content/services.css?v=18")" rel="stylesheet" />
+<link href="@Url.Content("~/Content/services.css?v=22")" rel="stylesheet" />
 
 <div class="services-wrapper">
     <section class="services-hero-full">
@@ -10,12 +10,11 @@
         <div class="services-hero__content">
             <div class="services-hero__badge">
                 <span>✦</span>
-                <strong>AERO PREMIUM SERVICES</strong>
+                <strong>DỊCH VỤ CAO CẤP AERO</strong>
             </div>
 
             <h1 class="services-hero__title">
                 <span>DỊCH VỤ</span>
-                <span><em>ĐẲNG CẤP</em></span>
                 <span>TẠI AERO CINEMA</span>
             </h1>
 
@@ -24,6 +23,11 @@
             <p class="services-hero__desc">
                 Trải nghiệm điện ảnh trọn vẹn hơn với đặt vé trực tuyến, ẩm thực rạp chiếu, phòng chờ cao cấp và dịch vụ tổ chức sự kiện chuyên nghiệp.
             </p>
+
+            <div class="services-hero__actions">
+                <a class="services-hero__cta services-hero__cta--primary" href="#servicesList">Khám phá dịch vụ</a>
+                <a class="services-hero__cta services-hero__cta--outline" href="@Url.Action("Index", "Movies")">Đặt vé ngay</a>
+            </div>
         </div>
 
         <div class="services-hero__visual" aria-hidden="true">
@@ -60,7 +64,7 @@
     </div>
 </section>
 
-    <section class="services-list-section">
+    <section class="services-list-section" id="servicesList">
     <div class="services-grid" aria-label="Dịch vụ AERO Cinema">
         <article class="service-card" data-service-id="cinemunch">
             <div class="service-icon">

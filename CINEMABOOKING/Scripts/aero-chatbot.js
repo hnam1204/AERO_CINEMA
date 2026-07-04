@@ -33,12 +33,18 @@ function fallbackText() {
 }
 
 const quickActions = [
-    { key: "chatbot_now_showing", icon: "🎬", promptVi: "Phim đang chiếu", promptEn: "Now showing" },
-    { key: "chatbot_today_showtimes", icon: "🍿", promptVi: "Lịch chiếu hôm nay", promptEn: "Today's showtimes" },
-    { key: "booking", icon: "🎟", promptVi: "Lịch chiếu hôm nay", promptEn: "Book tickets" },
-    { key: "chatbot_promotions", icon: "⭐", promptVi: "Khuyến mãi", promptEn: "Promotions" },
-    { key: "chatbot_cinemas", icon: "🏢", promptVi: "Rạp phim", promptEn: "Cinemas" },
-    { key: "support", icon: "📞", promptVi: "Bạn có thể hỗ trợ gì?", promptEn: "What can you help with?" }
+    { key: "chatbot_now_showing", icon: "🎬", labelVi: "Phim đang chiếu", labelEn: "Now showing", promptVi: "Phim đang chiếu", promptEn: "Now showing" },
+    { key: "chatbot_today_showtimes", icon: "🍿", labelVi: "Lịch chiếu hôm nay", labelEn: "Today's showtimes", promptVi: "Lịch chiếu hôm nay", promptEn: "Today's showtimes" },
+    { key: "booking", icon: "🎟", labelVi: "Đặt vé", labelEn: "Book tickets", promptVi: "Đặt vé", promptEn: "Book tickets" },
+    { key: "chatbot_promotions", icon: "⭐", labelVi: "Khuyến mãi", labelEn: "Promotions", promptVi: "Khuyến mãi", promptEn: "Promotions" },
+    { key: "chatbot_cinemas", icon: "🏢", labelVi: "Rạp phim", labelEn: "Cinemas", promptVi: "Rạp phim", promptEn: "Cinemas" },
+    { key: "support", icon: "📞", labelVi: "Hỗ trợ", labelEn: "Support", promptVi: "Hỗ trợ", promptEn: "What can you help with?" }
+];
+
+const noShowtimeSuggestions = [
+    { labelVi: "Xem phim đang chiếu", labelEn: "Now showing", promptVi: "Phim đang chiếu", promptEn: "Now showing" },
+    { labelVi: "Chọn rạp", labelEn: "Choose cinema", promptVi: "Rạp phim", promptEn: "Cinemas" },
+    { labelVi: "Xem ngày khác", labelEn: "Choose another date", promptVi: "Lịch chiếu ngày khác", promptEn: "Showtimes another day" }
 ];
 
 const genreAliases = {
@@ -60,7 +66,7 @@ const intentRules = [
     { name: "price_search", keywords: ["gia ve", "ticket price", "bao nhieu tien"] },
     { name: "situation_recommendation", keywords: ["ban gai", "nguoi yeu", "gia dinh", "tre em", "con nho", "couple"] },
     { name: "genre_search", test: text => hasAny(text, ["toi thich", "the loai", "goi y phim", "recommend"]) || detectGenre(text) !== null },
-    { name: "showtime_search", keywords: ["lich chieu", "suat chieu", "chieu luc", "may gio", "toi nay", "sau 19", "showtime", "today"] },
+    { name: "showtime_search", keywords: ["lich chieu", "suat chieu", "chieu luc", "may gio", "toi nay", "sau 19", "dat ve", "booking", "book tickets", "showtime", "today"] },
     { name: "now_showing", keywords: ["phim dang chieu", "now showing"] }
 ];
 
@@ -126,7 +132,7 @@ function injectChatbot() {
             <div class="aero-chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
             <form class="aero-chat-form">
                 <div class="aero-chat-composer">
-                    <textarea class="aero-chat-input" rows="1" maxlength="500" data-i18n-placeholder="chatbot_placeholder" placeholder="Hỏi AERO về phim, lịch chiếu..." aria-label="AERO AI Assistant question"></textarea>
+                    <textarea class="aero-chat-input" rows="1" maxlength="500" data-i18n-placeholder="chatbot_placeholder" placeholder="Hỏi AERO về phim, lịch chiếu, ưu đãi..." aria-label="AERO AI Assistant question"></textarea>
                     <div class="aero-chat-tools">
                         <button class="aero-chat-tool aero-chat-voice" type="button" aria-label="Voice input"><i class="fas fa-microphone"></i></button>
                         <button class="aero-chat-tool aero-chat-emoji" type="button" aria-label="Add emoji"><i class="far fa-smile"></i></button>
@@ -191,7 +197,7 @@ function scrollLatest() {
 
 function resizeComposer(input) {
     input.style.height = "auto";
-    input.style.height = `${Math.min(input.scrollHeight, 96)}px`;
+    input.style.height = `${Math.min(input.scrollHeight, 82)}px`;
 }
 
 function insertAtCursor(input, text) {
@@ -237,6 +243,7 @@ function appendMessage(role, response) {
         wrapper.appendChild(text);
     }
     if (Array.isArray(normalizedResponse.cards)) renderCards(wrapper, normalizedResponse.cards);
+    if (Array.isArray(normalizedResponse.suggestions) && normalizedResponse.suggestions.length) renderSuggestionActions(wrapper, normalizedResponse.suggestions);
     row.appendChild(wrapper);
     messagesElement()?.appendChild(row);
     scrollLatest();
@@ -249,6 +256,7 @@ function renderCards(parent, cards) {
     cards.forEach(card => {
         const item = document.createElement("article");
         item.className = "aero-result-card";
+        if (card.kind) item.classList.add(`aero-${card.kind}-card`);
         if (card.image) {
             const image = document.createElement("img");
             image.src = card.image;
@@ -259,6 +267,12 @@ function renderCards(parent, cards) {
         }
         const body = document.createElement("div");
         body.className = "aero-result-body";
+        if (card.badge) {
+            const badge = document.createElement("span");
+            badge.className = "aero-result-badge";
+            badge.textContent = card.badge;
+            body.appendChild(badge);
+        }
         const title = document.createElement("strong");
         title.textContent = card.title || "AERO Cinema";
         body.appendChild(title);
@@ -267,14 +281,17 @@ function renderCards(parent, cards) {
             line.textContent = value;
             body.appendChild(line);
         });
-        if (card.href) {
+        const extraActions = Array.isArray(card.actions) ? card.actions : [];
+        if (card.href || extraActions.length) {
             const actions = document.createElement("div");
             actions.className = "aero-result-actions";
-            const detailLink = document.createElement("a");
-            detailLink.className = "aero-result-action secondary";
-            detailLink.href = card.href;
-            detailLink.textContent = card.action || tr("detail");
-            actions.appendChild(detailLink);
+            if (card.href) {
+                const detailLink = document.createElement("a");
+                detailLink.className = "aero-result-action secondary";
+                detailLink.href = card.href;
+                detailLink.textContent = card.action || tr("detail");
+                actions.appendChild(detailLink);
+            }
             if (card.secondaryHref) {
                 const primaryLink = document.createElement("a");
                 primaryLink.className = "aero-result-action primary";
@@ -282,12 +299,34 @@ function renderCards(parent, cards) {
                 primaryLink.textContent = card.secondaryAction || tr("movie_book_now");
                 actions.appendChild(primaryLink);
             }
+            extraActions.forEach(action => {
+                const link = document.createElement("a");
+                link.className = `aero-result-action ${action.style || "secondary"}`;
+                link.href = action.href || "#";
+                link.textContent = action.label || action.labelVi || tr("detail");
+                if (!action.href) link.addEventListener("click", event => event.preventDefault());
+                actions.appendChild(link);
+            });
             body.appendChild(actions);
         }
         item.appendChild(body);
         list.appendChild(item);
     });
     parent.appendChild(list);
+}
+
+function renderSuggestionActions(parent, actions) {
+    const container = document.createElement("div");
+    container.className = "aero-quick-actions aero-inline-suggestions";
+    actions.forEach(action => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "aero-quick-action";
+        button.textContent = isEn() ? action.labelEn || action.labelVi : action.labelVi || action.labelEn;
+        button.addEventListener("click", () => sendMessage(isEn() ? action.promptEn || action.labelEn : action.promptVi || action.labelVi));
+        container.appendChild(button);
+    });
+    parent.appendChild(container);
 }
 
 function renderQuickActions() {
@@ -298,7 +337,7 @@ function renderQuickActions() {
         const button = document.createElement("button");
         button.type = "button";
         button.className = "aero-quick-action";
-        button.textContent = `${action.icon} ${tr(action.key)}`;
+        button.textContent = `${action.icon} ${isEn() ? action.labelEn : action.labelVi}`;
         button.addEventListener("click", () => sendMessage(isEn() ? action.promptEn : action.promptVi));
         container.appendChild(button);
     });
@@ -343,12 +382,7 @@ function renderWelcomeMessage() {
     welcome.innerHTML = `
         <div class="aero-welcome-avatar"><i class="fas fa-robot" aria-hidden="true"></i></div>
         <h2>${tr("chatbot_welcome_title")} <span>👋</span></h2>
-        <p>${tr("chatbot_welcome_text")}</p>
-        <div class="aero-welcome-capabilities">
-            <span>🎬 ${tr("chatbot_now_showing")}</span><span>🍿 ${tr("chatbot_today_showtimes")}</span>
-            <span>🎟 ${tr("booking")}</span><span>🏢 ${tr("chatbot_cinemas")}</span>
-            <span>💳 ${tr("seats_step_payment")}</span><span>⭐ ${tr("chatbot_promotions")}</span>
-        </div>`;
+        <p>${tr("chatbot_welcome_text")}</p>`;
     messages.appendChild(welcome);
     renderQuickActions();
 }
@@ -479,7 +513,12 @@ async function answerShowtimes(message) {
         const secondTime = String(value(b, ["time"], ""));
         return firstTime.localeCompare(secondTime);
     });
-    return filtered.length ? { text: minimumHour !== null ? (isEn() ? `Showtimes from ${minimumHour}:00 today:` : `Các suất chiếu từ ${minimumHour}:00 hôm nay:`) : tr("chatbot_today_showtimes") + ":", cards: filtered.slice(0, 8).map(showtimeCard) } : emptyText();
+    return filtered.length ? { text: minimumHour !== null ? (isEn() ? `Showtimes from ${minimumHour}:00 today:` : `Các suất chiếu từ ${minimumHour}:00 hôm nay:`) : tr("chatbot_today_showtimes") + ":", cards: filtered.slice(0, 8).map(showtimeCard) } : {
+        text: isEn()
+            ? "I could not find matching showtimes for today. Would you like to see now showing movies or choose a cinema near you?"
+            : "Hiện chưa tìm thấy lịch chiếu phù hợp cho hôm nay. Bạn có muốn xem phim đang chiếu hoặc chọn rạp gần bạn không?",
+        suggestions: noShowtimeSuggestions
+    };
 }
 
 async function answerTickets() {
@@ -542,8 +581,23 @@ async function answerCinemas() {
 async function answerPromotions() {
     const promotions = await services.getPromotions();
     return promotions.length ? {
-        text: "Ưu đãi đang áp dụng:",
-        cards: promotions.slice(0, 6).map(item => ({ title: value(item, ["couponCode", "title"]), lines: [value(item, ["title", "description"]), `🎁 Giảm ${value(item, ["discount"], 0)}%`, `Hết hạn: ${displayDate(item.endDate)}`] }))
+        text: isEn() ? "Current AERO offers:" : "Ưu đãi AERO đang áp dụng:",
+        cards: promotions.slice(0, 6).map(item => {
+            const code = value(item, ["couponCode", "code"], "AERO");
+            const title = value(item, ["title", "name"], "Ưu đãi AERO Cinema");
+            const discount = value(item, ["discount", "discountPercent"], 0);
+            return {
+                kind: "promotion",
+                badge: isEn() ? "Offer" : "Ưu đãi",
+                title,
+                lines: [
+                    `${isEn() ? "Code" : "Mã"}: ${code}`,
+                    `${isEn() ? "Discount" : "Giảm giá"}: ${discount}%`,
+                    `${isEn() ? "Valid until" : "Hạn dùng"}: ${displayDate(item.endDate || item.expiryDate)}`
+                ],
+                actions: [{ label: isEn() ? "Use this code" : "Dùng mã này", href: "/Promotions", style: "primary" }]
+            };
+        })
     } : emptyText();
 }
 
@@ -572,10 +626,7 @@ const handlers = {
 };
 
 function typingLabel(intent) {
-    const labels = isEn()
-        ? { movie_search: "Searching movies...", now_showing: "Searching movies...", genre_search: "Finding suitable movies...", situation_recommendation: "Finding suitable movies...", showtime_search: "Loading showtimes...", ticket_search: "Loading your tickets...", cinema_search: "Finding nearby cinemas...", promotion_search: "Loading promotions..." }
-        : { movie_search: "Đang tìm phim...", now_showing: "Đang tìm phim...", genre_search: "Đang chọn phim phù hợp...", situation_recommendation: "Đang chọn phim phù hợp...", showtime_search: "Đang tải lịch chiếu...", ticket_search: "Đang tải vé của bạn...", cinema_search: "Đang tìm rạp gần bạn...", promotion_search: "Đang tải khuyến mãi..." };
-    return labels[intent] || tr("chatbot_typing");
+    return isEn() ? "AERO is finding data..." : "AERO đang tìm dữ liệu...";
 }
 
 async function createResponse(message, detectedIntent = null) {

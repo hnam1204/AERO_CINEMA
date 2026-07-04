@@ -3,18 +3,22 @@
 }
 
 <style>
+    @@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700;800;900&display=swap');
+
     body {
         background-color: #f8fafc !important;
     }
 
     .membership-wrapper {
-        margin-bottom: 72px;
+        margin-bottom: 0;
+        padding-bottom: 96px;
+        font-family: 'Be Vietnam Pro', 'Inter', 'Roboto', Arial, sans-serif;
     }
 
     /* Hero section */
     .membership-hero {
         max-width: 1200px;
-        margin: 28px auto 34px;
+        margin: 28px auto 14px;
         padding: 0 24px;
     }
 
@@ -22,14 +26,30 @@
         position: relative;
         overflow: hidden;
         border-radius: 24px;
-        padding: 68px 36px;
+        padding: 84px 36px;
         text-align: center;
-        color: #fff;
+        color: #07142f;
         background:
-            radial-gradient(circle at top left, rgba(245,130,32,.28), transparent 34%),
-            radial-gradient(circle at bottom right, rgba(0,91,170,.30), transparent 34%),
-            linear-gradient(135deg, #0f172a 0%, #111827 55%, #020617 100%);
-        box-shadow: 0 28px 80px rgba(15,23,42,.22);
+            radial-gradient(circle at top left, rgba(245,130,32,.14), transparent 34%),
+            radial-gradient(circle at bottom right, rgba(0,91,170,.14), transparent 34%),
+            linear-gradient(135deg, #ffffff 0%, #fbfdff 50%, #edf6ff 100%);
+        border: 1px solid rgba(226,232,240,.92);
+        box-shadow: 0 28px 76px rgba(15,23,42,.10);
+    }
+
+    .membership-hero-badge {
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 18px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        background: linear-gradient(135deg, rgba(245,130,32,.96), rgba(255,181,87,.84));
+        border: 1px solid rgba(255,255,255,.20);
+        box-shadow: 0 16px 36px rgba(245,130,32,.26);
+        font-size: 22px;
     }
 
     .membership-eyebrow {
@@ -54,24 +74,51 @@
     }
 
     .membership-hero p {
-        margin: 16px auto 0;
+        margin: 24px auto 0;
         max-width: 760px;
-        color: rgba(255,255,255,.76);
-        font-size: 15px;
+        color: #475569;
+        font-size: 16px;
         line-height: 1.8;
+        font-weight: 650;
     }
 
     .membership-hero-actions {
         display: flex;
         justify-content: center;
         gap: 16px;
-        margin-top: 28px;
+        margin-top: 18px;
         flex-wrap: wrap;
     }
 
+    .membership-guest-note {
+        max-width: 640px;
+        margin: 26px auto 0;
+        padding: 16px 18px;
+        border-radius: 18px;
+        border: 1px solid rgba(245,130,32,.24);
+        background: rgba(255,255,255,.72);
+        box-shadow: 0 14px 30px rgba(15,23,42,.06);
+    }
+
+    .membership-guest-note h2 {
+        margin: 0;
+        color: #07142f;
+        font-size: 17px;
+        line-height: 1.35;
+        font-weight: 900;
+    }
+
+    .membership-guest-note p {
+        margin: 6px auto 0;
+        color: #64748b;
+        font-size: 14px;
+        line-height: 1.55;
+        font-weight: 650;
+    }
+
     .membership-primary-btn, .membership-secondary-btn {
-        height: 44px;
-        padding: 0 28px;
+        min-height: 50px;
+        padding: 0 34px;
         border-radius: 999px;
         display: inline-flex;
         align-items: center;
@@ -88,7 +135,7 @@
         background: #f58220;
         color: #fff;
         border: 1px solid #f58220;
-        box-shadow: 0 10px 20px rgba(245, 130, 32, 0.24);
+        box-shadow: 0 16px 34px rgba(245, 130, 32, 0.34);
     }
 
     .membership-primary-btn:hover {
@@ -96,35 +143,36 @@
         border-color: #ea6f08;
         transform: translateY(-2px);
         color: #fff;
+        box-shadow: 0 20px 42px rgba(245, 130, 32, 0.42);
     }
 
     .membership-secondary-btn {
-        background: rgba(255, 255, 255, 0.1);
-        color: #fff;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.86);
+        color: #07142f;
+        border: 1.5px solid rgba(245, 130, 32, 0.36);
+        box-shadow: 0 12px 26px rgba(15,23,42,.06);
     }
 
     .membership-secondary-btn:hover {
-        background: rgba(255, 255, 255, 0.18);
-        border-color: rgba(255, 255, 255, 0.25);
+        background: rgba(245, 130, 32, 0.10);
+        border-color: rgba(245, 130, 32, 0.62);
         transform: translateY(-2px);
-        color: #fff;
+        color: #f58220;
     }
 
     /* Logged In User Dashboard */
     .my-membership-panel {
         max-width: 1200px;
-        margin: 0 auto 36px;
+        margin: 0 auto 34px;
         padding: 0 24px;
     }
 
     .my-membership-card {
         background: #fff;
         border: 1px solid #e5e7eb;
-        border-radius: 24px;
+        border-radius: 22px;
         padding: 30px;
-        box-shadow: 0 16px 42px rgba(15,23,42,.08);
+        box-shadow: 0 18px 48px rgba(15,23,42,.07);
     }
 
     .my-member-profile {
@@ -237,12 +285,12 @@
     /* Guest Loyalty CTA */
     .membership-login-cta {
         max-width: 1200px;
-        margin: 0 auto 36px;
+        margin: 0 auto 34px;
         padding: 40px 24px;
         background: #fff;
         border: 1px solid #e5e7eb;
-        border-radius: 24px;
-        box-shadow: 0 16px 42px rgba(15,23,42,.08);
+        border-radius: 22px;
+        box-shadow: 0 18px 48px rgba(15,23,42,.07);
         text-align: center;
     }
 
@@ -263,8 +311,8 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        height: 42px;
-        padding: 0 24px;
+        min-height: 48px;
+        padding: 0 32px;
         background: #f58220;
         color: #fff;
         font-size: 13px;
@@ -285,7 +333,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        margin: 40px auto 24px;
+        margin: 26px auto 22px;
         max-width: 1200px;
         padding: 0 24px;
     }
@@ -298,7 +346,7 @@
     }
 
     .section-title h2 {
-        font-size: 20px;
+        font-size: clamp(24px, 2.2vw, 30px);
         font-weight: 900;
         color: #0f172a;
         text-transform: uppercase;
@@ -319,35 +367,38 @@
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 22px;
+        align-items: stretch;
     }
 
     .rank-card {
         position: relative;
         overflow: hidden;
-        min-height: 360px;
-        padding: 26px 22px;
+        min-height: 400px;
+        height: 100%;
+        padding: 30px 24px;
         border-radius: 24px;
         background: #fff;
         border: 1px solid #e5e7eb;
-        box-shadow: 0 16px 42px rgba(15,23,42,.10);
+        box-shadow: 0 16px 42px rgba(15,23,42,.08);
         transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
         display: flex;
         flex-direction: column;
     }
 
     .rank-card:hover {
-        transform: translateY(-7px);
-        box-shadow: 0 30px 76px rgba(15,23,42,.16);
+        transform: translateY(-4px);
+        box-shadow: 0 24px 58px rgba(15,23,42,.12);
     }
 
     .rank-card-icon {
         width: 58px;
         height: 58px;
+        flex: 0 0 58px;
         border-radius: 18px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 18px;
+        margin: 0 0 18px;
         font-size: 24px;
     }
 
@@ -379,6 +430,7 @@
         display: grid;
         gap: 12px;
         padding: 0;
+        margin: 0;
         list-style: none;
     }
 
@@ -402,7 +454,7 @@
     .rank-card.gold { border-top: 5px solid #f59e0b; }
     .rank-card.diamond {
         border-top: 5px solid #06b6d4;
-        box-shadow: 0 24px 70px rgba(6,182,212,.20);
+        box-shadow: 0 18px 48px rgba(6,182,212,.14);
     }
 
     /* Points guide section */
@@ -545,23 +597,72 @@
     }
 
     @@media (max-width: 767px) {
+        .membership-wrapper {
+            padding-bottom: 76px;
+        }
+
         .membership-hero {
-            padding: 0 16px;
+            max-width: none;
+            margin: 18px auto 12px;
+            padding: 0 12px;
         }
 
         .membership-hero-inner {
-            padding: 44px 20px;
+            padding: 54px 20px;
             border-radius: 20px;
+            text-align: center;
+        }
+
+        .membership-hero-badge {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            border-radius: 16px;
+            font-size: 20px;
         }
 
         .membership-hero h1 {
             font-size: 28px;
         }
 
+        .membership-hero p {
+            font-size: 15.5px;
+        }
+
+        .membership-hero-actions {
+            gap: 12px;
+        }
+
+        .membership-guest-note {
+            padding: 14px 16px;
+        }
+
+        .membership-primary-btn, .membership-secondary-btn {
+            min-height: 48px;
+            padding: 0 28px;
+        }
+
+        .membership-login-cta,
+        .my-membership-panel,
+        .section-title {
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
+        .membership-login-cta {
+            border-radius: 20px;
+            padding-top: 32px;
+            padding-bottom: 32px;
+        }
+
         .membership-rank-grid,
         .points-guide-grid {
             grid-template-columns: 1fr;
             padding: 0 16px;
+        }
+
+        .rank-card {
+            min-height: auto;
         }
 
         .my-member-stats {
@@ -572,15 +673,35 @@
             width: 100%;
         }
     }
+
+    @@media (max-width: 420px) {
+        .membership-hero-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .membership-primary-btn, .membership-secondary-btn,
+        .membership-login-cta a {
+            width: 100%;
+        }
+    }
 </style>
 
 <div class="membership-wrapper">
     <!-- Hero Banner intro -->
     <section class="membership-hero">
         <div class="membership-hero-inner">
+            <div class="membership-hero-badge" aria-hidden="true">
+                <i class="fas fa-star"></i>
+            </div>
             <span class="membership-eyebrow">AERO STAR MEMBERSHIP</span>
             <h1>CHƯƠNG TRÌNH THÀNH VIÊN <span>AERO STAR</span></h1>
             <p>Tích điểm sau mỗi giao dịch, nâng hạng thành viên và nhận đặc quyền xem phim, combo bắp nước cùng nhiều ưu đãi độc quyền.</p>
+
+            <div id="heroGuestNote" class="membership-guest-note" style="display: none;">
+                <h2>Đăng nhập để xem hạng thành viên của bạn</h2>
+                <p>Theo dõi điểm tích lũy, quyền lợi và tiến độ nâng hạng AERO STAR.</p>
+            </div>
 
             <div id="heroActions" class="membership-hero-actions" style="display: none;">
                 <a href="/Account/Register" class="membership-primary-btn">Đăng ký thành viên</a>
@@ -941,11 +1062,13 @@
             const panel = document.getElementById("myMembershipPanel");
             const cta = document.getElementById("guestCTA");
             const heroActions = document.getElementById("heroActions");
+            const heroGuestNote = document.getElementById("heroGuestNote");
             if (!panel || !cta) return;
 
             // Update panels visibility
             cta.style.display = "none";
             if (heroActions) heroActions.style.display = "none";
+            if (heroGuestNote) heroGuestNote.style.display = "none";
             panel.style.display = "block";
 
             // Extract properties
@@ -996,10 +1119,12 @@
             const panel = document.getElementById("myMembershipPanel");
             const cta = document.getElementById("guestCTA");
             const heroActions = document.getElementById("heroActions");
+            const heroGuestNote = document.getElementById("heroGuestNote");
             if (!panel || !cta) return;
 
             panel.style.display = "none";
-            cta.style.display = "block";
+            cta.style.display = "none";
+            if (heroGuestNote) heroGuestNote.style.display = "block";
             if (heroActions) heroActions.style.display = "flex";
             applyMembershipLanguage();
         }
@@ -1024,6 +1149,12 @@
                 guest.querySelector("h2").textContent = text.guestTitle;
                 guest.querySelector("p").textContent = text.guestDesc;
                 guest.querySelector("a").textContent = text.guestBtn;
+            }
+
+            const heroGuestNote = document.getElementById("heroGuestNote");
+            if (heroGuestNote) {
+                heroGuestNote.querySelector("h2").textContent = text.guestTitle;
+                heroGuestNote.querySelector("p").textContent = text.guestDesc;
             }
 
             const sectionTitles = document.querySelectorAll(".section-title h2");

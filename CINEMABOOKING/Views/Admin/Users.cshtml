@@ -14,6 +14,8 @@
         .badge-gold { background: #fef3c7 !important; color: #d97706 !important; }
         .badge-silver { background: #f1f5f9 !important; color: #64748b !important; }
         .badge-neutral { background: #f1f5f9 !important; color: #475569 !important; }
+        .admin-role-password-field { grid-column: 1 / -1; }
+        .admin-role-password-field .admin-help-text { margin-top: 6px; color: #dc2626; font-size: 12px; font-weight: 600; }
     </style>
 }
 
@@ -174,6 +176,11 @@
                     <div class="admin-field"><label for="memberRank">Hạng thành viên</label><select class="admin-control" id="memberRank"><option>Standard</option><option>Silver</option><option>Gold</option><option>Diamond</option></select></div>
                     <div class="admin-field"><label for="points">Điểm tích lũy (Points)</label><input class="admin-control" id="points" type="number" min="0" value="0" /></div>
                     <div class="admin-field"><label for="dailyPoints">Điểm tích lũy ngày (Daily Points)</label><input class="admin-control" id="dailyPoints" type="number" min="0" value="0" /></div>
+                    <div class="admin-field admin-role-password-field" id="rolePasswordField" style="display: none;">
+                        <label for="roleAdminPassword">Mật khẩu admin để đổi quyền hạn</label>
+                        <input class="admin-control" id="roleAdminPassword" type="password" autocomplete="current-password" />
+                        <div class="admin-help-text">Chỉ bắt buộc khi thay đổi Quyền hạn (Role).</div>
+                    </div>
 
                 </div>
             </div>
@@ -203,6 +210,9 @@
 
         const db = window.AeroAdmin?.db || window.db;
         const toast = window.AeroAdmin?.toast || ((type, title, message) => alert(`${title}: ${message}`));
+        const ROLE_CHANGE_ADMIN_PASSWORD_HASH = "c5d4c98663ed01f890c867c45049a79a8dceed233b9e6e5d31f5e4e74476d0d8";
+        let originalRole = "";
+        let originalStatus = "";
         const state = {
             users: [],
             bookings: [],
@@ -241,6 +251,14 @@
             }) : "-";
         };
         const initials = v => String(v || "US").trim().split(/\s+/).map(x => x[0]).join("").substring(0, 2).toUpperCase();
+
+        async function sha256(text) {
+            const bytes = new TextEncoder().encode(text);
+            const digest = await crypto.subtle.digest("SHA-256", bytes);
+            return Array.from(new Uint8Array(digest))
+                .map(byte => byte.toString(16).padStart(2, "0"))
+                .join("");
+        }
 
         // Standard Format Helpers
         function safeText(value, fallback = "-") {
@@ -509,6 +527,35 @@
             const m = document.getElementById(id);
             m.classList.remove("show");
             document.body.style.overflow = "";
+            if (id === "userFormModal") {
+                resetRolePasswordField();
+            }
+        }
+
+        function roleChangedFromOriginal() {
+            return norm(document.getElementById("role").value) !== norm(originalRole || "user");
+        }
+
+        function resetRolePasswordField() {
+            const passwordInput = document.getElementById("roleAdminPassword");
+            const passwordField = document.getElementById("rolePasswordField");
+            if (passwordInput) passwordInput.value = "";
+            if (passwordField) passwordField.style.display = "none";
+        }
+
+        function syncRolePasswordField() {
+            const passwordField = document.getElementById("rolePasswordField");
+            const passwordInput = document.getElementById("roleAdminPassword");
+            if (!passwordField || !passwordInput) return;
+
+            if (roleChangedFromOriginal()) {
+                passwordField.style.display = "";
+                passwordInput.required = true;
+            } else {
+                passwordField.style.display = "none";
+                passwordInput.required = false;
+                passwordInput.value = "";
+            }
         }
         
         function openEdit(u) {
@@ -522,11 +569,15 @@
             document.getElementById("email").value = u.email || "";
             document.getElementById("fullName").value = u.fullName || "";
             document.getElementById("phone").value = u.phone || "";
-            document.getElementById("role").value = u.role || "user";
-            document.getElementById("status").value = u.status || "active";
+            originalRole = norm(u.role || "user");
+            document.getElementById("role").value = originalRole;
+            originalStatus = norm(u.status || "active");
+            document.getElementById("status").value = originalStatus;
             document.getElementById("memberRank").value = u.memberRank || u.rank || "Standard";
             document.getElementById("points").value = Number(u.points || 0);
             document.getElementById("dailyPoints").value = Number(u.dailyPoints || 0);
+            resetRolePasswordField();
+            syncRolePasswordField();
             openModal("userFormModal");
         }
         
@@ -633,6 +684,17 @@
             const oldData = state.users.find(u => u.uid === uid || u.id === uid);
             if (!oldData) return;
             const data = getFormData();
+            const roleWasChanged = norm(data.role) !== norm(originalRole || oldData.role || "user");
+            const adminPassword = document.getElementById("roleAdminPassword")?.value || "";
+            if (roleWasChanged) {
+                const adminPasswordHash = adminPassword ? await sha256(adminPassword) : "";
+                if (adminPasswordHash !== ROLE_CHANGE_ADMIN_PASSWORD_HASH) {
+                    toast("warning", "Yêu cầu mật khẩu admin", "Bạn cần nhập đúng mật khẩu admin để thay đổi quyền hạn người dùng.");
+                    syncRolePasswordField();
+                    document.getElementById("roleAdminPassword")?.focus();
+                    return;
+                }
+            }
             if ((oldData.uid === currentUid() || oldData.id === currentUid()) && norm(oldData.role) === "admin" && norm(data.role) !== "admin") {
                 toast("warning", "Không thể tự hạ quyền", "Admin hiện tại không được tự chuyển mình thành user.");
                 return;
@@ -653,6 +715,7 @@
                 await updateDoc(doc(db, "users", uid), updatePayload);
                 await window.AeroAdmin?.logActivity?.(logAction(oldData, data), "users", uid, oldData, data);
                 toast("success", "Đã cập nhật user", "Thông tin người dùng đã được lưu.");
+                resetRolePasswordField();
                 closeModal("userFormModal");
             } catch (err) {
                 console.error(err);
@@ -725,6 +788,7 @@
 
         function bindEvents() {
             els.form.addEventListener("submit", saveUser);
+            document.getElementById("role")?.addEventListener("change", syncRolePasswordField);
 
             // Table headers sorting
             document.querySelectorAll(".sort-header").forEach(header => {

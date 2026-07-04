@@ -3,169 +3,255 @@
 }
 
 <style>
+    @@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700;800;900&display=swap');
+
     body {
         background-color: #f8fafc !important;
     }
 
     .aero-cinema-board-section {
-        max-width: 1180px;
-        margin: 56px auto 80px;
+        max-width: 1120px;
+        margin: 34px auto 52px;
         padding: 0 16px;
+        font-family: 'Be Vietnam Pro', 'Inter', 'Roboto', Arial, sans-serif;
     }
 
     .aero-cinema-board {
         background:
-            radial-gradient(circle at top left, rgba(245,130,32,.12), transparent 34%),
-            linear-gradient(135deg, #2d2d2f 0%, #1e1f24 45%, #15171c 100%);
-        padding: 34px;
-        box-shadow: 0 24px 70px rgba(15,23,42,.25);
+            radial-gradient(circle at 88% 14%, rgba(0,91,170,.12), transparent 32%),
+            radial-gradient(circle at 12% 86%, rgba(255,122,26,.10), transparent 28%),
+            linear-gradient(135deg, #ffffff 0%, #fbfdff 48%, #edf6ff 100%);
+        border: 1px solid rgba(226,232,240,.92);
+        border-radius: 24px;
+        padding: 32px;
+        box-shadow: 0 26px 68px rgba(15,23,42,.10);
     }
 
     .aero-cinema-board-inner {
         position: relative;
-        border: 2px solid rgba(255,255,255,.18);
-        padding: 46px 48px 44px;
-    }
-
-    .aero-cinema-board-inner::before,
-    .aero-cinema-board-inner::after {
-        content: "";
-        position: absolute;
-        width: 26px;
-        height: 26px;
-        border-color: rgba(255,255,255,.28);
-        border-style: solid;
-    }
-
-    .aero-cinema-board-inner::before {
-        left: -2px;
-        top: -2px;
-        border-width: 2px 0 0 2px;
-    }
-
-    .aero-cinema-board-inner::after {
-        right: -2px;
-        bottom: -2px;
-        border-width: 0 2px 2px 0;
+        padding: 14px 12px 10px;
     }
 
     .aero-cinema-board h1 {
-        margin: 0 0 36px;
+        margin: 0 0 26px;
         text-align: center;
-        font-size: 48px;
-        line-height: 1;
-        letter-spacing: 2px;
+        font-size: clamp(30px, 3.2vw, 44px);
+        line-height: 1.18;
+        letter-spacing: .01em;
         font-weight: 900;
-        color: #d1d5db;
-        text-shadow: 0 3px 0 rgba(0,0,0,.45);
+        color: #07142f;
+        text-shadow: none;
     }
 
     .cinema-city-grid {
-        display: grid;
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 18px 42px;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 12px;
     }
 
     .cinema-city-item {
-        border: 0;
-        background: transparent;
-        color: #f8fafc;
-        text-align: left;
+        min-height: 42px;
+        border: 1px solid #e2e8f0;
+        border-radius: 999px;
+        background: rgba(255,255,255,.92);
+        color: #334155;
+        text-align: center;
         font-size: 15px;
-        font-weight: 700;
+        font-weight: 800;
         cursor: pointer;
-        padding: 0;
-        transition: .2s ease;
+        padding: 0 18px;
+        box-shadow: 0 8px 18px rgba(15,23,42,.04);
+        transition: transform .2s ease, color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
     }
 
-    .cinema-city-item:hover,
+    .cinema-city-item:hover {
+        color: #c75f08;
+        border-color: rgba(255,122,26,.35);
+        background: rgba(255,122,26,.10);
+        transform: translateY(-1px);
+    }
+
     .cinema-city-item.active {
-        color: #f58220;
+        color: #fff;
+        border-color: #ff7a1a;
+        background: linear-gradient(135deg, #ff7a1a, #ff9f43);
+        box-shadow: 0 14px 28px rgba(255,122,26,.28);
     }
 
     .cinema-divider {
         height: 1px;
-        background: rgba(255,255,255,.2);
-        margin: 34px 0 28px;
+        background: linear-gradient(90deg, transparent, rgba(148,163,184,.34), transparent);
+        margin: 26px auto 24px;
+        max-width: 820px;
     }
 
     .cinema-branch-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 16px 36px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
     }
 
-    .cinema-branch-link {
-        color: #f8fafc;
+    .cinema-branch-card {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        min-height: 220px;
+        padding: 22px;
+        border: 1px solid rgba(226,232,240,.95);
+        border-radius: 18px;
+        background: rgba(255,255,255,.94);
+        box-shadow: 0 18px 42px rgba(15,23,42,.07);
+    }
+
+    .cinema-branch-card h2 {
+        margin: 0;
+        color: #07142f;
+        font-size: 20px;
+        line-height: 1.35;
+        font-weight: 900;
+    }
+
+    .cinema-branch-meta {
+        display: grid;
+        gap: 9px;
+        margin: 0;
+        color: #475569;
+        font-size: 14px;
+        line-height: 1.55;
+        font-weight: 650;
+    }
+
+    .cinema-branch-meta span {
+        display: flex;
+        gap: 9px;
+        align-items: flex-start;
+    }
+
+    .cinema-branch-meta i {
+        width: 17px;
+        margin-top: 3px;
+        color: #ff7a1a;
+        text-align: center;
+        flex: 0 0 17px;
+    }
+
+    .cinema-branch-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: auto;
+    }
+
+    .cinema-branch-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 0 16px;
+        border-radius: 12px;
         text-decoration: none;
         font-size: 14px;
-        font-weight: 700;
-        line-height: 1.5;
-        transition: .2s ease;
+        font-weight: 900;
+        line-height: 1.2;
+        transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
     }
 
-    .cinema-branch-link:hover {
-        color: #f58220;
+    .cinema-branch-btn:hover {
+        transform: translateY(-2px);
         text-decoration: none;
+    }
+
+    .cinema-branch-btn--primary {
+        color: #fff;
+        background: linear-gradient(135deg, #ff7a1a, #ff9f43);
+        box-shadow: 0 13px 26px rgba(255,122,26,.24);
+    }
+
+    .cinema-branch-btn--primary:hover {
+        color: #fff;
+        box-shadow: 0 16px 34px rgba(255,122,26,.30);
+    }
+
+    .cinema-branch-btn--outline {
+        color: #07142f;
+        border: 1px solid rgba(255,122,26,.38);
+        background: #fff;
+    }
+
+    .cinema-branch-btn--outline:hover {
+        color: #ff7a1a;
+        border-color: rgba(255,122,26,.62);
+        background: rgba(255,122,26,.08);
     }
 
     .cinema-empty-state {
         grid-column: 1 / -1;
-        color: #cbd5e1;
+        color: #64748b;
         font-size: 14px;
+        font-weight: 700;
         text-align: center;
-        padding: 16px;
+        padding: 20px;
     }
 
     @@media (max-width: 991px) {
         .aero-cinema-board {
-            padding: 22px;
+            padding: 24px;
         }
 
         .aero-cinema-board-inner {
-            padding: 34px 28px;
+            padding: 8px 4px;
         }
 
         .aero-cinema-board h1 {
-            font-size: 38px;
-        }
-
-        .cinema-city-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 16px 28px;
+            margin-bottom: 22px;
         }
 
         .cinema-branch-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: 1fr;
         }
     }
 
     @@media (max-width: 576px) {
         .aero-cinema-board-section {
-            margin: 32px auto 56px;
+            margin: 24px auto 42px;
             padding: 0 12px;
         }
 
         .aero-cinema-board {
-            padding: 14px;
+            padding: 20px 14px;
+            border-radius: 22px;
         }
 
         .aero-cinema-board-inner {
-            padding: 28px 20px;
+            padding: 4px 2px;
         }
 
         .aero-cinema-board h1 {
-            font-size: 30px;
-            letter-spacing: 1px;
+            font-size: 28px;
         }
 
         .cinema-city-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 14px 20px;
+            justify-content: center;
+            gap: 10px;
         }
 
-        .cinema-branch-grid {
-            grid-template-columns: 1fr;
+        .cinema-city-item {
+            min-height: 40px;
+            padding: 0 14px;
+            font-size: 14px;
+        }
+
+        .cinema-branch-card {
+            padding: 18px;
+        }
+
+        .cinema-branch-actions {
+            flex-direction: column;
+        }
+
+        .cinema-branch-btn {
+            width: 100%;
         }
     }
 </style>
@@ -173,7 +259,7 @@
 <section class="aero-cinema-board-section">
     <div class="aero-cinema-board">
         <div class="aero-cinema-board-inner">
-            <h1 data-i18n="cinemas_title">AERO CINEMAS</h1>
+            <h1 data-i18n="cinemas_title">HỆ THỐNG CỤM RẠP AERO CINEMA</h1>
 
             <div id="cinemaCityGrid" class="cinema-city-grid">
                 <div class="cinema-empty-state" data-i18n="cinema_loading">Đang tải hệ thống rạp...</div>
@@ -217,6 +303,18 @@
 
         function getCinemaCity(c) {
             return getLocalized(c, "city", safeText(c.province || c.locationCity, window.getCurrentLang && window.getCurrentLang() === "en" ? "Other" : "Khác"));
+        }
+
+        function getCinemaMapUrl(c) {
+            const directUrl = safeText(c.mapUrl || c.googleMapUrl || c.mapsUrl || c.mapLink);
+            if (directUrl) return directUrl;
+
+            const lat = safeText(c.latitude || c.lat);
+            const lng = safeText(c.longitude || c.lng || c.lon);
+            if (lat && lng) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${lat},${lng}`)}`;
+
+            const query = `${getCinemaName(c)} ${getLocalized(c, "address", "")}`.trim();
+            return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query || "AERO Cinema")}`;
         }
 
         function escapeHtml(value) {
@@ -310,12 +408,21 @@
                 const id = escapeAttribute(c.id);
                 const name = escapeHtml(getCinemaName(c));
                 const address = escapeHtml(getLocalized(c, "address", tr("cinema_address_updating")));
-                const hotline = escapeHtml(safeText(c.hotline || c.phone, "1900 1234"));
+                const hotline = escapeHtml(safeText(c.hotline || c.phone || c.phoneNumber, "1900 1234"));
+                const mapUrl = escapeAttribute(getCinemaMapUrl(c));
 
                 return `
-                    <a class="cinema-branch-link" href="/Showtimes?cinemaId=${id}" title="${tr("cinema_address")}: ${address}\nHotline: ${hotline}">
-                        ${name}
-                    </a>
+                    <article class="cinema-branch-card">
+                        <h2>${name}</h2>
+                        <div class="cinema-branch-meta">
+                            <span><i class="fas fa-map-marker-alt"></i><span>${address}</span></span>
+                            <span><i class="fas fa-phone-alt"></i><span>${hotline}</span></span>
+                        </div>
+                        <div class="cinema-branch-actions">
+                            <a class="cinema-branch-btn cinema-branch-btn--primary" href="/Showtimes?cinemaId=${id}">Xem lịch chiếu</a>
+                            <a class="cinema-branch-btn cinema-branch-btn--outline" href="${mapUrl}" target="_blank" rel="noopener">Xem bản đồ</a>
+                        </div>
+                    </article>
                 `;
             }).join("");
         }

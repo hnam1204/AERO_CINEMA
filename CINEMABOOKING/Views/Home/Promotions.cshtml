@@ -2,7 +2,7 @@
     ViewBag.Title = "Khuyến Mãi & Ưu Đãi - AERO Cinema";
 }
 
-<link href="@Url.Content("~/Content/promotions.css?v=20260704-final")" rel="stylesheet" />
+<link href="@Url.Content("~/Content/promotions.css?v=20260704-premium")" rel="stylesheet" />
 
 
 <div class="promotions-page promo-wrapper">
@@ -23,6 +23,10 @@
                 S&#259;n voucher xem phim, combo b&#7855;p n&#432;&#7899;c v&#224; &#273;&#7863;c quy&#7873;n th&#224;nh vi&#234;n m&#7899;i nh&#7845;t t&#7841;i
                 <strong>AERO Cinema.</strong>
             </p>
+            <div class="promotions-hero__actions">
+                <a class="promotions-hero__cta promotions-hero__cta--primary" href="#promoList">Xem ưu đãi ngay</a>
+                <a class="promotions-hero__cta promotions-hero__cta--outline" href="@Url.Action("Membership", "Home")">Đăng ký thành viên</a>
+            </div>
         </div>
 
         <div class="promotions-hero__visual aero-promotion-hero__visual" aria-hidden="true">
@@ -52,7 +56,15 @@
         </div>
     </section>
 
-    <section class="promotions-list-section">
+    <section class="promotions-list-section" id="promoList">
+        <div class="promo-filter-bar" aria-label="Bộ lọc ưu đãi">
+            <button type="button" class="promo-filter-pill active" data-filter="all">Tất cả</button>
+            <button type="button" class="promo-filter-pill" data-filter="ticket">Vé xem phim</button>
+            <button type="button" class="promo-filter-pill" data-filter="combo">Combo</button>
+            <button type="button" class="promo-filter-pill" data-filter="member">Thành viên</button>
+            <button type="button" class="promo-filter-pill" data-filter="event">Sự kiện</button>
+            <button type="button" class="promo-filter-pill" data-filter="ending">Sắp hết hạn</button>
+        </div>
         <div id="promoGrid" class="promotions-grid promo-grid" aria-live="polite"></div>
         <div id="promoState" class="promo-state" style="display:none;"></div>
     </section>
@@ -109,6 +121,7 @@
         let rawPromotions = [];
         let promotions = [];
         let selectedPromotion = null;
+        let activePromoFilter = "all";
 
         function tr(key, fallback = "") {
             return window.t ? window.t(key, fallback) : (fallback || key);
@@ -182,6 +195,28 @@
             return safeText(item.desktopImageUrl || item.bannerUrl || item.imageUrl || item.thumbnailUrl, "");
         }
 
+        function isExternalBrandImage(url) {
+            const value = safeText(url, "").toLowerCase();
+            return /galaxy|cgv|lotte|bhd|cinestar|beta|megags|dcine|rio/.test(value);
+        }
+
+        function getPromoFilterType(item) {
+            const haystack = [
+                item.typeText,
+                item.title,
+                item.descriptionText,
+                item.codeText,
+                item.sourceCollection
+            ].join(" ").toLowerCase();
+
+            if (item.endingSoon) return "ending";
+            if (/combo|bắp|popcorn|nước|drink|food/.test(haystack)) return "combo";
+            if (/thành viên|member|aero star|rewards|loyalty|điểm/.test(haystack)) return "member";
+            if (/sự kiện|event|birthday|ra mắt|premiere|party/.test(haystack)) return "event";
+            if (/vé|ticket|movie|phim|suất chiếu/.test(haystack)) return "ticket";
+            return "ticket";
+        }
+
         function isExpired(item) {
             const expiry = toDate(item.expiredAt || item.endDate || item.validTo);
             if (!expiry) return false;
@@ -191,19 +226,45 @@
 
         function normalizePromo(item) {
             const code = getPromoCode(item);
+            const expiry = toDate(item.expiredAt || item.endDate || item.validTo);
+            const endingSoon = !!expiry && !isExpired(item) && expiry.getTime() - Date.now() <= 1000 * 60 * 60 * 24 * 7;
+            const image = getPromoImage(item);
             return {
                 ...item,
                 title: getPromoTitle(item),
                 descriptionText: getPromoDesc(item),
                 typeText: getPromoType(item),
                 codeText: code,
-                image: getPromoImage(item),
+                image: isExternalBrandImage(image) ? "" : image,
                 expireText: formatDate(item.expiredAt || item.endDate || item.validTo, tr("updated")),
                 startText: formatDate(item.startDate || item.startAt || item.createdAt, tr("updated")),
                 termsText: stripHtml((window.getLocalizedField ? window.getLocalizedField(item, "terms", "") : "") || item.terms || item.condition || item.conditions || item.applyCondition, tr("promo_default_terms")),
                 hasCode: code !== tr("no_code"),
-                expired: isExpired(item)
+                expired: isExpired(item),
+                endingSoon,
+                filterType: ""
             };
+        }
+
+        function normalizePromoWithFilter(item) {
+            const normalized = normalizePromo(item);
+            normalized.filterType = getPromoFilterType(normalized);
+            return normalized;
+        }
+
+        function getFilteredPromotions() {
+            if (activePromoFilter === "all") return promotions;
+            if (activePromoFilter === "ending") return promotions.filter(item => item.endingSoon);
+            return promotions.filter(item => item.filterType === activePromoFilter);
+        }
+
+        function renderFilteredPromotions() {
+            const filtered = getFilteredPromotions();
+            if (!filtered.length) {
+                showState(tr("promo_empty"));
+                return;
+            }
+            renderPromotions(filtered);
         }
 
         function isPromoVisible(item) {
@@ -268,8 +329,7 @@
                             <span class="promo-code">${escapeHtml(item.codeText)}</span>
                         </div>
                         <div class="promo-card-actions">
-                            <button type="button" class="promo-btn promo-btn-primary" data-action="detail" data-id="${escapeHtml(item.id)}">${tr("service_detail")}</button>
-                            ${item.hasCode ? `<button type="button" class="promo-btn promo-btn-copy" data-action="copy" data-code="${escapeHtml(item.codeText)}">${tr("copy_code")}</button>` : ""}
+                            <button type="button" class="promo-btn promo-btn-primary" data-action="detail" data-id="${escapeHtml(item.id)}">Xem chi tiết</button>
                         </div>
                     </div>
                 </article>
@@ -293,14 +353,14 @@
                 promotions = rawPromotions
                     .filter(isPromoVisible)
                     .sort(sortPromos)
-                    .map(normalizePromo);
+                    .map(normalizePromoWithFilter);
 
                 if (!promotions.length) {
                     showState(tr("promo_empty"));
                     return;
                 }
 
-                renderPromotions(promotions);
+                renderFilteredPromotions();
             } catch (error) {
                 console.error("Load promotions failed:", error);
                 showState(tr("promo_error"));
@@ -379,6 +439,14 @@
             }
         });
 
+        document.querySelectorAll(".promo-filter-pill").forEach(button => {
+            button.addEventListener("click", () => {
+                activePromoFilter = button.dataset.filter || "all";
+                document.querySelectorAll(".promo-filter-pill").forEach(item => item.classList.toggle("active", item === button));
+                renderFilteredPromotions();
+            });
+        });
+
         document.getElementById("promoModalCopyBtn").addEventListener("click", () => {
             if (selectedPromotion) copyCode(selectedPromotion.codeText);
         });
@@ -398,8 +466,8 @@
         window.addEventListener("aero:languageChanged", () => {
             if (window.applyLanguage) window.applyLanguage();
             if (rawPromotions.length) {
-                promotions = rawPromotions.filter(isPromoVisible).sort(sortPromos).map(normalizePromo);
-                renderPromotions(promotions);
+                promotions = rawPromotions.filter(isPromoVisible).sort(sortPromos).map(normalizePromoWithFilter);
+                renderFilteredPromotions();
                 if (promoModal.classList.contains("show") && selectedPromotion) {
                     const refreshed = promotions.find(item => item.id === selectedPromotion.id);
                     if (refreshed) openModal(refreshed);

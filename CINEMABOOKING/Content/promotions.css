@@ -866,3 +866,230 @@ body {
 }
 }
 
+.promotions-hero__actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+}
+
+.promotions-hero__cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    padding: 0 28px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.promotions-hero__cta:hover {
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.promotions-hero__cta--primary {
+    color: #fff;
+    background: linear-gradient(135deg, #f58220, #ff9f43);
+    box-shadow: 0 16px 32px rgba(245,130,32,.30);
+}
+
+.promotions-hero__cta--primary:hover {
+    color: #fff;
+    box-shadow: 0 20px 40px rgba(245,130,32,.36);
+}
+
+.promotions-hero__cta--outline {
+    color: #07142f;
+    border: 1.5px solid rgba(245,130,32,.38);
+    background: rgba(255,255,255,.76);
+    box-shadow: 0 12px 26px rgba(15,23,42,.05);
+}
+
+.promotions-hero__cta--outline:hover {
+    color: #f58220;
+    border-color: rgba(245,130,32,.62);
+    background: rgba(245,130,32,.08);
+}
+
+.promotions-list-section {
+    padding-top: 38px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fbff 16%, #f7f7f7 100%);
+}
+
+.promo-filter-bar {
+    width: min(1500px, 100%);
+    margin: 0 auto 28px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.promo-filter-pill {
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 999px;
+    border: 1px solid #e2e8f0;
+    background: #fff;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 8px 18px rgba(15,23,42,.04);
+    transition: transform .2s ease, color .2s ease, background .2s ease, border-color .2s ease, box-shadow .2s ease;
+    white-space: nowrap;
+}
+
+.promo-filter-pill:hover {
+    color: #c75f08;
+    border-color: rgba(245,130,32,.38);
+    background: rgba(245,130,32,.10);
+    transform: translateY(-1px);
+}
+
+.promo-filter-pill.active {
+    color: #fff;
+    border-color: #f58220;
+    background: linear-gradient(135deg, #f58220, #ff9f43);
+    box-shadow: 0 14px 28px rgba(245,130,32,.26);
+}
+
+.promo-wrapper .promotion-card,
+.promo-wrapper .promo-card,
+.promotion-card,
+.promo-card {
+    min-height: 520px;
+    height: 100%;
+    border-radius: 20px;
+    box-shadow: 0 18px 44px rgba(15,23,42,.08);
+}
+
+.promo-wrapper .promotion-card:hover,
+.promo-wrapper .promo-card:hover,
+.promotion-card:hover,
+.promo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 26px 62px rgba(15,23,42,.14);
+}
+
+.promo-wrapper .promotion-card__image-wrap,
+.promo-wrapper .promo-card-media {
+    aspect-ratio: 16 / 9;
+}
+
+.promo-wrapper .promo-card-image,
+.promo-wrapper .promo-image-fallback {
+    height: 100%;
+    aspect-ratio: auto;
+    object-fit: cover;
+}
+
+.promo-wrapper .promotion-card__badge,
+.promo-wrapper .promo-card-tag {
+    background: linear-gradient(135deg, #071b4f, #005baa);
+    letter-spacing: .02em;
+}
+
+.promo-wrapper .promotion-card__body,
+.promo-wrapper .promo-card-body {
+    padding: 24px;
+}
+
+.promo-wrapper .promotion-card__desc,
+.promo-wrapper .promo-card-desc {
+    min-height: 74px;
+}
+
+.promo-card-actions {
+    margin-top: auto;
+    padding-top: 18px;
+}
+
+.promo-image-fallback {
+    position: relative;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 82% 18%, rgba(245,130,32,.34), transparent 30%),
+        radial-gradient(circle at 18% 82%, rgba(0,91,170,.24), transparent 34%),
+        linear-gradient(135deg, #07142f 0%, #0b255f 58%, #f58220 140%);
+}
+
+.promo-image-fallback::before {
+    content: "AERO";
+    color: #fff;
+    font-size: 36px;
+    font-weight: 1000;
+    letter-spacing: .04em;
+}
+
+.promo-image-fallback::after {
+    content: "REWARDS";
+    color: #ffb45f;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: .22em;
+}
+
+.promo-image-fallback i {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .promotions-hero {
+        text-align: center;
+    }
+
+    .promotions-hero__content {
+        margin: 0 auto;
+    }
+
+    .promotions-hero__desc {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .promotions-hero__actions {
+        justify-content: center;
+    }
+
+    .promo-filter-bar {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding: 0 2px 8px;
+        margin-bottom: 22px;
+        scrollbar-width: none;
+    }
+
+    .promo-filter-bar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .promo-wrapper .promotion-card,
+    .promo-wrapper .promo-card,
+    .promotion-card,
+    .promo-card {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 430px) {
+    .promotions-hero__visual {
+        transform: scale(.68);
+        transform-origin: center top;
+        min-height: 260px;
+        margin-bottom: -54px;
+    }
+
+    .promotions-hero__cta {
+        width: 100%;
+    }
+}
+

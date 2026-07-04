@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@700;800;900&display=swap');
+
 /* ============================================================
    AERO Cinema — services.css  (single source of truth)
    ============================================================ */
@@ -101,24 +103,33 @@ body {
     max-width: 690px;
     color: #07142f;
     font-size: clamp(40px, 3.35vw, 66px);
-    line-height: 1.2;
+    line-height: 1.15;
     letter-spacing: -0.8px;
-    font-weight: 1000;
-    text-transform: uppercase;
+    font-family: 'Be Vietnam Pro', 'Inter', 'Roboto', Arial, sans-serif;
+    font-weight: 900;
+    overflow: visible;
+    padding-top: 4px;
+    padding-bottom: 4px;
 }
 
 .services-hero__title span {
     display: block;
     white-space: nowrap;
     margin-bottom: 6px;
+    line-height: inherit;
+    overflow: visible;
 }
 
 .services-hero__title span:last-child {
     margin-bottom: 0;
+    font-size: .82em;
+    letter-spacing: .01em;
 }
 
 .services-hero__title em {
     font-style: normal;
+    line-height: inherit;
+    overflow: visible;
     background: linear-gradient(90deg, #ff6b00 0%, #f58220 50%, #ff9d2f 100%);
     -webkit-background-clip: text;
     background-clip: text;
@@ -128,7 +139,7 @@ body {
 .services-hero__underline {
     width: 54px;
     height: 4px;
-    margin: 18px 0 22px;
+    margin: 16px 0 12px;
     border-radius: 999px;
     background: linear-gradient(90deg, #f58220, #ff9f43);
 }
@@ -136,21 +147,77 @@ body {
 .services-hero__desc {
     max-width: 650px;
     margin: 0;
-    color: #53627c;
-    font-size: 17px;
-    line-height: 1.68;
-    font-weight: 500;
+    color: #475569;
+    font-size: 18px;
+    line-height: 1.78;
+    font-weight: 650;
+}
+
+.services-hero__actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 30px;
+}
+
+.services-hero__cta {
+    display: inline-flex;
+    box-sizing: border-box;
+    align-items: center;
+    justify-content: center;
+    min-width: 184px;
+    min-height: 54px;
+    padding: 0 30px;
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1.2;
+    text-decoration: none;
+    transition: transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease, border-color .2s ease;
+}
+
+.services-hero__cta--primary {
+    color: #fff;
+    background: linear-gradient(135deg, #f58220 0%, #ff9f43 100%);
+    box-shadow: 0 16px 30px rgba(245,130,32,.28);
+}
+
+.services-hero__cta--outline {
+    color: #07142f;
+    border: 1.5px solid rgba(245,130,32,.38);
+    background: rgba(255,255,255,.66);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.85),
+        0 12px 26px rgba(245,130,32,.10);
+}
+
+.services-hero__cta:hover {
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.services-hero__cta--primary:hover {
+    color: #fff;
+    box-shadow: 0 20px 38px rgba(245,130,32,.34);
+}
+
+.services-hero__cta--outline:hover {
+    color: #fff;
+    border-color: rgba(245,130,32,.72);
+    background: linear-gradient(135deg, #f58220 0%, #ff9f43 100%);
+    box-shadow: 0 18px 34px rgba(245,130,32,.24);
 }
 
 /* ── Hero visual (right) ──────────────────────────────────── */
 .services-hero__visual {
     position: relative;
     z-index: 3;
-    width: min(680px, 100%);
-    min-height: 420px;
+    width: min(720px, 100%);
+    min-height: 440px;
     overflow: visible;
     justify-self: center;
-    transform: translate(-24px, 8px) scale(1.02);
+    transform: translate(-8px, 4px) scale(1.08);
     transform-origin: center center;
 }
 
@@ -303,16 +370,18 @@ body {
 }
 
 .ticket-qr {
-    width: 88px;
-    height: 88px;
-    margin-top: 18px;
-    border: 8px solid #07142f;
+    width: 72px;
+    height: 72px;
+    margin-top: 20px;
+    border: 6px solid rgba(7,20,47,.62);
+    opacity: .72;
     background:
-        linear-gradient(45deg, #07142f 25%, transparent 25%) 0 0 / 18px 18px,
-        linear-gradient(-45deg, #07142f 25%, transparent 25%) 0 0 / 18px 18px,
-        linear-gradient(45deg, transparent 75%, #07142f 75%) 0 0 / 18px 18px,
-        linear-gradient(-45deg, transparent 75%, #07142f 75%) 0 0 / 18px 18px,
+        linear-gradient(45deg, rgba(7,20,47,.72) 25%, transparent 25%) 0 0 / 16px 16px,
+        linear-gradient(-45deg, rgba(7,20,47,.72) 25%, transparent 25%) 0 0 / 16px 16px,
+        linear-gradient(45deg, transparent 75%, rgba(7,20,47,.72) 75%) 0 0 / 16px 16px,
+        linear-gradient(-45deg, transparent 75%, rgba(7,20,47,.72) 75%) 0 0 / 16px 16px,
         #fff;
+    box-shadow: 0 10px 24px rgba(15,23,42,.08);
 }
 
 .visual-popcorn {
@@ -773,6 +842,26 @@ body {
     .services-hero {
         grid-template-columns: 1fr;
         padding: 52px 42px 44px;
+        justify-items: center;
+    }
+
+    .services-hero__content {
+        max-width: 760px;
+        text-align: center;
+    }
+
+    .services-hero__underline {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .services-hero__desc {
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .services-hero__actions {
+        justify-content: center;
     }
 
     .services-hero__title span {
@@ -781,9 +870,9 @@ body {
     }
 
     .services-hero__visual {
-        width: min(680px, 100%);
-        min-height: 400px;
-        transform: none;
+        width: min(720px, 100%);
+        min-height: 420px;
+        transform: scale(1.03);
     }
 
     .services-grid,
@@ -820,7 +909,7 @@ body {
 
     .services-hero__title {
         font-size: clamp(30px, 8vw, 42px);
-        line-height: 1.22;
+        line-height: 1.15;
         letter-spacing: -0.4px;
     }
 
@@ -830,17 +919,29 @@ body {
     }
 
     .services-hero__desc {
-        font-size: 15.5px;
-        line-height: 1.55;
+        font-size: 17px;
+        line-height: 1.7;
+    }
+
+    .services-hero__actions {
+        gap: 12px;
+        margin-top: 24px;
+    }
+
+    .services-hero__cta {
+        min-width: 164px;
+        min-height: 50px;
+        padding: 0 24px;
+        font-size: 14px;
     }
 
     .services-hero__visual {
         width: 720px;
         max-width: none;
-        transform: scale(.68);
+        transform: scale(.70);
         transform-origin: center top;
-        min-height: 290px;
-        margin-bottom: -70px;
+        min-height: 300px;
+        margin-bottom: -64px;
     }
 
     .services-list-section {
@@ -880,6 +981,18 @@ body {
 
     .service-modal-actions .service-btn,
     .service-modal-actions .service-secondary-btn {
+        width: 100%;
+    }
+}
+
+@media (max-width: 520px) {
+    .services-hero__actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .services-hero__cta {
         width: 100%;
     }
 }
