@@ -557,7 +557,24 @@
     <!-- Firebase SDK Global Layout Listeners -->
     <script src="@Url.Content("~/Scripts/firebase-config.js")"></script>
     <script type="module" src="@Url.Content("~/Scripts/firebase-init.js")"></script>
-    <script type="module" src="@Url.Content("~/Scripts/aero-chatbot.js?v=2026")"></script>
+    <!-- Chatbot Script — Lazy loaded after page is idle or user interacts -->
+    <script>
+        (function () {
+            var chatbotLoaded = false;
+            function loadChatbot() {
+                if (chatbotLoaded) return;
+                chatbotLoaded = true;
+                var s = document.createElement('script');
+                s.type = 'module';
+                s.src = '@Url.Content("~/Scripts/aero-chatbot.js?v=2026")';
+                document.body.appendChild(s);
+            }
+            window.addEventListener('load', function () { setTimeout(loadChatbot, 3000); });
+            ['scroll', 'click', 'touchstart', 'mousemove'].forEach(function (evt) {
+                window.addEventListener(evt, loadChatbot, { once: true, passive: true });
+            });
+        })();
+    </script>
     <script type="module">
         import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";

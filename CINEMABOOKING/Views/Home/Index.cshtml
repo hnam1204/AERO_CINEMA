@@ -227,6 +227,10 @@
         const docsToArray = (snap) => snap.docs.map(dSnap => ({ id: dSnap.id, ...dSnap.data() }));
         const AERO_CACHE = window.AERO_CACHE;
 
+        // ─── localStorage Cache Constants ───
+        const HOME_CACHE_KEY = "aero_home_cache";
+        const HOME_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
         // State caches
         const homeCache = {
             movies: null,
@@ -236,7 +240,6 @@
             cinemas: null,
             loadedAt: 0
         };
-        const HOME_CACHE_TTL = 5 * 60 * 1000;
 
         let cachedMovies = [];
         let cachedBanners = [];
@@ -245,6 +248,48 @@
         let cachedCinemas = [];
         let cachedShowtimes = [];
         let currentTab = "now_showing";
+
+        // ─── Infinite Scroll State ───
+        const MOVIES_PER_PAGE = 8;
+        let currentMoviePage = 0;
+        let currentFilteredMovies = [];
+        let isLoadingMore = false;
+        let movieScrollObserver = null;
+
+        // ─── localStorage Helpers ───
+        function saveHomeToLocalStorage(data) {
+            try {
+                const payload = {
+                    movies: data.movies,
+                    banners: data.banners,
+                    promotions: data.promotions,
+                    news: data.news,
+                    cinemas: data.cinemas,
+                    savedAt: Date.now()
+                };
+                localStorage.setItem(HOME_CACHE_KEY, JSON.stringify(payload));
+            } catch (e) {
+                console.warn("[AERO] Cannot save home cache to localStorage:", e);
+            }
+        }
+
+        function loadHomeFromLocalStorage() {
+            try {
+                const raw = localStorage.getItem(HOME_CACHE_KEY);
+                if (!raw) return null;
+                const data = JSON.parse(raw);
+                if (!data || !data.savedAt) return null;
+                // Return even if expired — we'll use stale-while-revalidate
+                return data;
+            } catch (e) {
+                console.warn("[AERO] Cannot load home cache from localStorage:", e);
+                return null;
+            }
+        }
+
+        function isLocalStorageCacheFresh(data) {
+            return data && data.savedAt && (Date.now() - data.savedAt < HOME_CACHE_TTL);
+        }
 
         function formatDateSafe(dateValue) {
             if (!dateValue) return "Đang cập nhật";
@@ -368,57 +413,115 @@
             showOfflineNotification();
         }
 
+        // ─── Render all Home sections from current cached data ───
+        function renderAllHomeSections() {
+            // 1. Render Hero Banner (Fade Slider)
+            if (window.loadHeroBanners) {
+                window.loadHeroBanners();
+            }
+
+            // 2. Load Quick Booking Movies dropdown
+            populateQbMovies();
+
+            // 3. Render Tab List (Default Now Showing)
+            renderMovieGrid();
+
+            // 4. Render Promotions dynamically
+            renderPromotions();
+
+            // 4.5 Render News dynamically
+            renderNews();
+        }
+
+        // ─── Apply cached data to state variables ───
+        function applyCachedData(data) {
+            cachedMovies = data.movies || [];
+            cachedBanners = data.banners || [];
+            cachedPromotions = data.promotions || [];
+            cachedNews = data.news || [];
+            cachedCinemas = data.cinemas || [];
+        }
+
+        // ─── Fetch fresh data from Firebase ───
+        async function fetchFirebaseData() {
+            const snapPromise = Promise.all([
+                getDocs(query(collection(db, "movies"), limit(30))),
+                getDocs(query(collection(db, "banners"), limit(8))),
+                getDocs(query(collection(db, "promotions"), limit(6))),
+                getDocs(query(collection(db, "news"), limit(6))),
+                getDocs(query(collection(db, "cinemas"), limit(15)))
+            ]);
+
+            const [moviesSnap, bannersSnap, promotionsSnap, newsSnap, cinemasSnap] = await withTimeout(snapPromise, 8000);
+
+            return {
+                movies: docsToArray(moviesSnap),
+                banners: docsToArray(bannersSnap),
+                promotions: promotionsSnap ? docsToArray(promotionsSnap) : [],
+                news: newsSnap ? docsToArray(newsSnap) : [],
+                cinemas: docsToArray(cinemasSnap)
+            };
+        }
+
         const loadHomeContent = async () => {
             try {
-                // Auto update movie and showtime statuses (max 4s)
+                // ─── Step 1: Show cached data from localStorage immediately ───
+                const localData = loadHomeFromLocalStorage();
+                let renderedFromCache = false;
+
+                if (localData && localData.movies && localData.movies.length > 0) {
+                    applyCachedData(localData);
+                    renderAllHomeSections();
+                    renderedFromCache = true;
+                    console.log("[AERO] Rendered from localStorage cache (age:",
+                        Math.round((Date.now() - localData.savedAt) / 1000), "s)");
+                }
+
+                // ─── Step 2: Auto update statuses (max 4s) ───
                 try {
                     await withTimeout(autoUpdateStatuses(db), 4000);
                 } catch (err) {
                     warnFirestoreOnce(err);
                 }
 
+                // ─── Step 3: Fetch fresh data from Firebase (always) ───
                 const now = Date.now();
-                if (!homeCache.movies || (now - homeCache.loadedAt > HOME_CACHE_TTL)) {
-                    const snapPromise = Promise.all([
-                        getDocs(query(collection(db, "movies"), limit(30))),
-                        getDocs(query(collection(db, "banners"), limit(8))),
-                        getDocs(query(collection(db, "promotions"), limit(6))),
-                        getDocs(query(collection(db, "news"), limit(6))),
-                        getDocs(query(collection(db, "cinemas"), limit(15)))
-                    ]);
+                const needsFetch = !homeCache.movies || (now - homeCache.loadedAt > HOME_CACHE_TTL);
 
-                    const [moviesSnap, bannersSnap, promotionsSnap, newsSnap, cinemasSnap] = await withTimeout(snapPromise, 8000);
+                if (needsFetch) {
+                    try {
+                        const freshData = await fetchFirebaseData();
 
-                    homeCache.movies = docsToArray(moviesSnap);
-                    homeCache.banners = docsToArray(bannersSnap);
-                    homeCache.promotions = promotionsSnap ? docsToArray(promotionsSnap) : [];
-                    homeCache.news = newsSnap ? docsToArray(newsSnap) : [];
-                    homeCache.cinemas = docsToArray(cinemasSnap);
-                    homeCache.loadedAt = now;
+                        // Update in-memory cache
+                        homeCache.movies = freshData.movies;
+                        homeCache.banners = freshData.banners;
+                        homeCache.promotions = freshData.promotions;
+                        homeCache.news = freshData.news;
+                        homeCache.cinemas = freshData.cinemas;
+                        homeCache.loadedAt = Date.now();
+
+                        // Save to localStorage
+                        saveHomeToLocalStorage(freshData);
+
+                        // Apply and re-render with fresh data
+                        applyCachedData(freshData);
+                        renderAllHomeSections();
+                        console.log("[AERO] Rendered fresh data from Firebase");
+
+                    } catch (fetchErr) {
+                        warnFirestoreOnce(fetchErr);
+                        // If we already rendered from cache, just warn — don't break UI
+                        if (!renderedFromCache) {
+                            renderHomeFallback();
+                        }
+                    }
+                } else {
+                    // In-memory cache still fresh
+                    if (!renderedFromCache) {
+                        applyCachedData(homeCache);
+                        renderAllHomeSections();
+                    }
                 }
-
-                cachedMovies = homeCache.movies;
-                cachedBanners = homeCache.banners;
-                cachedPromotions = homeCache.promotions;
-                cachedNews = homeCache.news;
-                cachedCinemas = homeCache.cinemas;
-
-                // 1. Render Hero Banner (Fade Slider)
-                if (window.loadHeroBanners) {
-                    await window.loadHeroBanners();
-                }
-
-                // 2. Load Quick Booking Movies dropdown
-                populateQbMovies();
-
-                // 3. Render Tab List (Default Now Showing)
-                renderMovieGrid();
-
-                // 4. Render Promotions dynamically
-                renderPromotions();
-
-                // 4.5 Render News dynamically
-                renderNews();
 
             } catch (e) {
                 warnFirestoreOnce(e);
@@ -946,22 +1049,149 @@
             renderMovieGrid();
         };
 
-        // Render movies grid based on selected tab
+        // ─── Build HTML for a single movie card ───
+        function buildMovieCardHtml(m) {
+            const normalizedStatus = normalizeMovieStatus(m);
+            const ratingVal = m.rating || "P";
+            const ratingClass = "badge-" + ratingVal.toLowerCase().replace(/[^a-z0-9]/g, "");
+            const posterSrc = m.posterUrl || m.imageUrl || m.bannerUrl || "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85";
+            const titleVal = getMovieTitle(m);
+            const genreVal = getMovieGenre(m).split(",")[0].trim();
+            const durationVal = m.duration ? `${m.duration} ${tr("minutes")}` : tr("updated", "Đang cập nhật");
+
+            const buyBtnHtml = normalizedStatus === "now_showing"
+                ? `<a href="/Movies/Details?id=${m.id}#booking-section" class="btn-card-buy"><i class="fas fa-ticket-alt"></i> ${tr("book_ticket")}</a>`
+                : `<button class="btn-card-buy" style="background-color:#999; border-color:#999; cursor:not-allowed;"><i class="far fa-bell"></i> ${tr("coming_soon_badge")}</button>`;
+
+            return `
+                <div class="movie-display-card">
+                    <div class="card-poster-wrapper">
+                        <span class="card-rating-tag ${ratingClass}">${ratingVal}</span>
+                        <img src="${posterSrc}" alt="${titleVal}" loading="lazy" decoding="async"
+                            class="aero-lazy-img"
+                            onload="this.classList.add('loaded')"
+                            onerror="this.onerror=null;this.classList.add('loaded');this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
+                    </div>
+                    <div class="card-details">
+                        <h3 class="card-movie-title" title="${titleVal}">${titleVal}</h3>
+                        <div class="card-movie-meta">
+                            <span>${genreVal}</span>
+                            <span><i class="far fa-clock"></i> ${durationVal}</span>
+                        </div>
+                        <div class="card-actions-row">
+                            <a href="/Movies/Details?id=${m.id}" class="btn-card-detail">${tr("detail")}</a>
+                            ${buyBtnHtml}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ─── Generate skeleton cards HTML for load-more ───
+        function buildLoadMoreSkeletons(count) {
+            let html = '';
+            for (let i = 0; i < count; i++) {
+                html += `
+                    <div class="skeleton-load-more">
+                        <div class="skeleton-movie-poster"></div>
+                        <div class="skeleton-movie-info">
+                            <div class="skeleton-movie-title"></div>
+                            <div class="skeleton-movie-text"></div>
+                            <div class="skeleton-movie-buttons">
+                                <div class="skeleton-movie-btn"></div>
+                                <div class="skeleton-movie-btn"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            return html;
+        }
+
+        // ─── Append more movies (infinite scroll batch) ───
+        function appendMoreMovies() {
+            if (isLoadingMore) return;
+            const start = currentMoviePage * MOVIES_PER_PAGE;
+            if (start >= currentFilteredMovies.length) return; // No more movies
+
+            isLoadingMore = true;
+            const container = document.getElementById("moviesGridDisplay");
+            const sentinel = container.querySelector('.movies-load-more-sentinel');
+
+            // Calculate how many skeletons to show
+            const remaining = currentFilteredMovies.length - start;
+            const skeletonCount = Math.min(MOVIES_PER_PAGE, remaining);
+
+            // Insert skeleton cards before sentinel
+            const skeletonHtml = buildLoadMoreSkeletons(skeletonCount);
+            const skeletonFragment = document.createRange().createContextualFragment(skeletonHtml);
+            const insertedSkeletons = [...skeletonFragment.querySelectorAll('.skeleton-load-more')];
+            if (sentinel) {
+                insertedSkeletons.forEach(sk => container.insertBefore(sk, sentinel));
+            }
+
+            // After short delay, replace skeletons with real cards
+            setTimeout(() => {
+                const batch = currentFilteredMovies.slice(start, start + MOVIES_PER_PAGE);
+                let batchHtml = '';
+                batch.forEach(m => { batchHtml += buildMovieCardHtml(m); });
+
+                // Remove skeletons
+                insertedSkeletons.forEach(sk => sk.remove());
+
+                // Insert real cards before sentinel
+                const realFragment = document.createRange().createContextualFragment(batchHtml);
+                if (sentinel) {
+                    container.insertBefore(realFragment, sentinel);
+                } else {
+                    container.appendChild(realFragment);
+                }
+
+                currentMoviePage++;
+                isLoadingMore = false;
+
+                // Hide sentinel if no more movies
+                if (currentMoviePage * MOVIES_PER_PAGE >= currentFilteredMovies.length) {
+                    if (sentinel) sentinel.style.display = 'none';
+                    if (movieScrollObserver) movieScrollObserver.disconnect();
+                }
+            }, 300);
+        }
+
+        // ─── Setup IntersectionObserver for infinite scroll ───
+        function setupMovieScrollObserver() {
+            if (movieScrollObserver) movieScrollObserver.disconnect();
+
+            const sentinel = document.querySelector('.movies-load-more-sentinel');
+            if (!sentinel) return;
+
+            movieScrollObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        appendMoreMovies();
+                    }
+                });
+            }, { rootMargin: '200px' });
+
+            movieScrollObserver.observe(sentinel);
+        }
+
+        // Render movies grid based on selected tab (with infinite scroll)
         const renderMovieGrid = () => {
             const container = document.getElementById("moviesGridDisplay");
 
-            // ✅ FIX: Dùng normalizeMovieStatus thay vì so sánh cứng m.status === currentTab
+            // Dùng normalizeMovieStatus thay vì so sánh cứng m.status === currentTab
             const allMovies = cachedMovies;
             const nowShowingMovies = allMovies.filter(m => normalizeMovieStatus(m) === "now_showing");
             const comingSoonMovies = allMovies.filter(m => normalizeMovieStatus(m) === "coming_soon");
 
-            // ✅ DEBUG LOG — xóa sau khi xác nhận OK
-            console.log("[AERO DEBUG] All movies loaded:", allMovies.length);
-            console.log("[AERO DEBUG] Now showing:", nowShowingMovies.length);
-            console.log("[AERO DEBUG] Coming soon:", comingSoonMovies.length);
-            console.log("[AERO DEBUG] Movie status list:", allMovies.map(m => ({ title: m.title, status: m.status, releaseDate: m.releaseDate })));
-
             const filteredMovies = currentTab === "now_showing" ? nowShowingMovies : comingSoonMovies;
+
+            // Reset infinite scroll state
+            currentMoviePage = 0;
+            currentFilteredMovies = filteredMovies;
+            isLoadingMore = false;
+            if (movieScrollObserver) movieScrollObserver.disconnect();
 
             if (filteredMovies.length === 0) {
                 const emptyMsg = currentTab === "now_showing"
@@ -976,42 +1206,22 @@
                 return;
             }
 
-            let html = "";
-            filteredMovies.forEach(m => {
-                const normalizedStatus = normalizeMovieStatus(m);
-                const ratingVal = m.rating || "P";
-                const ratingClass = "badge-" + ratingVal.toLowerCase().replace(/[^a-z0-9]/g, "");
-                const posterSrc = m.posterUrl || m.imageUrl || m.bannerUrl || "https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85";
-                const titleVal = getMovieTitle(m);
-                const genreVal = getMovieGenre(m).split(",")[0].trim();
-                const durationVal = m.duration ? `${m.duration} ${tr("minutes")}` : tr("updated", "Đang cập nhật");
+            // Render first batch (8 movies)
+            const firstBatch = filteredMovies.slice(0, MOVIES_PER_PAGE);
+            let html = '';
+            firstBatch.forEach(m => { html += buildMovieCardHtml(m); });
 
-                const buyBtnHtml = normalizedStatus === "now_showing"
-                    ? `<a href="/Movies/Details?id=${m.id}#booking-section" class="btn-card-buy"><i class="fas fa-ticket-alt"></i> ${tr("book_ticket")}</a>`
-                    : `<button class="btn-card-buy" style="background-color:#999; border-color:#999; cursor:not-allowed;"><i class="far fa-bell"></i> ${tr("coming_soon_badge")}</button>`;
+            // Add sentinel for infinite scroll
+            const hasMore = filteredMovies.length > MOVIES_PER_PAGE;
+            html += `<div class="movies-load-more-sentinel" style="${hasMore ? '' : 'display:none'}"></div>`;
 
-                html += `
-                    <div class="movie-display-card">
-                        <div class="card-poster-wrapper">
-                            <span class="card-rating-tag ${ratingClass}">${ratingVal}</span>
-                            <img src="${posterSrc}" alt="${titleVal}" loading="lazy" decoding="async"
-                                onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
-                        </div>
-                        <div class="card-details">
-                            <h3 class="card-movie-title" title="${titleVal}">${titleVal}</h3>
-                            <div class="card-movie-meta">
-                                <span>${genreVal}</span>
-                                <span><i class="far fa-clock"></i> ${durationVal}</span>
-                            </div>
-                            <div class="card-actions-row">
-                                <a href="/Movies/Details?id=${m.id}" class="btn-card-detail">${tr("detail")}</a>
-                                ${buyBtnHtml}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
             container.innerHTML = html;
+            currentMoviePage = 1;
+
+            // Setup observer for loading more movies
+            if (hasMore) {
+                setupMovieScrollObserver();
+            }
         };
 
         // Render Promotions dynamically
@@ -1035,7 +1245,10 @@
                 html += `
                     <div class="offer-card">
                         <div class="offer-img-box">
-                            <img src="${image}" alt="${title}" loading="lazy" decoding="async" onerror="this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
+                            <img src="${image}" alt="${title}" loading="lazy" decoding="async"
+                                class="aero-lazy-img"
+                                onload="this.classList.add('loaded')"
+                                onerror="this.onerror=null;this.classList.add('loaded');this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
                         </div>
                         <div class="offer-text-box">
                             <h3 class="offer-title">${title}</h3>
@@ -1069,7 +1282,10 @@
                 html += `
                     <div class="offer-card">
                         <div class="offer-img-box">
-                            <img src="${image}" alt="${title}" loading="lazy" decoding="async" onerror="this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
+                            <img src="${image}" alt="${title}" loading="lazy" decoding="async"
+                                class="aero-lazy-img"
+                                onload="this.classList.add('loaded')"
+                                onerror="this.onerror=null;this.classList.add('loaded');this.src='https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=85'" />
                         </div>
                         <div class="offer-text-box">
                             <h3 class="offer-title">${title}</h3>
@@ -1084,12 +1300,61 @@
         // Cinema cluster rendering removed from Home page
         // Cinema list is available at /Home/Cinemas
 
+        // ─── data-bg IntersectionObserver (lazy background-image) ───
+        function initDataBgObserver() {
+            const bgElements = document.querySelectorAll('[data-bg]');
+            if (!bgElements.length) return;
+
+            const bgObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const el = entry.target;
+                        const bgUrl = el.getAttribute('data-bg');
+                        if (bgUrl) {
+                            el.style.backgroundImage = `url('${bgUrl}')`;
+                            el.classList.add('bg-loaded');
+                        }
+                        bgObserver.unobserve(el);
+                    }
+                });
+            }, { rootMargin: '200px' });
+
+            bgElements.forEach(el => bgObserver.observe(el));
+        }
+
+        // ─── Preload hero banner first image ───
+        function preloadHeroBannerImage() {
+            if (!cachedBanners.length && !cachedMovies.length) return;
+
+            // Find first valid banner image
+            const banners = cachedBanners.filter(x => x.isActive !== false && String(x.status || 'active').toLowerCase() !== 'inactive');
+            let firstImgUrl = '';
+            for (const b of banners) {
+                const url = String(b.desktopImageUrl || b.bannerUrl || b.backdropUrl || b.imageUrl || '').trim();
+                if (url && url !== 'undefined' && url !== 'null') {
+                    firstImgUrl = url;
+                    break;
+                }
+            }
+
+            if (firstImgUrl && !document.querySelector(`link[href="${firstImgUrl}"]`)) {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.as = 'image';
+                link.href = firstImgUrl;
+                document.head.appendChild(link);
+            }
+        }
+
         // On Page Load Init
         let homeInitialized = false;
         window.addEventListener('DOMContentLoaded', () => {
             if (homeInitialized) return;
             homeInitialized = true;
-            loadHomeContent();
+            loadHomeContent().then(() => {
+                preloadHeroBannerImage();
+                initDataBgObserver();
+            });
         });
 
         window.addEventListener("aero:languageChanged", () => {

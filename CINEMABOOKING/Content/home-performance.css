@@ -966,6 +966,109 @@
         margin-top: 10px;
     }
 
+    /* ═══════════════════════════════════════════════════════════════
+       LAZY LOADING OPTIMIZATIONS
+       ═══════════════════════════════════════════════════════════════ */
+
+    /* Fade-in animation for lazy loaded images */
+    .aero-lazy-img {
+        opacity: 0;
+        transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .aero-lazy-img.loaded {
+        opacity: 1;
+    }
+
+    /* data-bg lazy background support (IntersectionObserver) */
+    [data-bg] {
+        transition: background-image 0.4s ease;
+    }
+
+    /* Infinite Scroll — Load More sentinel */
+    .movies-load-more-sentinel {
+        grid-column: 1 / -1;
+        height: 1px;
+        pointer-events: none;
+    }
+
+    /* Load More skeleton cards (appended during infinite scroll) */
+    .skeleton-load-more {
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        animation: skeletonPulse 1.2s infinite;
+    }
+
+    .skeleton-load-more .skeleton-movie-poster {
+        width: 100%;
+        padding-top: 145%;
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .skeleton-load-more .skeleton-movie-info {
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex-grow: 1;
+    }
+
+    .skeleton-load-more .skeleton-movie-title {
+        height: 18px;
+        width: 80%;
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 6px;
+    }
+
+    .skeleton-load-more .skeleton-movie-text {
+        height: 12px;
+        width: 50%;
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 6px;
+    }
+
+    .skeleton-load-more .skeleton-movie-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: auto;
+    }
+
+    .skeleton-load-more .skeleton-movie-btn {
+        height: 32px;
+        background: linear-gradient(90deg, #eeeeee 25%, #f8f8f8 50%, #eeeeee 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+        border-radius: 6px;
+    }
+
+    /* Movie card fade-in when loaded via infinite scroll */
+    .movie-display-card {
+        animation: cardFadeIn 0.45s ease both;
+    }
+
+    @@keyframes cardFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(18px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
     @media (prefers-reduced-motion: reduce) {
         * {
             animation: none !important;
