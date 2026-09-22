@@ -351,6 +351,32 @@
             margin-top: 8px;
         }
 
+        .room-availability-note {
+            color: var(--admin-muted);
+            display: block;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .price-input-wrap {
+            position: relative;
+        }
+
+        .price-input-wrap .row-price-display {
+            padding-right: 56px;
+        }
+
+        .price-input-suffix {
+            color: var(--admin-muted);
+            font-size: 12px;
+            font-weight: 800;
+            pointer-events: none;
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
         @@media (max-width: 1180px) {
             .showtime-form-grid {
                 grid-template-columns: 1fr;
@@ -590,12 +616,7 @@
             collection,
             doc,
             getDocs,
-            query,
-            where,
-            deleteDoc,
-            updateDoc,
-            writeBatch,
-            serverTimestamp
+            deleteDoc
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { autoUpdateStatuses } from "/Scripts/aero-status-updater.js";
 
@@ -622,9 +643,12 @@
             selectedCinemaId: "",
             editId: "",
             rows: [],
+            roomAvailabilityCache: new Map(),
             page: 1,
             pageSize: 10
         };
+
+        let roomAvailabilitySequence = 0;
 
         const els = {
             lastUpdated: document.getElementById("lastUpdated"),
@@ -683,7 +707,50 @@
         }
 
         function formatCurrency(value) {
-            return Number(value || 0).toLocaleString("vi-VN") + "đ";
+            return Number(value || 0).toLocaleString("vi-VN") + " VNĐ";
+        }
+
+        function normalizePriceInput(value) {
+            return String(value || "").replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+        }
+
+        function formatPriceInput(value) {
+            const raw = normalizePriceInput(value);
+            return raw ? new Intl.NumberFormat("vi-VN").format(Number(raw)) : "";
+        }
+
+        function caretPositionAfterDigits(formattedValue, digitCount) {
+            if (digitCount <= 0) return 0;
+            let digitsSeen = 0;
+            for (let index = 0; index < formattedValue.length; index++) {
+                if (/\d/.test(formattedValue[index])) digitsSeen++;
+                if (digitsSeen === digitCount) return index + 1;
+            }
+            return formattedValue.length;
+        }
+
+        function handlePriceInput(displayInput) {
+            const rowElement = displayInput.closest("tr[data-row-index]");
+            if (!rowElement) return;
+
+            const rowIndex = Number(rowElement.dataset.rowIndex);
+            const row = state.rows[rowIndex];
+            const rawInput = rowElement.querySelector(".row-price-raw");
+            if (!row || !rawInput) return;
+
+            const caret = displayInput.selectionStart ?? displayInput.value.length;
+            const digitsBeforeCaret = normalizePriceInput(displayInput.value.slice(0, caret)).length;
+            const rawPrice = normalizePriceInput(displayInput.value);
+
+            row.price = rawPrice;
+            row.error = "";
+            row.fieldError = "";
+            rawInput.value = rawPrice;
+
+            const formattedPrice = formatPriceInput(rawPrice);
+            displayInput.value = formattedPrice;
+            const nextCaret = caretPositionAfterDigits(formattedPrice, digitsBeforeCaret);
+            displayInput.setSelectionRange(nextCaret, nextCaret);
         }
 
         function formatDate(date) {
@@ -928,8 +995,10 @@
             els.moviePickerList.querySelectorAll("[data-movie-id]").forEach(button => {
                 button.addEventListener("click", () => {
                     state.selectedMovieId = button.dataset.movieId;
+                    invalidateRoomAvailability(true);
                     renderMoviePicker();
                     renderSelectionSummaries();
+                    refreshAllRoomAvailability();
                 });
             });
         }
@@ -964,24 +1033,149 @@
             renderRows();
         }
 
-        function getRoomOptions(selectedRoomId = "") {
-            const rooms = roomsForSelectedCinema();
+        function availabilityKey(row) {
+            return [
+                state.selectedMovieId,
+                state.selectedCinemaId,
+                els.showtimeDate.value,
+                row.time,
+                Math.max(0, toNumber(els.cleaningTime.value, DEFAULT_CLEANING_TIME)),
+                state.editId
+            ].join("|");
+        }
+
+        function hasAvailabilityInputs(row) {
+            return Boolean(state.selectedMovieId && state.selectedCinemaId && els.showtimeDate.value && row.time);
+        }
+
+        function invalidateRoomAvailability(resetSelectedRoom = false) {
+            roomAvailabilitySequence++;
+            state.roomAvailabilityCache.clear();
+            state.rows.forEach(row => {
+                row.availability = null;
+                row.availabilityLoading = false;
+                row.availabilityKey = "";
+                if (resetSelectedRoom) row.roomId = "";
+            });
+        }
+
+        function getRoomOptions(row) {
+            const rooms = row.availability?.availableRooms || [];
             if (!state.selectedCinemaId) return '<option value="">Chọn rạp trước</option>';
-            if (!rooms.length) return '<option value="">Rạp này chưa có phòng</option>';
+            if (!state.selectedMovieId) return '<option value="">Chọn phim trước</option>';
+            if (!els.showtimeDate.value) return '<option value="">Chọn ngày chiếu trước</option>';
+            if (!row.time) return '<option value="">Nhập thời gian chiếu trước</option>';
+            if (row.availabilityLoading) return '<option value="">Đang kiểm tra phòng...</option>';
+            if (!row.availability) return '<option value="">Đang chờ kiểm tra phòng...</option>';
+            if (!rooms.length) return '<option value="">-- Không còn phòng khả dụng --</option>';
 
             return '<option value="">-- Chọn phòng --</option>' + rooms.map(room => {
-                const selected = room.id === selectedRoomId ? " selected" : "";
+                const selected = room.id === row.roomId ? " selected" : "";
                 return `<option value="${escapeHtml(room.id)}"${selected}>${escapeHtml(safe(room.name, "Phòng chiếu"))}</option>`;
             }).join("");
         }
 
+        function getRoomAvailabilityNote(row) {
+            if (row.availabilityLoading) return "Đang kiểm tra phòng khả dụng...";
+            if (!hasAvailabilityInputs(row)) return "Dropdown phòng sẽ được mở sau khi chọn đủ phim, rạp, ngày và giờ.";
+            if (!row.availability) return "Chưa có kết quả kiểm tra phòng.";
+            if (!row.availability.availableRooms.length) return "Không có phòng chiếu khả dụng trong khung giờ này. Hãy chọn thời gian khác.";
+            if (row.availability.occupiedRooms.length) {
+                return `${row.availability.availableRooms.length} phòng khả dụng, ${row.availability.occupiedRooms.length} phòng đang bận.`;
+            }
+            return `${row.availability.availableRooms.length} phòng khả dụng.`;
+        }
+
+        async function getAdminIdToken() {
+            const user = window.AeroAdmin?.auth?.currentUser;
+            if (!user) throw new Error("Phiên đăng nhập admin không hợp lệ.");
+            return await user.getIdToken();
+        }
+
+        async function fetchAvailableRooms(row) {
+            const key = availabilityKey(row);
+            if (state.roomAvailabilityCache.has(key)) return state.roomAvailabilityCache.get(key);
+
+            const token = await getAdminIdToken();
+            const params = new URLSearchParams({
+                cinemaId: state.selectedCinemaId,
+                movieId: state.selectedMovieId,
+                showDate: els.showtimeDate.value,
+                startTime: row.time,
+                cleaningTime: String(Math.max(0, toNumber(els.cleaningTime.value, DEFAULT_CLEANING_TIME)))
+            });
+            if (state.editId) params.set("excludeShowtimeId", state.editId);
+
+            const response = await fetch(`/Admin/GetAvailableRooms?${params.toString()}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.message || "Không thể kiểm tra phòng khả dụng.");
+            state.roomAvailabilityCache.set(key, data);
+            return data;
+        }
+
+        async function refreshRowAvailability(rowIndex, notifyInvalidSelection = true) {
+            const row = state.rows[rowIndex];
+            if (!row) return;
+            const generation = roomAvailabilitySequence;
+            const requestId = (row.availabilityRequestId || 0) + 1;
+            row.availabilityRequestId = requestId;
+            const previousRoomId = row.roomId;
+
+            if (!hasAvailabilityInputs(row)) {
+                row.availability = null;
+                row.availabilityLoading = false;
+                row.roomId = "";
+                renderRows();
+                return;
+            }
+
+            row.availabilityLoading = true;
+            row.availabilityKey = availabilityKey(row);
+            renderRows();
+            try {
+                const availability = await fetchAvailableRooms(row);
+                if (!availability || generation !== roomAvailabilitySequence || state.rows[rowIndex]?.availabilityRequestId !== requestId) return;
+                row.availability = availability;
+                row.availabilityLoading = false;
+
+                if (previousRoomId && !availability.availableRooms.some(room => room.id === previousRoomId)) {
+                    row.roomId = "";
+                    const occupied = availability.occupiedRooms.find(room => room.id === previousRoomId);
+                    if (notifyInvalidSelection) {
+                        toast("warning", "Phòng không còn khả dụng", occupied?.reason || "Phòng này không khả dụng tại thời gian đã chọn. Vui lòng chọn phòng khác.");
+                    }
+                }
+
+                if (!availability.availableRooms.length) {
+                    toast("warning", "Không còn phòng khả dụng", "Không có phòng chiếu khả dụng trong khung giờ này. Hãy chọn thời gian khác.");
+                }
+            } catch (error) {
+                if (generation !== roomAvailabilitySequence || state.rows[rowIndex]?.availabilityRequestId !== requestId) return;
+                row.availability = null;
+                row.availabilityLoading = false;
+                row.roomId = "";
+                toast("error", "Không thể kiểm tra phòng", error.message);
+            }
+            renderRows();
+        }
+
+        function refreshAllRoomAvailability(notifyInvalidSelection = true) {
+            state.rows.forEach((row, index) => {
+                refreshRowAvailability(index, notifyInvalidSelection);
+            });
+        }
+
         function createEmptyRow() {
-            return { time: "", roomId: "", price: "", error: "" };
+            return { time: "", roomId: "", price: "", error: "", availability: null, availabilityLoading: false };
         }
 
         function addRow(row = null) {
-            state.rows.push(row || createEmptyRow());
+            const newRow = row || createEmptyRow();
+            state.rows.push(newRow);
             renderRows();
+            if (hasAvailabilityInputs(newRow)) refreshRowAvailability(state.rows.length - 1, false);
         }
 
         function updateRowFromInput(rowIndex, field, value) {
@@ -996,6 +1190,7 @@
             } else {
                 state.rows.splice(rowIndex, 1);
             }
+            roomAvailabilitySequence++;
             renderRows();
         }
 
@@ -1010,13 +1205,18 @@
                         <span class="row-error">${escapeHtml(row.fieldError === "time" ? row.error : "")}</span>
                     </td>
                     <td>
-                        <select class="admin-control row-room"${state.selectedCinemaId ? "" : " disabled"}>
-                            ${getRoomOptions(row.roomId)}
+                        <select class="admin-control row-room"${row.availability?.availableRooms?.length && !row.availabilityLoading ? "" : " disabled"}>
+                            ${getRoomOptions(row)}
                         </select>
+                        <span class="room-availability-note">${escapeHtml(getRoomAvailabilityNote(row))}</span>
                         <span class="row-error">${escapeHtml(row.fieldError === "roomId" ? row.error : "")}</span>
                     </td>
                     <td>
-                        <input type="number" class="admin-control row-price" min="1" step="1000" placeholder="95000" value="${escapeHtml(row.price)}" />
+                        <div class="price-input-wrap">
+                            <input type="text" inputmode="numeric" autocomplete="off" class="admin-control row-price-display" placeholder="95.000" value="${escapeHtml(formatPriceInput(row.price))}" />
+                            <input type="hidden" class="row-price-raw" value="${escapeHtml(normalizePriceInput(row.price))}" />
+                            <span class="price-input-suffix">VNĐ</span>
+                        </div>
                         <span class="row-error">${escapeHtml(row.fieldError === "price" ? row.error : "")}</span>
                     </td>
                     <td>
@@ -1030,9 +1230,16 @@
 
             els.batchRowsBody.querySelectorAll("tr").forEach(rowElement => {
                 const index = Number(rowElement.dataset.rowIndex);
-                rowElement.querySelector(".row-time").addEventListener("input", event => updateRowFromInput(index, "time", event.target.value));
+                rowElement.querySelector(".row-time").addEventListener("input", event => {
+                    updateRowFromInput(index, "time", event.target.value);
+                    state.rows[index].roomId = "";
+                    state.rows[index].availability = null;
+                    state.rows[index].availabilityLoading = false;
+                    state.rows[index].availabilityRequestId = (state.rows[index].availabilityRequestId || 0) + 1;
+                    clearTimeout(state.rows[index].availabilityTimer);
+                    state.rows[index].availabilityTimer = setTimeout(() => refreshRowAvailability(index), 300);
+                });
                 rowElement.querySelector(".row-room").addEventListener("change", event => updateRowFromInput(index, "roomId", event.target.value));
-                rowElement.querySelector(".row-price").addEventListener("input", event => updateRowFromInput(index, "price", event.target.value));
                 rowElement.querySelector(".btn-remove-row").addEventListener("click", () => removeRow(index));
             });
 
@@ -1062,18 +1269,6 @@
             if (!els.showtimeDate.value) return "Chưa chọn ngày chiếu.";
             if (!state.rows.length) return "Chưa có dòng suất chiếu.";
             return "";
-        }
-
-        async function getExistingActiveShowtimesByRoom(roomId, date) {
-            const q = query(
-                collection(db, "showtimes"),
-                where("roomId", "==", roomId),
-                where("date", "==", date)
-            );
-            const snap = await getDocs(q);
-            return snap.docs
-                .map(item => ({ id: item.id, ...item.data() }))
-                .filter(st => ["active", "upcoming", "showing"].includes(st.status));
         }
 
         async function validateRowsAndBuildPayloads() {
@@ -1110,7 +1305,11 @@
                     markRowError(index, `Dòng ${index + 1}: Thiếu phòng chiếu.`, "roomId");
                     return;
                 }
-                if (!row.price || price <= 0) {
+                if (!row.price) {
+                    markRowError(index, `Dòng ${index + 1}: Vui lòng nhập giá vé.`, "price");
+                    return;
+                }
+                if (price <= 0) {
                     markRowError(index, `Dòng ${index + 1}: Giá vé phải lớn hơn 0.`, "price");
                     return;
                 }
@@ -1151,27 +1350,15 @@
                 return { ok: false, message: "Các dòng mới đang bị trùng phòng theo thời lượng phim.", payloads: [] };
             }
 
-            const activeRows = status === "active" ? prepared : [];
-            const roomIds = [...new Set(activeRows.map(item => item.room.id))];
-            const existingByRoom = new Map();
-
-            for (const roomId of roomIds) {
-                const showtimes = await getExistingActiveShowtimesByRoom(roomId, date);
-                existingByRoom.set(roomId, showtimes.filter(item =>
-                    item.id !== state.editId &&
-                    (!item.cinemaId || item.cinemaId === state.selectedCinemaId)
-                ));
-            }
-
-            for (const item of activeRows) {
-                const existing = existingByRoom.get(item.room.id) || [];
-                for (const oldShowtime of existing) {
-                    const oldInterval = intervalFromShowtime(oldShowtime);
-                    if (intervalsOverlap(item.interval.startDate, item.interval.endDate, oldInterval.startDate, oldInterval.endDate)) {
-                        const message = `Dòng ${item.index + 1}: ${safe(item.room.name)} đã có suất chiếu từ ${intervalLabel(oldInterval.startAt, oldInterval.endAt)}.`;
-                        markRowError(item.index, message);
-                        break;
-                    }
+            for (const item of prepared) {
+                const availability = item.row.availability;
+                if (!availability || item.row.availabilityKey !== availabilityKey(item.row)) {
+                    markRowError(item.index, `Dòng ${item.index + 1}: Vui lòng chờ hệ thống kiểm tra phòng khả dụng.`, "roomId");
+                    continue;
+                }
+                if (!availability.availableRooms.some(room => room.id === item.room.id)) {
+                    const occupied = availability.occupiedRooms.find(room => room.id === item.room.id);
+                    markRowError(item.index, `Dòng ${item.index + 1}: ${occupied?.reason || "Phòng không khả dụng tại thời gian đã chọn."}`, "roomId");
                 }
             }
 
@@ -1209,8 +1396,7 @@
                     seatColumns: seatConfig.seatColumns,
                     soldSeats: [],
                     vipRows: seatConfig.vipRows,
-                    coupleRows: seatConfig.coupleRows,
-                    updatedAt: serverTimestamp()
+                    coupleRows: seatConfig.coupleRows
                 };
             });
 
@@ -1237,33 +1423,46 @@
             showLoading(true, state.editId ? "Đang cập nhật lịch chiếu..." : "Đang lưu lịch chiếu...");
 
             try {
-                if (state.editId) {
-                    const payload = result.payloads[0];
-                    await updateDoc(doc(db, "showtimes", state.editId), payload);
-                    await window.AeroAdmin?.logActivity?.("update_showtime", "showtimes", state.editId, null, payload);
-                    toast("success", "Thành công", "Lịch chiếu đã được cập nhật.");
-                } else {
-                    const batch = writeBatch(db);
-                    const createdPayloads = [];
+                const token = await getAdminIdToken();
+                const response = await fetch("/Admin/SaveShowtimes", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        movieId: state.selectedMovieId,
+                        cinemaId: state.selectedCinemaId,
+                        showDate: els.showtimeDate.value,
+                        cleaningTime: Math.max(0, toNumber(els.cleaningTime.value, DEFAULT_CLEANING_TIME)),
+                        status: els.showtimeStatus.value || "active",
+                        excludeShowtimeId: state.editId || null,
+                        rows: result.payloads.map(payload => ({
+                            time: payload.time,
+                            roomId: payload.roomId,
+                            price: payload.price
+                        }))
+                    })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.message || "Không thể lưu lịch chiếu.");
 
-                    result.payloads.forEach(payload => {
-                        const docRef = doc(collection(db, "showtimes"));
-                        const fullPayload = {
-                            ...payload,
-                            showtimeId: docRef.id,
-                            createdAt: serverTimestamp(),
-                            updatedAt: serverTimestamp()
-                        };
-                        batch.set(docRef, fullPayload);
-                        createdPayloads.push({ id: docRef.id, data: fullPayload });
-                    });
-
-                    await batch.commit();
-                    for (const item of createdPayloads) {
-                        await window.AeroAdmin?.logActivity?.("create_showtime", "showtimes", item.id, null, item.data);
+                try {
+                    if (state.editId) {
+                        const oldData = state.showtimes.find(item => item.id === state.editId) || null;
+                        await window.AeroAdmin?.logActivity?.("update_showtime", "showtimes", state.editId, oldData, result.payloads[0]);
+                    } else {
+                        for (let index = 0; index < (data.showtimeIds || []).length; index++) {
+                            await window.AeroAdmin?.logActivity?.("create_showtime", "showtimes", data.showtimeIds[index], null, result.payloads[index]);
+                        }
                     }
-                    toast("success", "Thành công", `Đã lưu ${createdPayloads.length} suất chiếu.`);
+                } catch (logError) {
+                    console.warn("Showtime activity log failed:", logError);
                 }
+
+                toast("success", "Thành công", state.editId
+                    ? "Lịch chiếu đã được cập nhật."
+                    : `Đã lưu ${data.savedCount} suất chiếu.`);
 
                 resetForm();
                 await loadData();
@@ -1276,6 +1475,7 @@
         }
 
         function resetForm() {
+            invalidateRoomAvailability();
             state.selectedMovieId = "";
             state.selectedCinemaId = "";
             state.editId = "";
@@ -1322,9 +1522,9 @@
                     (!cinemaId || item.cinemaId === cinemaId) &&
                     (!status || normalize(item.status) === status);
             }).sort((a, b) => {
-                const startA = a.startAt || `${a.date || ""}T${a.time || "00:00"}:00`;
-                const startB = b.startAt || `${b.date || ""}T${b.time || "00:00"}:00`;
-                return startB.localeCompare(startA);
+                const startA = dateFromFlexible(a.startAt) || createLocalDate(a.date, a.time || "00:00");
+                const startB = dateFromFlexible(b.startAt) || createLocalDate(b.date, b.time || "00:00");
+                return (startB?.getTime() || 0) - (startA?.getTime() || 0);
             });
 
             state.page = 1;
@@ -1426,7 +1626,9 @@
                 time: showtime.time || "",
                 roomId: showtime.roomId || "",
                 price: showtime.price || "",
-                error: ""
+                error: "",
+                availability: null,
+                availabilityLoading: false
             }];
 
             els.formTitle.textContent = "Chỉnh sửa lịch chiếu";
@@ -1440,6 +1642,7 @@
             renderMoviePicker();
             renderCinemaOptions();
             renderSelectionSummaries();
+            refreshAllRoomAvailability(false);
             document.getElementById("showtimeStudio").scrollIntoView({ behavior: "smooth", block: "start" });
         }
 
@@ -1530,19 +1733,36 @@
         }
 
         function bindEvents() {
+            els.batchRowsBody.addEventListener("beforeinput", event => {
+                if (!event.target.matches(".row-price-display") || !event.data) return;
+                if (!/^[\d.]+$/.test(event.data)) event.preventDefault();
+            });
+            els.batchRowsBody.addEventListener("input", event => {
+                if (event.target.matches(".row-price-display")) handlePriceInput(event.target);
+            });
+            els.batchRowsBody.addEventListener("change", event => {
+                if (event.target.matches(".row-price-display")) handlePriceInput(event.target);
+            });
             els.movieSearchInput.addEventListener("input", renderMoviePicker);
             els.cinemaSearchInput.addEventListener("input", renderCinemaOptions);
             els.cinemaSelect.addEventListener("change", event => {
                 state.selectedCinemaId = event.target.value;
-                state.rows.forEach(row => {
-                    row.roomId = "";
-                    row.error = "";
-                    row.fieldError = "";
-                });
+                invalidateRoomAvailability(true);
+                state.rows.forEach(row => { row.error = ""; row.fieldError = ""; });
                 renderSelectionSummaries();
+                refreshAllRoomAvailability();
             });
-            els.showtimeDate.addEventListener("change", renderRows);
-            els.cleaningTime.addEventListener("input", renderRows);
+            els.showtimeDate.addEventListener("change", () => {
+                invalidateRoomAvailability(true);
+                renderRows();
+                refreshAllRoomAvailability();
+            });
+            els.cleaningTime.addEventListener("input", () => {
+                invalidateRoomAvailability(true);
+                renderRows();
+                clearTimeout(els.cleaningTime.availabilityTimer);
+                els.cleaningTime.availabilityTimer = setTimeout(() => refreshAllRoomAvailability(), 300);
+            });
             els.btnAddRow.addEventListener("click", () => addRow());
             els.btnSaveBatch.addEventListener("click", saveBatch);
             els.btnResetForm.addEventListener("click", resetForm);
