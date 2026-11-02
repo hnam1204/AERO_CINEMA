@@ -370,7 +370,7 @@ namespace CINEMABOOKING.Services
                 var showtimeId = isEdit ? request.ExcludeShowtimeId : Guid.NewGuid().ToString("N");
                 var fields = BuildShowtimeFields(showtimeId, request, row, movie, cinema, duration, cleaningTime, !isEdit);
                 var update = new JObject(
-                    new JProperty("name", DocumentName(projectId, "showtimes", showtimeId)),
+                    new JProperty("name", DocumentResourceName(projectId, "showtimes", showtimeId)),
                     new JProperty("fields", fields));
                 var write = new JObject(new JProperty("update", update));
 
@@ -535,7 +535,7 @@ namespace CINEMABOOKING.Services
 
         private static async Task<JToken> GetDocumentAsync(HttpClient client, string projectId, string collectionId, string documentId)
         {
-            var response = await client.GetAsync(DocumentName(projectId, collectionId, documentId));
+            var response = await client.GetAsync(DocumentUrl(projectId, collectionId, documentId));
             await EnsureSuccessAsync(response, "Không tìm thấy " + collectionId + "/" + documentId);
             return JObject.Parse(await response.Content.ReadAsStringAsync());
         }
@@ -590,7 +590,16 @@ namespace CINEMABOOKING.Services
             return "https://firestore.googleapis.com/v1/projects/" + projectId + "/databases/(default)/documents";
         }
 
-        private static string DocumentName(string projectId, string collectionId, string documentId)
+        private static string DocumentResourceName(string projectId, string collectionId, string documentId)
+        {
+            return "projects/" + projectId
+                + "/databases/(default)/documents/"
+                + Uri.EscapeDataString(collectionId)
+                + "/"
+                + Uri.EscapeDataString(documentId);
+        }
+
+        private static string DocumentUrl(string projectId, string collectionId, string documentId)
         {
             return FirestoreBase(projectId) + "/" + Uri.EscapeDataString(collectionId) + "/" + Uri.EscapeDataString(documentId);
         }

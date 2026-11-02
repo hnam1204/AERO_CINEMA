@@ -439,25 +439,14 @@
 
     <section class="showtime-studio" id="showtimeStudio">
         <div class="showtime-studio-header">
-            <div>
-                <h2 id="formTitle">Thêm lịch chiếu</h2>
-                <p>Chọn phim, chọn rạp và ngày, sau đó thêm một hoặc nhiều khung giờ. Mỗi dòng sẽ được kiểm tra dữ liệu, trùng dòng mới và trùng suất đã có trên Firestore.</p>
-            </div>
             <button type="button" class="admin-btn showtime-btn-linkish" id="btnResetForm">
                 <i class="fas fa-rotate-left"></i> Làm mới form
             </button>
         </div>
 
-        <div class="showtime-steps">
-            <div class="showtime-step"><span>1</span> Chọn phim</div>
-            <div class="showtime-step"><span>2</span> Chọn rạp và ngày</div>
-            <div class="showtime-step"><span>3</span> Thêm khung giờ</div>
-        </div>
-
         <div class="showtime-form-grid">
             <div class="showtime-panel">
                 <div class="showtime-panel-header">
-                    <h3>Chọn phim</h3>
                     <span class="admin-badge secondary" id="movieCountBadge">0 phim</span>
                 </div>
                 <div class="showtime-panel-body">
@@ -474,7 +463,6 @@
 
             <div class="showtime-panel">
                 <div class="showtime-panel-header">
-                    <h3>Chọn rạp và ngày</h3>
                     <span class="admin-badge secondary" id="roomCountBadge">0 phòng</span>
                 </div>
                 <div class="showtime-panel-body">
@@ -512,10 +500,6 @@
 
         <div class="showtime-rows-card">
             <div class="showtime-rows-header">
-                <div>
-                    <h3>Bảng thêm suất chiếu</h3>
-                    <p class="showtime-rows-note">Mỗi dòng gồm thời gian chiếu, phòng và giá vé. Nút lưu sẽ ghi nhiều document showtimes bằng batch write.</p>
-                </div>
                 <button type="button" class="admin-btn showtime-btn-linkish" id="btnAddRow">
                     <i class="fas fa-plus"></i> Thêm dòng suất chiếu
                 </button>
@@ -543,9 +527,6 @@
                 <button type="button" class="admin-btn showtime-btn-primary" id="btnSaveBatch">
                     <i class="fas fa-save"></i> Lưu tất cả suất chiếu
                 </button>
-            </div>
-            <div class="showtime-index-note">
-                Index khuyến nghị cho kiểm tra trùng lịch: showtimes(roomId ASC, date ASC, status ASC).
             </div>
         </div>
     </section>
@@ -652,7 +633,6 @@
 
         const els = {
             lastUpdated: document.getElementById("lastUpdated"),
-            formTitle: document.getElementById("formTitle"),
             movieSearchInput: document.getElementById("movieSearchInput"),
             moviePickerList: document.getElementById("moviePickerList"),
             selectedMovieSummary: document.getElementById("selectedMovieSummary"),
@@ -1480,7 +1460,6 @@
             state.selectedCinemaId = "";
             state.editId = "";
             state.rows = [createEmptyRow()];
-            els.formTitle.textContent = "Thêm lịch chiếu";
             els.movieSearchInput.value = "";
             els.cinemaSearchInput.value = "";
             els.cinemaSelect.value = "";
@@ -1631,7 +1610,6 @@
                 availabilityLoading: false
             }];
 
-            els.formTitle.textContent = "Chỉnh sửa lịch chiếu";
             els.movieSearchInput.value = "";
             els.cinemaSearchInput.value = "";
             els.cinemaSelect.value = state.selectedCinemaId;

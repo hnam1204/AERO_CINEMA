@@ -206,22 +206,19 @@
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import {
-            getFirestore,
+            initializeFirestore,
+            persistentLocalCache,
             doc,
             getDoc,
             collection,
             addDoc,
-            serverTimestamp,
-            enableIndexedDbPersistence
+            serverTimestamp
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const app = getApps().length ? getApp() : initializeApp(window.firebaseConfig);
         const auth = window.auth || getAuth(app);
-        const db = window.db || getFirestore(app);
-
-        // Enable offline persistence to optimize Firestore reads
-        enableIndexedDbPersistence(db).catch((err) => {
-            console.warn("Firestore offline persistence failed:", err.code);
+        const db = window.db || initializeFirestore(app, {
+            localCache: persistentLocalCache()
         });
 
         window.firebaseApp = app;
